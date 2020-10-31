@@ -149,10 +149,19 @@ Installation of use-package.
    (use-package doom-modeline
      :init (doom-modeline-mode 1)
      :custom 
-       (doom-modeline-height 15)
-       (display-battery-mode t)
-       (display-time-mode t))
+       (doom-modeline-height 15))
+
+    (display-battery-mode t)
+    (display-time-mode t)  
    #+end_src
+** Sublimity
+#+begin_src emacs-lisp
+(use-package sublimity
+  :init
+  (require 'sublimity-scroll)
+  :config
+  (sublimity-mode 1))
+#+end_src
 ** Treemacs
 #+begin_src emacs-lisp
 (use-package treemacs)
