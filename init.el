@@ -53,19 +53,16 @@
 ;; Set the variable pitch face
 (set-face-attribute 'variable-pitch nil :font "Fira Code NF" :height he/default-variable-font-size :weight 'regular)
 
-;; Make ESC quit prompts
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
 (use-package general
   :config
+  (general-override-mode +1)
   (general-create-definer he/leader-keys
-    :keymaps '(normal insert visual emacs)
+    :states '(normal insert visual emacs treemacs)
+    :keymap 'override
     :prefix "SPC"
-    :global-prefix "C-SPC")
-
-  (he/leader-keys
-    "t"  '(:ignore t :which-key "toggles")
-    "tt" '(counsel-load-theme :which-key "choose theme")))
+    :non-normal-prefix "C-SPC"))
 
 (use-package evil
   :init
