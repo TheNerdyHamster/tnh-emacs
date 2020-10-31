@@ -87,6 +87,30 @@
   :config
   (evil-collection-init))
 
+(he/leader-keys
+ ;; General
+ "/"  '(evilnc-comment-or-uncomment-lines :which-key "Comment")
+ "s"  '(swiper :which-key "Search file")
+ "."  '(counsel-find-file :which-key "Find file")
+ "<"  '(counsel-switch-buffer :which-key "Switch buffer")
+ "SPC"'(counsel-projectile-find-file :which-key "Find project file")
+ ;; Buffer
+ "b"  '(:ignore b :which-key "buffer")
+ "bs" '(save-buffer :which-key "Save buffer")
+ "bn" '(evil-next-buffer :which-key "Next buffer")
+ "bp" '(evil-prev-buffer :which-key "Prev buffer")
+ "bk" '(kill-buffer :which-key "Kill buffer")
+ ;; Open
+ "o"  '(:ignore o :which-key "open")
+ "op" '(treemacs :which-key "treemacs")
+                                        ;: Org
+ "O"  '(:ignore O :which-key "org")
+ "Oa" '(org-agenda :which-key "Agenda")
+ ;; Toggle
+ "t"  '(:ignore t :which-key "toggle")
+ ;; Window
+ "w"  '(:ignore w :which-key "window"))
+
 (use-package doom-themes
   :init (load-theme 'doom-dracula t))
 
@@ -98,9 +122,16 @@
 (use-package doom-modeline
   :init (doom-modeline-mode 1)
   :custom 
-    (doom-modeline-height 15)
-    (display-battery-mode t)
-    (display-time-mode t))
+    (doom-modeline-height 15))
+
+ (display-battery-mode t)
+ (display-time-mode t)
+
+(use-package sublimity
+  :init
+  (require 'sublimity-scroll)
+  :config
+  (sublimity-mode 1))
 
 (use-package treemacs)
 
@@ -109,6 +140,15 @@
 
 (use-package treemacs-projectile
   :after treemacs)
+
+(use-package centaur-tabs
+  :demand
+  :init
+  (setq centaur-tabs-style "bar"
+    centaur-tabs-set-icons t
+    centaur-tabs-set-close-button nil)
+  :config
+  (centaur-tabs-mode t))
 
 (use-package dashboard
   :ensure t
