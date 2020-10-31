@@ -172,6 +172,18 @@ Installation of use-package.
 (use-package treemacs-projectile
   :after treemacs)
 #+end_src
+** Centaur tabs
+#+begin_src emacs-lisp
+(use-package centaur-tabs
+  :demand
+  :init
+  (setq centaur-tabs-style "bar"
+    centaur-tabs-set-icons t
+    centaur-tabs-set-close-button nil)
+  :config
+  (centaur-tabs-mode t))
+
+#+end_src
 ** Dashboard
 #+begin_src emacs-lisp
 (use-package dashboard
