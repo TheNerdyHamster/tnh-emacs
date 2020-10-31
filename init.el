@@ -40,7 +40,7 @@
 (dolist (mode '(org-mode-hook
                 term-mode-hook
                 shell-mode-hook
-	        treemacs-mode-hook
+	          treemacs-mode-hook
                 eshell-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 ;(setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
@@ -100,7 +100,10 @@
 
 (use-package doom-modeline
   :init (doom-modeline-mode 1)
-  :custom ((doom-modeline-height 15)))
+  :custom 
+    (doom-modeline-height 15)
+    (display-battery-mode t)
+    (display-time-mode t))
 
 (use-package treemacs)
 
@@ -445,8 +448,7 @@
 ;; - https://magit.vc/manual/ghub/Getting-Started.html#Getting-Started
 (use-package forge)
 
-(use-package evil-nerd-commenter
- :bind ("M-/" . evilnc-comment-or-uncomment-lines))
+(use-package evil-nerd-commenter)
 
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))

@@ -54,12 +54,12 @@ Installation of use-package.
  (dolist (mode '(org-mode-hook
                  term-mode-hook
                  shell-mode-hook
-	         treemacs-mode-hook
+	           treemacs-mode-hook
                  eshell-mode-hook))
    (add-hook mode (lambda () (display-line-numbers-mode 0))))
  ;(setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
   #+END_SRC
-** Font 
+** TODO Font 
    #+begin_src emacs-lisp
 (set-face-attribute 'default nil :font "Fira Code NF" :height he/default-font-size)
 
@@ -125,7 +125,10 @@ Installation of use-package.
    
    (use-package doom-modeline
      :init (doom-modeline-mode 1)
-     :custom ((doom-modeline-height 15)))
+     :custom 
+       (doom-modeline-height 15)
+       (display-battery-mode t)
+       (display-time-mode t))
    #+end_src
 ** Treemacs
 #+begin_src emacs-lisp
@@ -509,8 +512,7 @@ Installation of use-package.
    #+end_src
 ** Comments
    #+begin_src emacs-lisp
- (use-package evil-nerd-commenter
-  :bind ("M-/" . evilnc-comment-or-uncomment-lines))  
+ (use-package evil-nerd-commenter)
    #+end_src
 ** Rainbow Delimiters
    #+begin_src emacs-lisp
