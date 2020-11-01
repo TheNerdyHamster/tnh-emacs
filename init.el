@@ -19,6 +19,15 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 
+(use-package exwm)
+(exwm-enable)
+
+(setq user-emacs-directory "~/.cache/emacs/"
+      backup-directory-alist `(("." . ,(expand-file-name "backups" user-emacs-directory)))
+      url-history-file (expand-file-name "url/history" user-emacs-directory)
+      auto-save-list-file-prefix (expand-file-name "auto-save-list/.saves-" user-emacs-directory)
+      projectile-known-projects-file (expand-file-name "projectile-bookmarks.eld" user-emacs-directory))
+
 (setq inhibit-startup-message t)
 (setq initial-buffer-choice "*dashboard*")
 
@@ -212,7 +221,24 @@
          ("C-r" . 'counsel-minibuffer-history))
   :config
   (setq ivy-initial-inputs-alist nil)
-  (counsel-mode 1))
+  (counsel-mode 1)) 
+
+(use-package smex 
+  :defer 1
+  :after counsel)
+
+(use-package ivy-posframe
+  :custom
+  (ivy-posframe-width      115)
+  (ivy-posframe-min-width  115)
+  (ivy-posframe-height     10)
+  (ivy-posframe-min-height 10)
+  :config
+  (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-center)))
+  (setq ivy-posframe-parameters '((parent-frame . nil)
+                                  (left-fringe . 8)
+                                  (right-fringe . 8)))
+   (ivy-posframe-mode 1))
 
 (use-package helpful
  :custom
@@ -414,6 +440,12 @@
 
 (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'he/org-babel-tangle-config)))
 
+(use-package typescript-mode
+  :mode "\\.ts\\'"
+  :hook (typescript-mode . lsp-deferred)
+  :config
+  (setq typescript-indent-level 2))
+
 (defun he/lsp-mode-setup ()
   (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
   (lsp-headerline-breadcrumb-mode))
@@ -453,12 +485,6 @@
 (use-package company-box
   :hook (company-mode . company-box-mode))
 
-(use-package typescript-mode
-  :mode "\\.ts\\'"
-  :hook (typescript-mode . lsp-deferred)
-  :config
-  (setq typescript-indent-level 2))
-
 (use-package projectile
   :diminish projectile-mode
   :config (projectile-mode)
@@ -487,6 +513,8 @@
 (use-package forge)
 
 (use-package evil-nerd-commenter)
+
+(use-package expand-region)
 
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
