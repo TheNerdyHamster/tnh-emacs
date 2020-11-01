@@ -1,5 +1,5 @@
-#+TITLE Hamster Emacs Configuration
-#+AUTHOR Lilahamstern
+#+TITLE: Hamster Emacs Configuration
+#+AUTHOR: Lilahamstern
 #+PROPERTY: header-args:emacs-lisp :tangle ./init.el :mkdirp yes
 
 * Variabels
