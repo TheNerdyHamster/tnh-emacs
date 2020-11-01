@@ -103,6 +103,7 @@
  ;; Open
  "o"  '(:ignore o :which-key "open")
  "op" '(treemacs :which-key "treemacs")
+ "od" '(docker :which-key "docker")
                                         ;: Org
  "O"  '(:ignore O :which-key "org")
  "Oa" '(org-agenda :which-key "Agenda")
@@ -489,3 +490,6 @@
 
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
+
+(use-package docker
+  :ensure t)
