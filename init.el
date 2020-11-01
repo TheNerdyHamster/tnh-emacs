@@ -36,15 +36,16 @@
 
 (exwm-enable))
 
-;; (use-package exwm-systemtray
-;;   :after (exwm)
-;;   :config
-;;   (exwm-systemtray-enable)
-;;   (setq exwm-systemtray-height 35))
-;; (setq exwm-input-global-keys `(,(kbd "s-&") .
-;;                                (lambda (command)
-;;                                  (interactive (list (read-shell-command "$ ")))
-;;                                  (start-process-shell-command command nil command))))
+(setq exwm-input-prefix-keys
+      '(?\C-x
+        ?\C-h
+        ?\M-x
+        ?\M-&     ;; Async shell command
+        ?\M-:     ;; Eval
+        ?\C-\M-j  ;; Buffer list
+        ?\C-\M-k  ;; Browser list
+        ?\C-\     ;; Ctrl+Space
+        ?\C-\;))
 
 (setq user-emacs-directory "~/.cache/emacs/"
       backup-directory-alist `(("." . ,(expand-file-name "backups" user-emacs-directory)))
@@ -86,6 +87,26 @@
 ;; Set the variable pitch face
 (set-face-attribute 'variable-pitch nil :font "Fira Code NF" :height he/default-variable-font-size :weight 'regular)
 
+(use-package ligature
+  :load-path "/home/lilahamstern/.emacs.d/github/ligature.el"
+  :config
+  ;; Enable the www ligature in every possible major mode
+  (ligature-set-ligatures 't '("www"))
+
+  ;; Enable ligatures in programming modes                                                           
+  (ligature-set-ligatures 'prog-mode '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\" "{-" "::"
+  ":::" ":=" "!!" "!=" "!==" "-}" "----" "-->" "->" "->>"
+  "-<" "-<<" "-~" "#{" "#[" "##" "###" "####" "#(" "#?" "#_"
+  "#_(" ".-" ".=" ".." "..<" "..." "?=" "??" ";;" "/*" "/**"
+  "/=" "/==" "/>" "//" "///" "&&" "||" "||=" "|=" "|>" "^=" "$>"
+  "++" "+++" "+>" "=:=" "==" "===" "==>" "=>" "=>>" "<="
+  "=<<" "=/=" ">-" ">=" ">=>" ">>" ">>-" ">>=" ">>>" "<*"
+  "<*>" "<|" "<|>" "<$" "<$>" "<!--" "<-" "<--" "<->" "<+"
+  "<+>" "<=" "<==" "<=>" "<=<" "<>" "<<" "<<-" "<<=" "<<<"
+  "<~" "<~~" "</" "</>" "~@" "~-" "~>" "~~" "~~>" "%%"))
+
+  (global-ligature-mode 't))
+
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 (global-unset-key (kbd "C-SPC"))
 
@@ -102,12 +123,18 @@
     :global-prefix "C-SPC"
     :non-normal-prefix "C-SPC"))
 
+(use-package undo-tree
+  :ensure t
+  :config
+  (global-undo-tree-mode))
+
 (use-package evil
   :init
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
   (setq evil-want-C-u-scroll t)
   (setq evil-want-C-i-jump nil)
+  (setq evil-undo-system t)
   :config
   (evil-mode 1)
   (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
@@ -148,7 +175,17 @@
  ;; Toggle
  "t"  '(:ignore t :which-key "toggle")
  ;; Window
- "w"  '(:ignore w :which-key "window"))
+ "w"  '(:ignore w :which-key "window")
+ 
+ "tab" '(:ignore tab :which-key "Workspaces")
+ "<tab>s" '(exwm-workspace-switch :which-key "Switch workspace")
+ "<tab>1" (lambda () (interactive) (exwm-workspace-switch 0) :which-key "Workspace 1")
+ "<tab>2" (lambda () (interactive) (exwm-workspace-switch 1) :which-key "Workspace 2")
+ "<tab>3" (lambda () (interactive) (exwm-workspace-switch 2) :which-key "Workspace 3")
+ "<tab>4" (lambda () (interactive) (exwm-workspace-switch 3) :which-key "Workspace 1")
+ "<tab>5" (lambda () (interactive) (exwm-workspace-switch 4) :which-key "Workspace 5")
+ "<tab>m" '(exwm-workspace-move-window :which-key "Move window to workspace")
+ )
 
 (use-package doom-themes
   :init (load-theme 'doom-dracula t))
@@ -550,16 +587,7 @@
 
 (use-package docker
   :ensure t)
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   '(ligature ligatures\.el elcord undo-tree which-key visual-fill-column use-package typescript-mode treemacs-projectile treemacs-evil sublimity smex rainbow-delimiters org-bullets lsp-ui lsp-treemacs lsp-ivy ivy-rich ivy-posframe helpful general forge exwm expand-region evil-nerd-commenter evil-magit evil-collection doom-themes doom-modeline docker dashboard counsel-projectile company-box command-log-mode centaur-tabs)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+
+(use-package elcord
+  :config
+  (elcord-mode 1))
