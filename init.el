@@ -19,8 +19,32 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 
-(use-package exwm)
-(exwm-enable)
+(use-package exwm
+  :init
+  (setq mouse-autoselect-window nil
+        focus-follow-mouse t
+        exwm-workspace-warp-cursor t
+        exwm-workspace-number 5)
+  :config
+  (add-hook 'exwm-update-class-hook
+            (lambda ()
+              (exwm-workspace-rename-buffer exwm-class-name)))
+  (add-hook 'exwm-update-title-hook
+            (lambda ()
+              (when (string-equal exwm-class-name "Vimb")
+                (exwm-workspace-rename-buffer (format "vimb: %s" exwm-title)))))
+
+(exwm-enable))
+
+;; (use-package exwm-systemtray
+;;   :after (exwm)
+;;   :config
+;;   (exwm-systemtray-enable)
+;;   (setq exwm-systemtray-height 35))
+;; (setq exwm-input-global-keys `(,(kbd "s-&") .
+;;                                (lambda (command)
+;;                                  (interactive (list (read-shell-command "$ ")))
+;;                                  (start-process-shell-command command nil command))))
 
 (setq user-emacs-directory "~/.cache/emacs/"
       backup-directory-alist `(("." . ,(expand-file-name "backups" user-emacs-directory)))
@@ -63,14 +87,19 @@
 (set-face-attribute 'variable-pitch nil :font "Fira Code NF" :height he/default-variable-font-size :weight 'regular)
 
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+(global-unset-key (kbd "C-SPC"))
+
 
 (use-package general
   :config
+  
   (general-override-mode +1)
+
   (general-create-definer he/leader-keys
     :states '(normal insert visual emacs treemacs)
     :keymap 'override
     :prefix "SPC"
+    :global-prefix "C-SPC"
     :non-normal-prefix "C-SPC"))
 
 (use-package evil
@@ -521,3 +550,16 @@
 
 (use-package docker
   :ensure t)
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   '(ligature ligatures\.el elcord undo-tree which-key visual-fill-column use-package typescript-mode treemacs-projectile treemacs-evil sublimity smex rainbow-delimiters org-bullets lsp-ui lsp-treemacs lsp-ivy ivy-rich ivy-posframe helpful general forge exwm expand-region evil-nerd-commenter evil-magit evil-collection doom-themes doom-modeline docker dashboard counsel-projectile company-box command-log-mode centaur-tabs)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
