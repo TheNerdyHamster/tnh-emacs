@@ -30,8 +30,12 @@ Installation of use-package.
 (setq use-package-always-ensure t)
 #+end_src
 
-* EXWM
+* Desktop enviorment
 #+begin_src emacs-lisp
+(setq he/exwm-enabled (and (eq window-system 'x)
+                           (seq-contains command-line-args "--use-exwm")))
+
+(when he/exwm-enabled
 (use-package exwm
   :init
   (setq mouse-autoselect-window nil
@@ -58,7 +62,7 @@ Installation of use-package.
         ?\C-\M-j  ;; Buffer list
         ?\C-\M-k  ;; Browser list
         ?\C-\     ;; Ctrl+Space
-        ?\C-\;))
+        ?\C-\;)))
 #+end_src
 * Keep .emacs.d clean
 #+begin_src emacs-lisp
@@ -82,7 +86,7 @@ Installation of use-package.
  (menu-bar-mode -1)            ; Disable the menu bar
 
  ;; Set up the visible bell
- (setq visible-bell t)
+;; (setq visible-bell t)
 
  (global-hl-line-mode +1)    ; Enable line highlight
  (column-number-mode)
@@ -95,6 +99,8 @@ Installation of use-package.
 	           treemacs-mode-hook
                  eshell-mode-hook))
    (add-hook mode (lambda () (display-line-numbers-mode 0))))
+(setq read-process-output-max (* 1024 1024))
+(setq gc-cons-threshold 100000000)
  ;(setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
   #+END_SRC
 ** TODO Font 
@@ -108,7 +114,7 @@ Installation of use-package.
 (set-face-attribute 'variable-pitch nil :font "Fira Code NF" :height he/default-variable-font-size :weight 'regular)
 
 (use-package ligature
-  :load-path "/home/lilahamstern/.emacs.d/github/ligature.el"
+  :load-path "~/.emacs.d/github/ligature"
   :config
   ;; Enable the www ligature in every possible major mode
   (ligature-set-ligatures 't '("www"))
@@ -126,7 +132,7 @@ Installation of use-package.
   "<~" "<~~" "</" "</>" "~@" "~-" "~>" "~~" "~~>" "%%"))
 
   (global-ligature-mode 't))
-   #+end_src
+#+end_src
 * Keybinding Configuration  
   #+begin_src emacs-lisp
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
@@ -156,7 +162,6 @@ Installation of use-package.
   (setq evil-want-keybinding nil)
   (setq evil-want-C-u-scroll t)
   (setq evil-want-C-i-jump nil)
-  (setq evil-undo-system t)
   :config
   (evil-mode 1)
   (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
@@ -184,30 +189,34 @@ Installation of use-package.
  "<"  '(counsel-switch-buffer :which-key "Switch buffer")
  "SPC"'(counsel-projectile-find-file :which-key "Find project file")
  ;; Buffer
- "b"  '(:ignore b :which-key "buffer")
+ "b"  '(:ignore t :which-key "buffer")
  "bs" '(save-buffer :which-key "Save buffer")
  "bn" '(evil-next-buffer :which-key "Next buffer")
  "bp" '(evil-prev-buffer :which-key "Prev buffer")
  "bk" '(kill-buffer :which-key "Kill buffer")
+ ;; Magit/Git
+ "g"  '(:ignore t :which-key "Git")
+ "gs" '(magit :which-key "Git status")
  ;; Open
- "o"  '(:ignore o :which-key "open")
+ "o"  '(:ignore t :which-key "open")
+ "oa"  '(counsel-linux-app :which-key "Application")
  "op" '(treemacs :which-key "treemacs")
  "od" '(docker :which-key "docker")
-                                        ;: Org
- "O"  '(:ignore O :which-key "org")
+ ;: Org
+ "O"  '(:ignore t :which-key "org")
  "Oa" '(org-agenda :which-key "Agenda")
  ;; Toggle
  "t"  '(:ignore t :which-key "toggle")
  ;; Window
- "w"  '(:ignore w :which-key "window")
+ "w"  '(:ignore t :which-key "window")
  
- "tab" '(:ignore tab :which-key "Workspaces")
+ "tab" '(:ignore t :which-key "Workspaces")
  "<tab>s" '(exwm-workspace-switch :which-key "Switch workspace")
- "<tab>1" (lambda () (interactive) (exwm-workspace-switch 0) :which-key "Workspace 1")
- "<tab>2" (lambda () (interactive) (exwm-workspace-switch 1) :which-key "Workspace 2")
- "<tab>3" (lambda () (interactive) (exwm-workspace-switch 2) :which-key "Workspace 3")
- "<tab>4" (lambda () (interactive) (exwm-workspace-switch 3) :which-key "Workspace 1")
- "<tab>5" (lambda () (interactive) (exwm-workspace-switch 4) :which-key "Workspace 5")
+ "<tab>1" '((lambda () (interactive) (exwm-workspace-switch 0)) :which-key "Workspace 1")
+ "<tab>2" '((lambda () (interactive) (exwm-workspace-switch 1)) :which-key "Workspace 2")
+ "<tab>3" '((lambda () (interactive) (exwm-workspace-switch 2)) :which-key "Workspace 3")
+ "<tab>4" '((lambda () (interactive) (exwm-workspace-switch 3)) :which-key "Workspace 1")
+ "<tab>5" '((lambda () (interactive) (exwm-workspace-switch 4)) :which-key "Workspace 5")
  "<tab>m" '(exwm-workspace-move-window :which-key "Move window to workspace")
  )
 #+end_src
@@ -236,11 +245,11 @@ Installation of use-package.
    #+end_src
 ** Sublimity
 #+begin_src emacs-lisp
-(use-package sublimity
-  :init
-  (require 'sublimity-scroll)
-  :config
-  (sublimity-mode 1))
+;; (use-package sublimity
+;;   :init
+;;   (require 'sublimity-scroll)
+;;   :config
+;;   (sublimity-mode 1))
 #+end_src
 ** Treemacs
 #+begin_src emacs-lisp
@@ -362,6 +371,13 @@ Installation of use-package.
   ([remap describe-variable] . counsel-describe-variable)
   ([remap describe-key] . helpful-key))  
    #+end_src
+* Debug info
+#+begin_src emacs-lisp
+;; (setq max-lisp-eval-depth 10000)
+;; (setq max-specpdl-size 5)  ; default is 1000, reduce the backtrace level
+;; (setq debug-on-error t)
+
+#+end_src
 * Org Mode 
 ** Custom Font Faces 
    #+begin_src emacs-lisp
@@ -560,24 +576,26 @@ Installation of use-package.
    #+begin_src emacs-lisp
 (defun he/org-babel-tangle-config ()
   (when (string-equal (buffer-file-name)
-                      (expand-file-name "~/Emacs/hamster-emacs/Emacs.org"))
+                      (expand-file-name "~/.emacs.d/Emacs.org"))
     ;; Dynamic scoping to the rescue
     (let ((org-confirm-babel-evaluate nil))
       (org-babel-tangle))))
 
 (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'he/org-babel-tangle-config)))
    #+end_src
-* Development 
-** Languages
-*** Typescript
+* Editor configuration
+** Tab width
 #+begin_src emacs-lisp
-(use-package typescript-mode
-  :mode "\\.ts\\'"
-  :hook (typescript-mode . lsp-deferred)
-  :config
-  (setq typescript-indent-level 2))
+(setq-default tab-width 2)
+(setq-default evil-shift-width tab-width)
 #+end_src
+** Spaces instead of tabs for indention
+#+begin_src emacs-lisp
+(setq-default indent-tabs-mode nil)
+#+end_src
+* Development 
 ** Language Servers
+*** LSP Mode
 #+begin_src emacs-lisp
 (defun he/lsp-mode-setup ()
   (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
@@ -591,9 +609,7 @@ Installation of use-package.
   :config
   (lsp-enable-which-key-integration t))
 
-(setq gc-cons-threshold 100000000)
-(setq read-process-output-max (* 1024 1024))
-  
+ 
 (use-package lsp-ui
   :hook (lsp-mode . lsp-ui-mode))
   ;; :custom
@@ -619,6 +635,28 @@ Installation of use-package.
 
 (use-package company-box
   :hook (company-mode . company-box-mode))
+#+end_src
+** Languages
+*** Typescript
+#+begin_src emacs-lisp
+(use-package typescript-mode
+  :mode "\\.ts\\'"
+  :hook (typescript-mode . lsp-deferred)
+  :config
+  (setq typescript-indent-level 2))
+#+end_src
+*** Golang
+#+begin_src emacs-lisp
+;; (defun lsp-go-install-save-hooks ()
+;;   (add-hook 'before-save-hook #'lsp-format-buffer t t)
+;;   (add-hook 'before-save-hook #'lsp-organize-imports t t))
+
+;; (use-package go-mode
+;;   :mode "\\.go\\'"
+;;   :hook (go-mode . (lsp-deferred lsp-go-install-save-hooks)))
+(use-package go-mode
+  :mode "\\.go\\'"
+  :hook (go-mode . lsp-deferred))
 #+end_src
 ** Projectile 
    #+begin_src emacs-lisp

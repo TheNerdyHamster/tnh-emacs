@@ -19,6 +19,10 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 
+(setq he/exwm-enabled (and (eq window-system 'x)
+                           (seq-contains command-line-args "--use-exwm")))
+
+(when he/exwm-enabled
 (use-package exwm
   :init
   (setq mouse-autoselect-window nil
@@ -45,7 +49,7 @@
         ?\C-\M-j  ;; Buffer list
         ?\C-\M-k  ;; Browser list
         ?\C-\     ;; Ctrl+Space
-        ?\C-\;))
+        ?\C-\;)))
 
 (setq user-emacs-directory "~/.cache/emacs/"
       backup-directory-alist `(("." . ,(expand-file-name "backups" user-emacs-directory)))
@@ -54,30 +58,32 @@
       projectile-known-projects-file (expand-file-name "projectile-bookmarks.eld" user-emacs-directory))
 
 (setq inhibit-startup-message t)
-(setq initial-buffer-choice "*dashboard*")
+ (setq initial-buffer-choice "*dashboard*")
 
-(scroll-bar-mode -1)        ; Disable visible scrollbar
-(tool-bar-mode -1)          ; Disable the toolbar
-(tooltip-mode -1)           ; Disable tooltips
-(set-fringe-mode 10)        ; Give some breathing room
+ (scroll-bar-mode -1)        ; Disable visible scrollbar
+ (tool-bar-mode -1)          ; Disable the toolbar
+ (tooltip-mode -1)           ; Disable tooltips
+ (set-fringe-mode 10)        ; Give some breathing room
 
-(menu-bar-mode -1)            ; Disable the menu bar
+ (menu-bar-mode -1)            ; Disable the menu bar
 
-;; Set up the visible bell
-(setq visible-bell t)
+ ;; Set up the visible bell
+;; (setq visible-bell t)
 
-(global-hl-line-mode +1)    ; Enable line highlight
-(column-number-mode)
-(global-display-line-numbers-mode t)
+ (global-hl-line-mode +1)    ; Enable line highlight
+ (column-number-mode)
+ (global-display-line-numbers-mode t)
 
-;; Disable line numbers for some modes
-(dolist (mode '(org-mode-hook
-                term-mode-hook
-                shell-mode-hook
-	          treemacs-mode-hook
-                eshell-mode-hook))
-  (add-hook mode (lambda () (display-line-numbers-mode 0))))
-;(setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+ ;; Disable line numbers for some modes
+ (dolist (mode '(org-mode-hook
+                 term-mode-hook
+                 shell-mode-hook
+	           treemacs-mode-hook
+                 eshell-mode-hook))
+   (add-hook mode (lambda () (display-line-numbers-mode 0))))
+(setq read-process-output-max (* 1024 1024))
+(setq gc-cons-threshold 100000000)
+ ;(setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
 
 (set-face-attribute 'default nil :font "Fira Code NF" :height he/default-font-size)
 
@@ -88,7 +94,7 @@
 (set-face-attribute 'variable-pitch nil :font "Fira Code NF" :height he/default-variable-font-size :weight 'regular)
 
 (use-package ligature
-  :load-path "/home/lilahamstern/.emacs.d/github/ligature.el"
+  :load-path "~/.emacs.d/github/ligature"
   :config
   ;; Enable the www ligature in every possible major mode
   (ligature-set-ligatures 't '("www"))
@@ -134,7 +140,6 @@
   (setq evil-want-keybinding nil)
   (setq evil-want-C-u-scroll t)
   (setq evil-want-C-i-jump nil)
-  (setq evil-undo-system t)
   :config
   (evil-mode 1)
   (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
@@ -160,30 +165,34 @@
  "<"  '(counsel-switch-buffer :which-key "Switch buffer")
  "SPC"'(counsel-projectile-find-file :which-key "Find project file")
  ;; Buffer
- "b"  '(:ignore b :which-key "buffer")
+ "b"  '(:ignore t :which-key "buffer")
  "bs" '(save-buffer :which-key "Save buffer")
  "bn" '(evil-next-buffer :which-key "Next buffer")
  "bp" '(evil-prev-buffer :which-key "Prev buffer")
  "bk" '(kill-buffer :which-key "Kill buffer")
+ ;; Magit/Git
+ "g"  '(:ignore t :which-key "Git")
+ "gs" '(magit :which-key "Git status")
  ;; Open
- "o"  '(:ignore o :which-key "open")
+ "o"  '(:ignore t :which-key "open")
+ "oa"  '(counsel-linux-app :which-key "Application")
  "op" '(treemacs :which-key "treemacs")
  "od" '(docker :which-key "docker")
-                                        ;: Org
- "O"  '(:ignore O :which-key "org")
+ ;: Org
+ "O"  '(:ignore t :which-key "org")
  "Oa" '(org-agenda :which-key "Agenda")
  ;; Toggle
  "t"  '(:ignore t :which-key "toggle")
  ;; Window
- "w"  '(:ignore w :which-key "window")
+ "w"  '(:ignore t :which-key "window")
  
- "tab" '(:ignore tab :which-key "Workspaces")
+ "tab" '(:ignore t :which-key "Workspaces")
  "<tab>s" '(exwm-workspace-switch :which-key "Switch workspace")
- "<tab>1" (lambda () (interactive) (exwm-workspace-switch 0) :which-key "Workspace 1")
- "<tab>2" (lambda () (interactive) (exwm-workspace-switch 1) :which-key "Workspace 2")
- "<tab>3" (lambda () (interactive) (exwm-workspace-switch 2) :which-key "Workspace 3")
- "<tab>4" (lambda () (interactive) (exwm-workspace-switch 3) :which-key "Workspace 1")
- "<tab>5" (lambda () (interactive) (exwm-workspace-switch 4) :which-key "Workspace 5")
+ "<tab>1" '((lambda () (interactive) (exwm-workspace-switch 0)) :which-key "Workspace 1")
+ "<tab>2" '((lambda () (interactive) (exwm-workspace-switch 1)) :which-key "Workspace 2")
+ "<tab>3" '((lambda () (interactive) (exwm-workspace-switch 2)) :which-key "Workspace 3")
+ "<tab>4" '((lambda () (interactive) (exwm-workspace-switch 3)) :which-key "Workspace 1")
+ "<tab>5" '((lambda () (interactive) (exwm-workspace-switch 4)) :which-key "Workspace 5")
  "<tab>m" '(exwm-workspace-move-window :which-key "Move window to workspace")
  )
 
@@ -203,11 +212,11 @@
  (display-battery-mode t)
  (display-time-mode t)
 
-(use-package sublimity
-  :init
-  (require 'sublimity-scroll)
-  :config
-  (sublimity-mode 1))
+;; (use-package sublimity
+;;   :init
+;;   (require 'sublimity-scroll)
+;;   :config
+;;   (sublimity-mode 1))
 
 (use-package treemacs)
 
@@ -315,6 +324,10 @@
  ([remap describe-command] . helpful-command)
  ([remap describe-variable] . counsel-describe-variable)
  ([remap describe-key] . helpful-key))
+
+;; (setq max-lisp-eval-depth 10000)
+;; (setq max-specpdl-size 5)  ; default is 1000, reduce the backtrace level
+;; (setq debug-on-error t)
 
 (defun he/org-font-setup ()
  ;; Replace list hyphen with dot
@@ -499,18 +512,17 @@
 
 (defun he/org-babel-tangle-config ()
   (when (string-equal (buffer-file-name)
-                      (expand-file-name "~/Emacs/hamster-emacs/Emacs.org"))
+                      (expand-file-name "~/.emacs.d/Emacs.org"))
     ;; Dynamic scoping to the rescue
     (let ((org-confirm-babel-evaluate nil))
       (org-babel-tangle))))
 
 (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'he/org-babel-tangle-config)))
 
-(use-package typescript-mode
-  :mode "\\.ts\\'"
-  :hook (typescript-mode . lsp-deferred)
-  :config
-  (setq typescript-indent-level 2))
+(setq-default tab-width 2)
+(setq-default evil-shift-width tab-width)
+
+(setq-default indent-tabs-mode nil)
 
 (defun he/lsp-mode-setup ()
   (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
@@ -524,9 +536,7 @@
   :config
   (lsp-enable-which-key-integration t))
 
-(setq gc-cons-threshold 100000000)
-(setq read-process-output-max (* 1024 1024))
-  
+ 
 (use-package lsp-ui
   :hook (lsp-mode . lsp-ui-mode))
   ;; :custom
@@ -550,6 +560,23 @@
 
 (use-package company-box
   :hook (company-mode . company-box-mode))
+
+(use-package typescript-mode
+  :mode "\\.ts\\'"
+  :hook (typescript-mode . lsp-deferred)
+  :config
+  (setq typescript-indent-level 2))
+
+;; (defun lsp-go-install-save-hooks ()
+;;   (add-hook 'before-save-hook #'lsp-format-buffer t t)
+;;   (add-hook 'before-save-hook #'lsp-organize-imports t t))
+
+;; (use-package go-mode
+;;   :mode "\\.go\\'"
+;;   :hook (go-mode . (lsp-deferred lsp-go-install-save-hooks)))
+(use-package go-mode
+  :mode "\\.go\\'"
+  :hook (go-mode . lsp-deferred))
 
 (use-package projectile
   :diminish projectile-mode
