@@ -537,6 +537,7 @@
   :init
   (setq lsp-keymap-prefix "SPC-c l")  ;; Or 'C-l', 's-l'
   :config
+  (setq lsp-completion-provider :capf)
   (lsp-enable-which-key-integration t))
 
 (use-package lsp-ui
@@ -548,6 +549,22 @@
   :after lsp)
 
 (use-package lsp-ivy)
+
+(use-package company
+  :after lsp-mode
+  :hook (lsp-mode . company-mode)
+  :bind (:map company-active-map
+          ("<tab>" . company-complete-selection))
+         (:map lsp-mode-map
+          ("<tab>" . company-indent-or-complete-common))
+  :custom
+  (company-minimum-prefix-length 1)
+  (company-idle-delay 0.0)
+  :config
+  (setq company-backends '(company-capf))
+
+(use-package company-box
+  :hook (company-mode . company-box-mode)))
 
 (use-package typescript-mode
   :mode "\\.ts\\'"
@@ -564,19 +581,42 @@
   (add-hook 'before-save-hook #'lsp-organize-imports t t))
 (add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
 
-(use-package company
-  :after lsp-mode
-  :hook (lsp-mode . company-mode)
-  :bind (:map company-active-map
-          ("<tab>" . company-complete-selection))
-         (:map lsp-mode-map
-          ("<tab>" . company-indent-or-complete-common))
-  :custom
-  (company-minimum-prefix-length 1)
-  (company-idle-delay 0.0))
+(use-package csharp-mode
+  :hook
+  (csharp-mode . rainbow-delimiters-mode))
 
-(use-package company-box
-  :hook (company-mode . company-box-mode))
+(use-package omnisharp
+  :after csharp-mode
+  :commands omnisharp-install-server
+  :hook
+  (csharp-mode . company-mode)
+  (csharp-mode . flycheck-mode)
+  :config
+  (setq indent-tabs-mode nil
+        c-syntactic-indentation t
+        c-basic-offset 2
+        tab-width 2
+        evil-shift-width 2)
+  (he/leader-keys
+    "o" '(:ignore o :which-key "omnisharp")
+    "o r" '(omnisharp-run-code-action-refactoring :which-key "omnisharp refactor")
+    "o b" '(recompile :which-key "omnisharp build/recompile")
+    ))
+
+(use-package projectile
+  :diminish projectile-mode
+  :config (projectile-mode)
+  :custom ((projectile-completion-system 'ivy))
+  :bind-keymap
+  ("C-c p" . projectile-command-map)
+  :init
+  ;; NOTE: Set this to the folder where you keep your Git repos!
+  (when (file-directory-p "~/code")
+    (setq projectile-project-search-path '("~/code")))
+  (setq projectile-switch-project-action #'projectile-dired))
+
+(use-package counsel-projectile
+  :config (counsel-projectile-mode))
 
 (use-package magit
   :custom
@@ -599,21 +639,6 @@
   :ensure t
   :commands yas-minor-mode
   :hook (go-mode . yas-minor-mode))
-
-(use-package projectile
-  :diminish projectile-mode
-  :config (projectile-mode)
-  :custom ((projectile-completion-system 'ivy))
-  :bind-keymap
-  ("C-c p" . projectile-command-map)
-  :init
-  ;; NOTE: Set this to the folder where you keep your Git repos!
-  (when (file-directory-p "~/code")
-    (setq projectile-project-search-path '("~/code")))
-  (setq projectile-switch-project-action #'projectile-dired))
-
-(use-package counsel-projectile
-  :config (counsel-projectile-mode))
 
 (use-package evil-nerd-commenter)
 

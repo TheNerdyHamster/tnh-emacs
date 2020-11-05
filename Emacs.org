@@ -42,12 +42,9 @@
 - [[#development][Development]]
   - [[#languages][Languages]]
   - [[#company-mode][Company Mode]]
-  - [[#tools][Tools]]
   - [[#projectile][Projectile]]
-  - [[#comments][Comments]]
-  - [[#expand-region][Expand region]]
-  - [[#rainbow-delimiters][Rainbow Delimiters]]
-  - [[#rainbow-mode][Rainbow mode]]
+  - [[#tools][Tools]]
+  - [[#ui][UI]]
 - [[#browser][Browser]]
   - [[#shrface][shrface]]
 - [[#terminal][Terminal]]
@@ -676,6 +673,7 @@ Installation of use-package.
   :init
   (setq lsp-keymap-prefix "SPC-c l")  ;; Or 'C-l', 's-l'
   :config
+  (setq lsp-completion-provider :capf)
   (lsp-enable-which-key-integration t))
 #+end_src
 **** lsp-ui
@@ -693,6 +691,24 @@ Installation of use-package.
 **** lsp-ivy
 #+begin_src emacs-lisp
 (use-package lsp-ivy)
+#+end_src
+*** Company Mode
+#+begin_src emacs-lisp
+(use-package company
+  :after lsp-mode
+  :hook (lsp-mode . company-mode)
+  :bind (:map company-active-map
+          ("<tab>" . company-complete-selection))
+         (:map lsp-mode-map
+          ("<tab>" . company-indent-or-complete-common))
+  :custom
+  (company-minimum-prefix-length 1)
+  (company-idle-delay 0.0)
+  :config
+  (setq company-backends '(company-capf))
+
+(use-package company-box
+  :hook (company-mode . company-box-mode)))
 #+end_src
 *** Typescript
 #+begin_src emacs-lisp
@@ -713,22 +729,47 @@ Installation of use-package.
   (add-hook 'before-save-hook #'lsp-organize-imports t t))
 (add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
 #+end_src
-** Company Mode
+*** C#
 #+begin_src emacs-lisp
-(use-package company
-  :after lsp-mode
-  :hook (lsp-mode . company-mode)
-  :bind (:map company-active-map
-          ("<tab>" . company-complete-selection))
-         (:map lsp-mode-map
-          ("<tab>" . company-indent-or-complete-common))
-  :custom
-  (company-minimum-prefix-length 1)
-  (company-idle-delay 0.0))
+(use-package csharp-mode
+  :hook
+  (csharp-mode . rainbow-delimiters-mode))
 
-(use-package company-box
-  :hook (company-mode . company-box-mode))
+(use-package omnisharp
+  :after csharp-mode
+  :commands omnisharp-install-server
+  :hook
+  (csharp-mode . company-mode)
+  (csharp-mode . flycheck-mode)
+  :config
+  (setq indent-tabs-mode nil
+        c-syntactic-indentation t
+        c-basic-offset 2
+        tab-width 2
+        evil-shift-width 2)
+  (he/leader-keys
+    "o" '(:ignore o :which-key "omnisharp")
+    "o r" '(omnisharp-run-code-action-refactoring :which-key "omnisharp refactor")
+    "o b" '(recompile :which-key "omnisharp build/recompile")
+    ))
 #+end_src
+** Projectile 
+   #+begin_src emacs-lisp
+ (use-package projectile
+  :diminish projectile-mode
+  :config (projectile-mode)
+  :custom ((projectile-completion-system 'ivy))
+  :bind-keymap
+  ("C-c p" . projectile-command-map)
+  :init
+  ;; NOTE: Set this to the folder where you keep your Git repos!
+  (when (file-directory-p "~/code")
+    (setq projectile-project-search-path '("~/code")))
+  (setq projectile-switch-project-action #'projectile-dired))
+
+(use-package counsel-projectile
+  :config (counsel-projectile-mode))  
+   #+end_src
 ** Tools
 *** Magit 
    #+begin_src emacs-lisp
@@ -758,37 +799,21 @@ Installation of use-package.
   :commands yas-minor-mode
   :hook (go-mode . yas-minor-mode))
 #+end_src
-** Projectile 
-   #+begin_src emacs-lisp
- (use-package projectile
-  :diminish projectile-mode
-  :config (projectile-mode)
-  :custom ((projectile-completion-system 'ivy))
-  :bind-keymap
-  ("C-c p" . projectile-command-map)
-  :init
-  ;; NOTE: Set this to the folder where you keep your Git repos!
-  (when (file-directory-p "~/code")
-    (setq projectile-project-search-path '("~/code")))
-  (setq projectile-switch-project-action #'projectile-dired))
-
-(use-package counsel-projectile
-  :config (counsel-projectile-mode))  
-   #+end_src
-** Comments
+** UI
+*** Comments
    #+begin_src emacs-lisp
  (use-package evil-nerd-commenter)
    #+end_src
-** Expand region
+*** Expand region
 #+begin_src emacs-lisp
 (use-package expand-region)
 #+end_src
-** Rainbow Delimiters
+*** Rainbow Delimiters
    #+begin_src emacs-lisp
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
    #+end_src
-** Rainbow mode
+*** Rainbow mode
 #+begin_src emacs-lisp
 (use-package rainbow-mode
   :config
