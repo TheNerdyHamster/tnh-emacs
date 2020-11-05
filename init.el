@@ -520,6 +520,9 @@
 
 (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'he/org-babel-tangle-config)))
 
+(use-package toc-org
+  :hook (toc-org . org-mode))
+
 (setq-default tab-width 2)
 (setq-default evil-shift-width tab-width)
 
