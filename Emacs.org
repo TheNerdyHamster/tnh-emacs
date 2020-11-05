@@ -187,11 +187,13 @@ Installation of use-package.
   (global-ligature-mode 't))
 #+end_src
 * Keybinding Configuration  
-  #+begin_src emacs-lisp
+** Global keys
+#+begin_src emacs-lisp
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 (global-unset-key (kbd "C-SPC"))
-
-
+#+end_src
+** General
+#+begin_src emacs-lisp
 (use-package general
   :config
   
@@ -203,12 +205,16 @@ Installation of use-package.
     :prefix "SPC"
     :global-prefix "C-SPC"
     :non-normal-prefix "C-SPC"))
-
+#+end_src
+** Undo tree
+#+begin_src emacs-lisp
 (use-package undo-tree
   :ensure t
   :config
   (global-undo-tree-mode))
-
+#+end_src
+** Evil
+#+begin_src emacs-lisp
 (use-package evil
   :init
   (setq evil-want-integration t)
@@ -226,12 +232,14 @@ Installation of use-package.
 
   (evil-set-initial-state 'messages-buffer-mode 'normal)
   (evil-set-initial-state 'dashboard-mode 'normal))
-
+#+end_src
+*** Evil Collection
+#+begin_src emacs-lisp
 (use-package evil-collection
   :after evil
   :config
   (evil-collection-init))
-  #+end_src
+#+end_src
 ** Global keybindings
 #+begin_src emacs-lisp
 (he/leader-keys
@@ -638,6 +646,11 @@ Installation of use-package.
 
 (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'he/org-babel-tangle-config)))
    #+end_src
+** TOC
+#+begin_src emacs-lisp
+(use-package toc-org
+  :hook (toc-org . org-mode))
+#+end_src
 * Editor configuration
 ** Tab width
 #+begin_src emacs-lisp
@@ -780,6 +793,85 @@ Installation of use-package.
 (use-package rainbow-mode
   :config
   (rainbow-mode 1))
+#+end_src
+* Browser
+** shrface
+#+begin_src emacs-lisp
+(use-package shrface
+  :defer t
+  :config
+  (shrface-basic)
+  (shrface-trial)
+  (setq shrface-href-versatile t))
+
+(use-package eww
+  :defer t
+  :init
+  (add-hook 'eww-after-render-hook #'shrface-mode)
+  :config
+  (require 'shrface))
+
+(with-eval-after-load 'eww
+  (define-key eww-mode-map (kbd "<tab>") 'org-cycle)
+  (define-key eww-mode-map (kbd "S-<tab>") 'org-shifttab)
+  (define-key eww-mode-map (kbd "C-t") 'shrface-toggle-bullets)
+  (define-key eww-mode-map (kbd "C-j") 'shrface-next-headline)
+  (define-key eww-mode-map (kbd "C-k") 'shrface-previous-headline)
+  (define-key eww-mode-map (kbd "C-i") 'shrface-links-counsel) ; or 'shrface-links-helm
+  (define-key eww-mode-map (kbd "C-o") 'shrface-headline-counsel)) ; or 'shrface-headline-helm
+#+end_src
+*** Code highligithn
+#+begin_src emacs-lisp
+
+(use-package shr-tag-pre-highlight
+  :ensure t
+  :after shr
+  :config
+  (add-to-list 'shr-external-rendering-functions '(pre . shrface-shr-tag-pre-highlight))
+  (when (version< emacs-version "26")
+    (with-eval-after-load 'eww
+      (advice-add 'eww-display-html :around
+                  'eww-display-html--override-shr-external-rendering-functions))))
+                  
+(defun shrface-shr-tag-pre-highlight (pre)
+  "Highlighting code in PRE."
+  (let* ((shr-folding-mode 'none)
+         (shr-current-font 'default)
+         (code (with-temp-buffer
+                 (shr-generic pre)
+                 (setq-local fill-column 120)
+                 (indent-rigidly (point-min) (point-max) 2)
+                 (if (eq "" (dom-texts pre))
+                     nil
+                   (progn
+                     (setq-local fill-column shrface-paragraph-fill-column)
+                     (indent-rigidly (point-min) (point-max) shrface-paragraph-indentation)))
+                 (buffer-string)))
+         (lang (or (shr-tag-pre-highlight-guess-language-attr pre)
+                   (let ((sym (language-detection-string code)))
+                     (and sym (symbol-name sym)))))
+         (mode (and lang
+                    (shr-tag-pre-highlight--get-lang-mode lang))))
+    (shr-ensure-newline)
+    (insert (make-string shrface-paragraph-indentation ?\ )) ; make indent string
+    ;; (insert (propertize (concat "#+BEGIN_SRC " lang) 'face 'org-block-begin-line))
+    (shr-ensure-newline)
+    (setq start (point))
+    (insert
+     (or (and (fboundp mode)
+              (with-demoted-errors "Error while fontifying: %S"
+                (shrface-tag-pre-highlight-fontify code mode)
+                ))
+         code))
+    (shr-ensure-newline)
+    (setq end (point))
+    (insert (make-string shrface-paragraph-indentation ?\ )) ; make indent string
+    ;; (insert (propertize "#+END_SRC" 'face 'org-block-end-line ) )
+    (let* ((beg start)
+           (xx (make-overlay beg end)))
+      (overlay-put xx 'face '(:background "#292b2e" :height 90)))
+    (shr-ensure-newline)
+    (insert "\n")))
 #+end_src
 * Terminal
 ** vterm
