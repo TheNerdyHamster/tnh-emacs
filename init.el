@@ -76,9 +76,9 @@
 
  ;; Disable line numbers for some modes
  (dolist (mode '(org-mode-hook
-                 term-mode-hook
+                 vterm-mode-hook
                  shell-mode-hook
-	           treemacs-mode-hook
+	               treemacs-mode-hook
                  eshell-mode-hook))
    (add-hook mode (lambda () (display-line-numbers-mode 0))))
 (setq read-process-output-max (* 1024 1024))
@@ -207,7 +207,8 @@
 (use-package doom-modeline
   :init (doom-modeline-mode 1)
   :custom 
-    (doom-modeline-height 15))
+  (doom-modeline-height 15)
+  (doom-themes-visual-bell-config))
 
  (display-battery-mode t)
  (display-time-mode t)
@@ -536,16 +537,30 @@
   :config
   (lsp-enable-which-key-integration t))
 
- 
 (use-package lsp-ui
   :hook (lsp-mode . lsp-ui-mode))
   ;; :custom
   ;; (setq lsp-ui-doc-position 'bottom))
-  
+
 (use-package lsp-treemacs
   :after lsp)
-  
+
 (use-package lsp-ivy)
+
+(use-package typescript-mode
+  :mode "\\.ts\\'"
+  :hook (typescript-mode . lsp-deferred)
+  :config
+  (setq typescript-indent-level 2))
+
+(use-package go-mode
+  :mode "\\.go\\'"
+  :hook (go-mode . lsp-deferred))
+  
+(defun lsp-go-install-save-hooks ()
+  (add-hook 'before-save-hook #'lsp-format-buffer t t)
+  (add-hook 'before-save-hook #'lsp-organize-imports t t))
+(add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
 
 (use-package company
   :after lsp-mode
@@ -561,22 +576,27 @@
 (use-package company-box
   :hook (company-mode . company-box-mode))
 
-(use-package typescript-mode
-  :mode "\\.ts\\'"
-  :hook (typescript-mode . lsp-deferred)
-  :config
-  (setq typescript-indent-level 2))
+(use-package magit
+  :custom
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
-;; (defun lsp-go-install-save-hooks ()
-;;   (add-hook 'before-save-hook #'lsp-format-buffer t t)
-;;   (add-hook 'before-save-hook #'lsp-organize-imports t t))
+(use-package evil-magit
+  :after magit)
 
-;; (use-package go-mode
-;;   :mode "\\.go\\'"
-;;   :hook (go-mode . (lsp-deferred lsp-go-install-save-hooks)))
-(use-package go-mode
-  :mode "\\.go\\'"
-  :hook (go-mode . lsp-deferred))
+;; NOTE: Make sure to configure a GitHub token before using this package!
+;; - https://magit.vc/manual/forge/Token-Creation.html#Token-Creation
+;; - https://magit.vc/manual/ghub/Getting-Started.html#Getting-Started
+(use-package forge)
+
+(use-package docker
+  :ensure t)
+
+(use-package yasnippet-snippets)
+
+(use-package yasnippet
+  :ensure t
+  :commands yas-minor-mode
+  :hook (go-mode . yas-minor-mode))
 
 (use-package projectile
   :diminish projectile-mode
@@ -593,18 +613,6 @@
 (use-package counsel-projectile
   :config (counsel-projectile-mode))
 
-(use-package magit
-  :custom
-  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
-
-(use-package evil-magit
-  :after magit)
-
-;; NOTE: Make sure to configure a GitHub token before using this package!
-;; - https://magit.vc/manual/forge/Token-Creation.html#Token-Creation
-;; - https://magit.vc/manual/ghub/Getting-Started.html#Getting-Started
-(use-package forge)
-
 (use-package evil-nerd-commenter)
 
 (use-package expand-region)
@@ -612,8 +620,15 @@
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
 
-(use-package docker
-  :ensure t)
+(use-package rainbow-mode
+  :config
+  (rainbow-mode 1))
+
+
+(use-package vterm
+  :commands vterm
+  :config
+  (setq vterm-max-scrollback 10000))
 
 (use-package elcord
   :config

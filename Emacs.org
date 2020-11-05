@@ -30,7 +30,7 @@ Installation of use-package.
 (setq use-package-always-ensure t)
 #+end_src
 
-* Desktop enviorment
+* TODO Desktop enviorment
 #+begin_src emacs-lisp
 (setq he/exwm-enabled (and (eq window-system 'x)
                            (seq-contains command-line-args "--use-exwm")))
@@ -72,7 +72,7 @@ Installation of use-package.
       auto-save-list-file-prefix (expand-file-name "auto-save-list/.saves-" user-emacs-directory)
       projectile-known-projects-file (expand-file-name "projectile-bookmarks.eld" user-emacs-directory))
 #+end_src
-* Essential UI Configuration
+* TODO Essential Configuration
  Configuration of UI Settings, that removes unnessecary elements such as Menubar, Toolbar, etc.
  #+begin_src emacs-lisp
  (setq inhibit-startup-message t)
@@ -94,16 +94,16 @@ Installation of use-package.
 
  ;; Disable line numbers for some modes
  (dolist (mode '(org-mode-hook
-                 term-mode-hook
+                 vterm-mode-hook
                  shell-mode-hook
-	           treemacs-mode-hook
+	               treemacs-mode-hook
                  eshell-mode-hook))
    (add-hook mode (lambda () (display-line-numbers-mode 0))))
 (setq read-process-output-max (* 1024 1024))
 (setq gc-cons-threshold 100000000)
  ;(setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
   #+END_SRC
-** TODO Font 
+** Font 
    #+begin_src emacs-lisp
 (set-face-attribute 'default nil :font "Fira Code NF" :height he/default-font-size)
 
@@ -238,10 +238,12 @@ Installation of use-package.
    (use-package doom-modeline
      :init (doom-modeline-mode 1)
      :custom 
-       (doom-modeline-height 15))
+     (doom-modeline-height 15)
+     (doom-themes-visual-bell-config))
 
     (display-battery-mode t)
     (display-time-mode t)  
+
    #+end_src
 ** Sublimity
 #+begin_src emacs-lisp
@@ -594,8 +596,9 @@ Installation of use-package.
 (setq-default indent-tabs-mode nil)
 #+end_src
 * Development 
-** Language Servers
-*** LSP Mode
+** Languages
+*** IDE Features with lsp
+**** lsp-mode
 #+begin_src emacs-lisp
 (defun he/lsp-mode-setup ()
   (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
@@ -608,19 +611,43 @@ Installation of use-package.
   (setq lsp-keymap-prefix "SPC-c l")  ;; Or 'C-l', 's-l'
   :config
   (lsp-enable-which-key-integration t))
-
- 
+#+end_src
+**** lsp-ui
+#+begin_src emacs-lisp
 (use-package lsp-ui
   :hook (lsp-mode . lsp-ui-mode))
   ;; :custom
   ;; (setq lsp-ui-doc-position 'bottom))
-  
+#+end_src
+**** lsp-treemacs 
+#+begin_src emacs-lisp
 (use-package lsp-treemacs
   :after lsp)
-  
+#+end_src
+**** lsp-ivy
+#+begin_src emacs-lisp
 (use-package lsp-ivy)
 #+end_src
-*** Company Mode
+*** Typescript
+#+begin_src emacs-lisp
+(use-package typescript-mode
+  :mode "\\.ts\\'"
+  :hook (typescript-mode . lsp-deferred)
+  :config
+  (setq typescript-indent-level 2))
+#+end_src
+*** Golang
+#+begin_src emacs-lisp
+(use-package go-mode
+  :mode "\\.go\\'"
+  :hook (go-mode . lsp-deferred))
+  
+(defun lsp-go-install-save-hooks ()
+  (add-hook 'before-save-hook #'lsp-format-buffer t t)
+  (add-hook 'before-save-hook #'lsp-organize-imports t t))
+(add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
+#+end_src
+** Company Mode
 #+begin_src emacs-lisp
 (use-package company
   :after lsp-mode
@@ -636,27 +663,34 @@ Installation of use-package.
 (use-package company-box
   :hook (company-mode . company-box-mode))
 #+end_src
-** Languages
-*** Typescript
-#+begin_src emacs-lisp
-(use-package typescript-mode
-  :mode "\\.ts\\'"
-  :hook (typescript-mode . lsp-deferred)
-  :config
-  (setq typescript-indent-level 2))
-#+end_src
-*** Golang
-#+begin_src emacs-lisp
-;; (defun lsp-go-install-save-hooks ()
-;;   (add-hook 'before-save-hook #'lsp-format-buffer t t)
-;;   (add-hook 'before-save-hook #'lsp-organize-imports t t))
+** Tools
+*** Magit 
+   #+begin_src emacs-lisp
+(use-package magit
+  :custom
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
-;; (use-package go-mode
-;;   :mode "\\.go\\'"
-;;   :hook (go-mode . (lsp-deferred lsp-go-install-save-hooks)))
-(use-package go-mode
-  :mode "\\.go\\'"
-  :hook (go-mode . lsp-deferred))
+(use-package evil-magit
+  :after magit)
+
+;; NOTE: Make sure to configure a GitHub token before using this package!
+;; - https://magit.vc/manual/forge/Token-Creation.html#Token-Creation
+;; - https://magit.vc/manual/ghub/Getting-Started.html#Getting-Started
+(use-package forge)
+   #+end_src
+*** Docker
+#+begin_src emacs-lisp
+(use-package docker
+  :ensure t)
+#+end_src
+*** Snippets
+#+begin_src emacs-lisp
+(use-package yasnippet-snippets)
+
+(use-package yasnippet
+  :ensure t
+  :commands yas-minor-mode
+  :hook (go-mode . yas-minor-mode))
 #+end_src
 ** Projectile 
    #+begin_src emacs-lisp
@@ -675,20 +709,6 @@ Installation of use-package.
 (use-package counsel-projectile
   :config (counsel-projectile-mode))  
    #+end_src
-** Magit 
-   #+begin_src emacs-lisp
-(use-package magit
-  :custom
-  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
-
-(use-package evil-magit
-  :after magit)
-
-;; NOTE: Make sure to configure a GitHub token before using this package!
-;; - https://magit.vc/manual/forge/Token-Creation.html#Token-Creation
-;; - https://magit.vc/manual/ghub/Getting-Started.html#Getting-Started
-(use-package forge)
-   #+end_src
 ** Comments
    #+begin_src emacs-lisp
  (use-package evil-nerd-commenter)
@@ -702,10 +722,19 @@ Installation of use-package.
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
    #+end_src
-** Docker
+** Rainbow mode
 #+begin_src emacs-lisp
-(use-package docker
-  :ensure t)
+(use-package rainbow-mode
+  :config
+  (rainbow-mode 1))
+#+end_src
+* Terminal
+** vterm
+#+begin_src emacs-lisp
+(use-package vterm
+  :commands vterm
+  :config
+  (setq vterm-max-scrollback 10000))
 #+end_src
 * Misc
 ** Elcord
