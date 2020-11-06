@@ -120,19 +120,22 @@
 
 (use-package general
   :config
+  (general-auto-unbind-keys)
   (general-override-mode +1)
 
-  (general-create-definer he/leader-keys
+  (general-create-definer nhe/leader-key
     :states '(normal insert visual emacs treemacs)
     :keymap 'override
     :prefix "SPC"
     :global-prefix "C-SPC"
-    :non-normal-prefix "C-SPC"))
+    :non-normal-prefix "C-SPC")
 
-(use-package undo-tree
-  :ensure t
-  :config
-  (global-undo-tree-mode))
+  (general-create-definer nhe/local-leader-key
+    :states '(normal insert visual emacs treemacs)
+    :keymap 'override
+    :prefix "SPC m"
+    :global-prefix "C-SPC m"
+    :non-normal-prefix "C-SPC m"))
 
 (use-package evil
   :init
@@ -157,44 +160,85 @@
   :config
   (evil-collection-init))
 
-(he/leader-keys
- ;; General
- "/"  '(evilnc-comment-or-uncomment-lines :which-key "Comment")
- "s"  '(swiper :which-key "Search file")
- "."  '(counsel-find-file :which-key "Find file")
- "<"  '(counsel-switch-buffer :which-key "Switch buffer")
- "SPC"'(counsel-projectile-find-file :which-key "Find project file")
- ;; Buffer
- "b"  '(:ignore t :which-key "buffer")
- "bs" '(save-buffer :which-key "Save buffer")
- "bn" '(evil-next-buffer :which-key "Next buffer")
- "bp" '(evil-prev-buffer :which-key "Prev buffer")
- "bk" '(kill-buffer :which-key "Kill buffer")
- ;; Magit/Git
- "g"  '(:ignore t :which-key "Git")
- "gs" '(magit :which-key "Git status")
- ;; Open
- "o"  '(:ignore t :which-key "open")
- "oa"  '(counsel-linux-app :which-key "Application")
- "op" '(treemacs :which-key "treemacs")
- "od" '(docker :which-key "docker")
- ;: Org
- "O"  '(:ignore t :which-key "org")
- "Oa" '(org-agenda :which-key "Agenda")
- ;; Toggle
- "t"  '(:ignore t :which-key "toggle")
- ;; Window
- "w"  '(:ignore t :which-key "window")
- 
- "tab" '(:ignore t :which-key "Workspaces")
- "<tab>s" '(exwm-workspace-switch :which-key "Switch workspace")
- "<tab>1" '((lambda () (interactive) (exwm-workspace-switch 0)) :which-key "Workspace 1")
- "<tab>2" '((lambda () (interactive) (exwm-workspace-switch 1)) :which-key "Workspace 2")
- "<tab>3" '((lambda () (interactive) (exwm-workspace-switch 2)) :which-key "Workspace 3")
- "<tab>4" '((lambda () (interactive) (exwm-workspace-switch 3)) :which-key "Workspace 1")
- "<tab>5" '((lambda () (interactive) (exwm-workspace-switch 4)) :which-key "Workspace 5")
- "<tab>m" '(exwm-workspace-move-window :which-key "Move window to workspace")
- )
+(nhe/leader-key 
+  "/"   '(evilnc-comment-or-uncomment-lines :wk "comment/uncomment")
+  ";"   '(counsel-M-x :wk "M-x")
+  "."   '(counsel-find-file :wk "find file")
+  "SPC" '(counsel-projectile-find-file :wk "find file project")
+  "TAB" '(evil-switch-to-windows-last-buffer :wk "switch to previous buffer"))
+
+(nhe/leader-key
+  "b"   '(:ignore t :wk "buffer")
+  "b b" '(counsel-switch-buffer :wk "switch buffer")
+  "b d" '(kill-current-buffer :wk "kill buffer")
+  "b i" '(ibuffer-list-buffers :wk "ibuffer")
+  "b s" '(save-buffer :wk "save buffer")
+  "b p" '(evil-prev-buffer :wk "prev buffer")
+  "b n" '(evil-next-buffer :wk "next buffer"))
+
+(nhe/leader-key
+  "f" '(:ignore f :wk "file")
+  "f f" '(counsel-find-file :wk "find file")
+  "f s" '(save-buffer :wk "save file")
+  "f r" '(recover-file :wk "recover file"))
+
+(nhe/leader-key
+  "h" '(:ignore t :wk "help")
+  "h f" '(describe-function :wk "describe function")
+  "h k" '(describe-key :wk "describe key")
+  "h m" '(describe-mode :wk "describe mode")
+  "h b" '(describe-bindings :wk "describe bindings")
+  "h v" '(describe-variable :wk "describe variable")
+  "h p" '(describe-package :wk "describe package"))
+
+(nhe/leader-key
+  "m" '(:ignore t :wk "local-leader"))
+
+(nhe/leader-key
+  "o" '(:ignore t :wk "open")
+  "o t" '(vterm :wk "open terminal")
+  "o d" '(docker :wk "open docker")
+  "o p" '(treemacs :wk "open treemacs"))
+
+(nhe/leader-key
+  "q" '(:ignore t :wk "quit")
+  "q q" '(save-buffers-kill-emacs :wk "save and quit")
+  "q Q" '(kill-emacs :wk "quit no-save")
+  "q r" '(restart-emacs :wk "restart emacs"))
+
+(nhe/leader-key
+  "s" '(:ignore t :wk "search")
+  "s s" '(swiper :wk "search buffer")
+  "s p" '(counsel-projectile-rg :wk "search project"))
+
+(nhe/leader-key
+  "t" '(:ignore t :wk "toggle"))
+
+(nhe/leader-key
+  "w" '(:ignore t :wk "window")
+  "w w" '(other-window :wk "other window")
+  "w d" '(evil-window-delete :wk "remove window")
+  "w o" '(delete-other-windows :wk "remove other windows")
+  "w h" '(evil-window-split :wk "split window horizontally")
+  "w v" '(evil-window-vsplit :wk "split window vertically"))
+
+(nhe/local-leader-key
+  :keymaps 'prog-mode
+  "=" '(:ignore t :wk "format")
+  "d" '(:ignore t :wk "documentation")
+  "g" '(:ignore t :wk "goto")
+  "i" '(:ignore t :wk "insert"))
+
+(use-package hydra
+  :config
+  (defhydra hydra-text-scale (:timeout 4)
+    "scale text"
+    ("j" (text-scale-adjust 0.1) "in")
+    ("k" (text-scale-adjust -0.1) "out")
+    ("f" nil "finished" :exit t))
+    
+  (nhe/leader-key
+    "t s" '(hydra-text-scale/body :wk "scale text")))
 
 (load-theme 'modus-vivendi)
 ;; (use-package doom-themes
@@ -267,7 +311,13 @@
 
 (use-package magit
   :custom
-  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
+  :config
+  (nhe/leader-key
+    "g" '(:ignore t :wk "git")
+    "g s" '(magit-status :wk "magit status")
+    "g b" '(magit-branch :wk "maigt branch")
+    "g B" '(magit-blame :wk "magit blame")))
 
 (use-package evil-magit
   :after magit)
@@ -299,13 +349,16 @@
   (rainbow-mode 1))
 
 (use-package centaur-tabs
-  :demand
-  :init
-  (setq centaur-tabs-style "bar"
-    centaur-tabs-set-icons t
-    centaur-tabs-set-close-button nil)
   :config
-  (centaur-tabs-mode t))
+  (setq centaur-tabs-height 32)
+  (setq centaur-tabs-bar-height 43)
+  (setq centaur-tabs-set-bar 'under)
+  (setq centaur-tabs-set-icons t)
+  (setq centaur-tabs-set-greyout-icons t)
+  (setq centaur-tabs-icon-scale-factor 0.75)
+  ;; (setq centaur-tabs-icon-v-adjust -0.1)
+  (setq x-underline-at-descent-line t)
+  (centaur-tabs-mode 1))
 
 (use-package dashboard
   :ensure t
@@ -605,6 +658,24 @@
   :config
   (advice-add #'yas-expand :before #'sp-remove-active-pair-overlay))
 
+(use-package undo-tree
+  :init (global-undo-tree-mode 1)
+  :config
+  (defhydra hydra-undo-tree (:timeout 4)
+    "undo / redo"
+    ("u" undo-tree-undo "undo")
+    ("r" undo-tree-redo "redo")
+    ("t" undo-tree-visualize "undo-tree visualize" :exit t))
+
+  (nhe/leader-key
+    "u" '(hydra-undo-tree/body :wk "undo/redo")))
+
+(use-package multiple-cursors
+  :config
+  (nhe/leader-key
+    "c n" '(mc/mark-next-line-like-this :wk "mc-mark and next")
+    "c w" '(mc/mark-prev-line-like-this :wk "mc-mark and prev")))
+
 (use-package company
   :after lsp-mode
   :hook (lsp-mode . company-mode)
@@ -629,6 +700,39 @@
   :config
   (setq typescript-indent-level 2))
 
+(use-package js2-mode
+  :mode "\\/.*\\.js\\'"
+  :config
+  (setq js-indent-level 2)
+  :hook (js-mode . yas-minor-mode))
+
+(use-package rjsx-mode
+  :mode "components\\/.*\\.js\\'")
+
+(use-package js-doc
+  :after js2-mode
+  :config
+  (nhe/local-leader-key
+    :keymaps '(js2-mode rsjx-mode)
+    "d" '(:ignore t :which-key "jsdoc")
+    "d f" '(js-doc-insert-function-doc :wk "jsdoc function")))
+
+(use-package js-react-redux-yasnippets
+  :after (yasnippet js2-mode)
+  :config
+  (nhe/local-leader-key
+    :keymaps '(js2-mode-map rsjx-mode)
+    "i s" '(yas-insert-snippet :which-key "insert snippet")))
+
+(use-package prettier
+  :after js2-mode
+  :config
+  (nhe/local-leader-key
+    :keymaps '(js2-mode-map rsjx-mode)
+    "= =" '(prettier-prettify :which-key "format with prettier")))
+
+(use-package web-mode)
+
 (use-package go-mode
   :mode "\\.go\\'")
  
@@ -652,7 +756,7 @@
         c-basic-offset 2
         tab-width 2
         evil-shift-width 2)
-  (he/leader-keys
+  (nhe/leader-key
     "o" '(:ignore o :which-key "omnisharp")
     "o r" '(omnisharp-run-code-action-refactoring :which-key "omnisharp refactor")
     "o b" '(recompile :which-key "omnisharp build/recompile")
@@ -670,13 +774,29 @@
   :commands (lsp lsp-deferred)
   :hook ((lsp-mode . he/lsp-mode-setup)
         (typescript-mode . lsp-deferred)
+        (js2-mode . lsp-deferred)
+        (rsjx-mode . lsp-deferred)
+        (scss-mode . lsp-deferred)
+        (web-mode . lsp-deferred)
         (go-mode . lsp-deferred)
         (csharp-mode . lsp-deferred))
-  :init
-  (setq lsp-keymap-prefix "SPC-c l")  ;; Or 'C-l', 's-l'
   :config
   (setq lsp-completion-provider :capf)
-  (lsp-enable-which-key-integration t))
+  (lsp-enable-which-key-integration t)
+  (nhe/local-leader-key
+    :keymaps '(js2-mode-map
+               rjsx-mode-map
+               typescript-mode-map
+               csharp-mode
+               lsp-mode-map
+               lsp-ui-mode-map)
+    "g r" '(lsp-ui-peek-find-references :which-key "goto references")
+    "g g" '(lsp-find-definition :which-key "goto definition")
+    "o" '(lsp-ui-imenu :which-key "overview")
+    "r" '(:ignore t :which-key "refactor")
+    "r r" '(lsp-rename :which-key "rename")
+    "=" '(:ignore t :which-key "format")
+    "= l" '(lsp-format-buffer :which-key "format with lsp")))
 
 (use-package lsp-ui
   :hook (lsp-mode . lsp-ui-mode))
@@ -691,7 +811,7 @@
 (use-package flycheck
   :hook (after-init-hook . global-flycheck-mode)
   :config
-  (he/leader-keys
+  (nhe/leader-key
     "e" '(:ignore t :which-key "errors")
     "e l" '(flycheck-list-errors :which-key "list errors")
     )
@@ -793,3 +913,16 @@
 (use-package elcord
   :config
   (elcord-mode 1))
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   '(web-mode prettier js-react-redux-yasnippets yasnippet-snippets ws-butler which-key vterm visual-fill-column use-package undo-tree typescript-mode treemacs-projectile treemacs-icons-dired treemacs-evil treemacs-all-the-icons toc-org sublimity smex smartparens shrface shr-tag-pre-highlight rjsx-mode restart-emacs rainbow-mode rainbow-delimiters org-bullets omnisharp multiple-cursors lsp-ui lsp-treemacs lsp-ivy js-doc ivy-rich ivy-posframe helpful go-mode general forge exwm expand-region evil-nerd-commenter evil-magit evil-collection eterm-256color elcord doom-themes doom-modeline dockerfile-mode docker dired-single dired-open dired-hide-dotfiles dashboard counsel-projectile company-prescient company-box command-log-mode centaur-tabs)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
