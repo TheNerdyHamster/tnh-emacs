@@ -195,8 +195,9 @@
  "<tab>m" '(exwm-workspace-move-window :which-key "Move window to workspace")
  )
 
-(use-package doom-themes
-  :init (load-theme 'doom-dracula t))
+(load-theme 'modus-vivendi)
+;; (use-package doom-themes
+;;   :init (load-theme 'doom-dracula t))
 
 (use-package command-log-mode)
 
@@ -225,6 +226,72 @@
 
 (use-package treemacs-projectile
   :after treemacs)
+  
+(use-package treemacs-all-the-icons
+  :after treemacs
+  :config
+  (treemacs-load-theme "all-the-icons"))
+
+(use-package dired
+  :ensure nil
+  :commands (dired dired-jump)
+  :bind (("C-x C-j" . dired-jump))
+  :custom ((dired-listing-switches "-agho --group-directories-first"))
+  :config
+  (evil-collection-define-key 'normal 'dired-mode-map
+    "h" 'dired-single-up-directory
+    "l" 'dired-single-buffer))
+
+(use-package dired-single)
+
+(use-package dired-open
+  :config
+  (setq dired-open-extensions '(("png" . "feh")
+                                ("mkv" . "mpv"))))
+
+(use-package dired-hide-dotfiles
+  :hook (dired-mode . dired-hide-dotfiles-mode)
+  :config
+  (evil-collection-define-key 'normal dired-mode-map
+    "H" 'dired-hide-dotfiles-mode))
+
+(use-package treemacs-icons-dired
+  :after treemacs dired
+  :ensure t
+  :config (treemacs-icons-dired-mode))
+
+(use-package magit
+  :custom
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+
+(use-package evil-magit
+  :after magit)
+
+;; NOTE: Make sure to configure a GitHub token before using this package!
+;; - https://magit.vc/manual/forge/Token-Creation.html#Token-Creation
+;; - https://magit.vc/manual/ghub/Getting-Started.html#Getting-Started
+(use-package forge)
+
+(use-package docker
+  :ensure t)
+
+(use-package yasnippet-snippets)
+
+(use-package yasnippet
+  :ensure t
+  :commands yas-minor-mode
+  :hook (go-mode . yas-minor-mode))
+
+(use-package evil-nerd-commenter)
+
+(use-package expand-region)
+
+(use-package rainbow-delimiters
+  :hook (prog-mode . rainbow-delimiters-mode))
+
+(use-package rainbow-mode
+  :config
+  (rainbow-mode 1))
 
 (use-package centaur-tabs
   :demand
@@ -242,12 +309,13 @@
     (setq dashboard-items '((recents . 5)
 			    (projects . 10)))
     (setq dashboard-show-shortcuts nil
-	  dashboard-banner-logo-title "Welcome to Hamster-Emacs"
-	  dashboard-set-file-icons t
-	  dashboard-set-heading-icons t
-	  dashboard-set-navigator t
-	  dashboard-navigator-buttons
-	  `(((,(all-the-icons-octicon "mark-github" :height 1.1 :v-adjust 0.0)
+          dashboard-banner-logo-title "Welcome to The Nerdy Hamster Emacs"
+          dashboard-set-file-icons t
+          dashboard-set-heading-icons t
+          dashboard-startup-banner 'logo
+          dashboard-set-navigator t
+          dashboard-navigator-buttons
+    `(((,(all-the-icons-octicon "mark-github" :height 1.1 :v-adjust 0.0)
               "Github"
 	      "Browse homepage"
               (lambda (&rest _) (browse-url "https://github.com/Lilahamstern/Hamster-emacs")))
@@ -527,13 +595,73 @@
 
 (setq-default indent-tabs-mode nil)
 
+(use-package company
+  :after lsp-mode
+  :hook (lsp-mode . company-mode)
+  :bind (:map company-active-map
+          ("<tab>" . company-complete-selection))
+         (:map lsp-mode-map
+          ("<tab>" . company-indent-or-complete-common))
+  :custom
+  (company-minimum-prefix-length 1)
+  (company-idle-delay 0.0)
+  :config
+  (setq company-backends '(company-capf))
+
+(use-package company-prescient
+  :init (company-prescient-mode 1))
+
+(use-package company-box
+  :hook (company-mode . company-box-mode)))
+
+(use-package typescript-mode
+  :mode "\\.ts\\'"
+  :config
+  (setq typescript-indent-level 2))
+
+(use-package go-mode
+  :mode "\\.go\\'")
+ 
+(defun lsp-go-install-save-hooks ()
+  (add-hook 'before-save-hook #'lsp-format-buffer t t)
+  (add-hook 'before-save-hook #'lsp-organize-imports t t))
+(add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
+
+(use-package csharp-mode
+  :hook
+  (csharp-mode . rainbow-delimiters-mode)
+  (csharp-mode . company-mode)
+  (csharp-mode . flycheck-mode))
+
+(use-package omnisharp
+  :after csharp-mode
+  :commands omnisharp-install-server
+  :config
+  (setq indent-tabs-mode nil
+        c-syntactic-indentation t
+        c-basic-offset 2
+        tab-width 2
+        evil-shift-width 2)
+  (he/leader-keys
+    "o" '(:ignore o :which-key "omnisharp")
+    "o r" '(omnisharp-run-code-action-refactoring :which-key "omnisharp refactor")
+    "o b" '(recompile :which-key "omnisharp build/recompile")
+    ))
+
+(use-package dockerfile-mode
+  :ensure t
+  :mode "Dockerfile*\\'")
+
 (defun he/lsp-mode-setup ()
   (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
   (lsp-headerline-breadcrumb-mode))
 
 (use-package lsp-mode
   :commands (lsp lsp-deferred)
-  :hook (lsp-mode . he/lsp-mode-setup)
+  :hook ((lsp-mode . he/lsp-mode-setup)
+        (typescript-mode . lsp-deferred)
+        (go-mode . lsp-deferred)
+        (csharp-mode . lsp-deferred))
   :init
   (setq lsp-keymap-prefix "SPC-c l")  ;; Or 'C-l', 's-l'
   :config
@@ -550,58 +678,14 @@
 
 (use-package lsp-ivy)
 
-(use-package company
-  :after lsp-mode
-  :hook (lsp-mode . company-mode)
-  :bind (:map company-active-map
-          ("<tab>" . company-complete-selection))
-         (:map lsp-mode-map
-          ("<tab>" . company-indent-or-complete-common))
-  :custom
-  (company-minimum-prefix-length 1)
-  (company-idle-delay 0.0)
+(use-package flycheck
+  :hook (after-init-hook . global-flycheck-mode)
   :config
-  (setq company-backends '(company-capf))
-
-(use-package company-box
-  :hook (company-mode . company-box-mode)))
-
-(use-package typescript-mode
-  :mode "\\.ts\\'"
-  :hook (typescript-mode . lsp-deferred)
-  :config
-  (setq typescript-indent-level 2))
-
-(use-package go-mode
-  :mode "\\.go\\'"
-  :hook (go-mode . lsp-deferred))
-  
-(defun lsp-go-install-save-hooks ()
-  (add-hook 'before-save-hook #'lsp-format-buffer t t)
-  (add-hook 'before-save-hook #'lsp-organize-imports t t))
-(add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
-
-(use-package csharp-mode
-  :hook
-  (csharp-mode . rainbow-delimiters-mode))
-
-(use-package omnisharp
-  :after csharp-mode
-  :commands omnisharp-install-server
-  :hook
-  (csharp-mode . company-mode)
-  (csharp-mode . flycheck-mode)
-  :config
-  (setq indent-tabs-mode nil
-        c-syntactic-indentation t
-        c-basic-offset 2
-        tab-width 2
-        evil-shift-width 2)
   (he/leader-keys
-    "o" '(:ignore o :which-key "omnisharp")
-    "o r" '(omnisharp-run-code-action-refactoring :which-key "omnisharp refactor")
-    "o b" '(recompile :which-key "omnisharp build/recompile")
-    ))
+    "e" '(:ignore t :which-key "errors")
+    "e l" '(flycheck-list-errors :which-key "list errors")
+    )
+  )
 
 (use-package projectile
   :diminish projectile-mode
@@ -617,39 +701,6 @@
 
 (use-package counsel-projectile
   :config (counsel-projectile-mode))
-
-(use-package magit
-  :custom
-  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
-
-(use-package evil-magit
-  :after magit)
-
-;; NOTE: Make sure to configure a GitHub token before using this package!
-;; - https://magit.vc/manual/forge/Token-Creation.html#Token-Creation
-;; - https://magit.vc/manual/ghub/Getting-Started.html#Getting-Started
-(use-package forge)
-
-(use-package docker
-  :ensure t)
-
-(use-package yasnippet-snippets)
-
-(use-package yasnippet
-  :ensure t
-  :commands yas-minor-mode
-  :hook (go-mode . yas-minor-mode))
-
-(use-package evil-nerd-commenter)
-
-(use-package expand-region)
-
-(use-package rainbow-delimiters
-  :hook (prog-mode . rainbow-delimiters-mode))
-
-(use-package rainbow-mode
-  :config
-  (rainbow-mode 1))
 
 (use-package shrface
   :defer t
