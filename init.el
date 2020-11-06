@@ -113,12 +113,13 @@
 
   (global-ligature-mode 't))
 
+(use-package restart-emacs)
+
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 (global-unset-key (kbd "C-SPC"))
 
 (use-package general
   :config
-  
   (general-override-mode +1)
 
   (general-create-definer he/leader-keys
@@ -202,7 +203,11 @@
 (use-package command-log-mode)
 
 (use-package all-the-icons
-  :ensure t)
+  :if (display-graphic-p)
+  :commands all-the-icons-install-fonts
+  :init
+  (unless (find-font (font-spec :name "all-the-icons"))
+    (all-the-icons-install-fonts t)))
 
 (use-package doom-modeline
   :init (doom-modeline-mode 1)
@@ -594,6 +599,11 @@
 (setq-default evil-shift-width tab-width)
 
 (setq-default indent-tabs-mode nil)
+
+(use-package smartparens
+  :init (smartparens-global-mode 1)
+  :config
+  (advice-add #'yas-expand :before #'sp-remove-active-pair-overlay))
 
 (use-package company
   :after lsp-mode
