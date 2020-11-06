@@ -318,7 +318,7 @@
     `(((,(all-the-icons-octicon "mark-github" :height 1.1 :v-adjust 0.0)
               "Github"
 	      "Browse homepage"
-              (lambda (&rest _) (browse-url "https://github.com/Lilahamstern/Hamster-emacs")))
+              (lambda (&rest _) (browse-url "https://github.com/TheNerdyHamster/The-Nerdy-Hamster-Emacs")))
             (,(all-the-icons-faicon "linkedin" :height 1.1 :v-adjust 0.0)
               "Linkedin"
               "My Linkedin"
