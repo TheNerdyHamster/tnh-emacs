@@ -1,6 +1,12 @@
 (defvar he/default-font-size 100)
 (defvar he/default-variable-font-size 100)
 
+(setq user-emacs-directory "~/.cache/emacs/"
+      backup-directory-alist `(("." . ,(expand-file-name "backups" user-emacs-directory)))
+      url-history-file (expand-file-name "url/history" user-emacs-directory)
+      auto-save-list-file-prefix (expand-file-name "auto-save-list/.saves-" user-emacs-directory)
+      projectile-known-projects-file (expand-file-name "projectile-bookmarks.eld" user-emacs-directory))
+
 ;; Initialize package sources
 (require 'package)
 
@@ -19,43 +25,13 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 
-(setq he/exwm-enabled (and (eq window-system 'x)
+(server-start)
+
+(setq nhe/exwm-enabled (and (eq window-system 'x)
                            (seq-contains command-line-args "--use-exwm")))
 
-(when he/exwm-enabled
-(use-package exwm
-  :init
-  (setq mouse-autoselect-window nil
-        focus-follow-mouse t
-        exwm-workspace-warp-cursor t
-        exwm-workspace-number 5)
-  :config
-  (add-hook 'exwm-update-class-hook
-            (lambda ()
-              (exwm-workspace-rename-buffer exwm-class-name)))
-  (add-hook 'exwm-update-title-hook
-            (lambda ()
-              (when (string-equal exwm-class-name "Vimb")
-                (exwm-workspace-rename-buffer (format "vimb: %s" exwm-title)))))
-
-(exwm-enable))
-
-(setq exwm-input-prefix-keys
-      '(?\C-x
-        ?\C-h
-        ?\M-x
-        ?\M-&     ;; Async shell command
-        ?\M-:     ;; Eval
-        ?\C-\M-j  ;; Buffer list
-        ?\C-\M-k  ;; Browser list
-        ?\C-\     ;; Ctrl+Space
-        ?\C-\;)))
-
-(setq user-emacs-directory "~/.cache/emacs/"
-      backup-directory-alist `(("." . ,(expand-file-name "backups" user-emacs-directory)))
-      url-history-file (expand-file-name "url/history" user-emacs-directory)
-      auto-save-list-file-prefix (expand-file-name "auto-save-list/.saves-" user-emacs-directory)
-      projectile-known-projects-file (expand-file-name "projectile-bookmarks.eld" user-emacs-directory))
+(when nhe/exwm-enabled
+  (load-file "~/.emacs.d/exwm.el"))
 
 (setq inhibit-startup-message t)
  (setq initial-buffer-choice "*dashboard*")
@@ -351,7 +327,7 @@
 (use-package centaur-tabs
   :config
   (setq centaur-tabs-height 32)
-  (setq centaur-tabs-bar-height 43)
+  (setq centaur-tabs-bar-height 35)
   (setq centaur-tabs-set-bar 'under)
   (setq centaur-tabs-set-icons t)
   (setq centaur-tabs-set-greyout-icons t)
@@ -364,7 +340,7 @@
   :ensure t
   :init
   (progn
-    (setq dashboard-items '((recents . 5)
+    (setq dashboard-items '((recents . 10)
 			    (projects . 10)))
     (setq dashboard-show-shortcuts nil
           dashboard-banner-logo-title "Welcome to The Nerdy Hamster Emacs"
@@ -636,14 +612,12 @@
 (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
 (add-to-list 'org-structure-template-alist '("py" . "src python"))
 
-(defun he/org-babel-tangle-config ()
-  (when (string-equal (buffer-file-name)
-                      (expand-file-name "~/.emacs.d/Emacs.org"))
-    ;; Dynamic scoping to the rescue
+(defun nhe/org-babel-tangle-config ()
     (let ((org-confirm-babel-evaluate nil))
-      (org-babel-tangle))))
+      (org-babel-tangle)))
 
-(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'he/org-babel-tangle-config)))
+(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'nhe/org-babel-tangle-config 
+                                              'run-at-end 'only-in-org-mode)))
 
 (use-package toc-org
   :hook (toc-org . org-mode))
@@ -764,7 +738,7 @@
 
 (use-package dockerfile-mode
   :ensure t
-  :mode "Dockerfile*\\'")
+  :mode "Dockerfile\\'")
 
 (defun he/lsp-mode-setup ()
   (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
@@ -913,16 +887,3 @@
 (use-package elcord
   :config
   (elcord-mode 1))
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   '(web-mode prettier js-react-redux-yasnippets yasnippet-snippets ws-butler which-key vterm visual-fill-column use-package undo-tree typescript-mode treemacs-projectile treemacs-icons-dired treemacs-evil treemacs-all-the-icons toc-org sublimity smex smartparens shrface shr-tag-pre-highlight rjsx-mode restart-emacs rainbow-mode rainbow-delimiters org-bullets omnisharp multiple-cursors lsp-ui lsp-treemacs lsp-ivy js-doc ivy-rich ivy-posframe helpful go-mode general forge exwm expand-region evil-nerd-commenter evil-magit evil-collection eterm-256color elcord doom-themes doom-modeline dockerfile-mode docker dired-single dired-open dired-hide-dotfiles dashboard counsel-projectile company-prescient company-box command-log-mode centaur-tabs)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )

@@ -1,0 +1,690 @@
+#+TITLE: The Nerdy Hamster EXWM
+#+AUTHOR: The Nerdy Hamster
+#+PROPERTY: header-args:emacs-lisp :tangle ./exwm.el :mkdirp yes
+
+
+* Table of Contents :TOC:
+- [[#window-management][Window Management]]
+- [[#helper-functions][Helper Functions]]
+- [[#configuration][Configuration]]
+  - [[#exwm][EXWM]]
+  - [[#systemtray][Systemtray]]
+- [[#desktop-configuration][Desktop Configuration]]
+- [[#window-switcher][Window Switcher]]
+- [[#panel][Panel]]
+  - [[#polybar][Polybar]]
+- [[#keybindings][Keybindings]]
+
+* Window Management
+#+begin_src emacs-lisp
+(use-package exwm
+  :init
+  (setq mouse-autoselect-window nil
+        focus-follow-mouse t
+        exwm-workspace-warp-cursor t
+        exwm-workspace-number 5)
+  :config
+  (add-hook 'exwm-update-class-hook
+            (lambda ()
+              (exwm-workspace-rename-buffer exwm-class-name)))
+  (add-hook 'exwm-update-title-hook
+            (lambda ()
+              (when (string-equal exwm-class-name "Vimb")
+                (exwm-workspace-rename-buffer (format "vimb: %s" exwm-title)))))
+  (exwm-enable))
+
+  ;; (use-package exwm-randr
+  ;;   :if nhe/exwm-enabled
+  ;;   :after (exwm)
+  ;;   :config
+  ;;   (exwm-randr-enable))
+
+(setq exwm-input-prefix-keys
+      '(?\C-x
+        ?\C-h
+        ?\M-x
+        ?\M-&     ;; Async shell command
+        ?\M-:     ;; Eval
+        ?\C-\M-j  ;; Buffer list
+        ?\C-\M-k  ;; Browser list
+        ?\C-\     ;; Ctrl+Space
+        ?\C-\;))
+#+end_src
+
+* Helper Functions
+#+begin_src emacs-lisp
+(defun exwm/run-in-bg (command)
+  (let ((command-parts (split-string command "[ ]+")))
+    (apply #'call-process `(,(car command-parts) nil 0 nil ,@(cdr command-parts)))))
+
+(defun exwm/bind-function (key invocation &rest bindings)
+  "Bind KEYs to FUNCTIONs globally"
+  (while key
+    (exwm-input-set-key (kbd key)
+                        `(lambda ()
+                           (interactive)
+                           (funcall ',invocation)))
+    (setq key (pop bindings)
+          invocation (pop bindings))))
+
+(defun exwm/bind-command (key command &rest bindings)
+  "Bind KEYs to COMMANDs globally"
+  (while key
+    (exwm-input-set-key (kbd key)
+                        `(lambda ()
+                           (interactive)
+                           (exwm/run-in-bg ,command)))
+    (setq key (pop bindings)
+          command (pop bindings))))
+#+end_src
+* Configuration
+** EXWM
+#+begin_src emacs-lisp
+(defun nhe/exwm-init-hook ()
+  (exwm-workspace-switch-create 1)
+  
+  (vterm)
+  
+  (exwm/run-in-bg "dunst")
+  (exwm/run-in-bg "nm-applet")
+  (exwm/run-in-bg "redshift -l 57.70716:11.96679 -t 6500:3500"))
+  
+
+(use-package exwm
+  :if nhe/exwm-enabled
+  :config
+  (add-hook 'exwm-mode-hook
+            (lambda ()
+              (evil-local-set-key 'motion (kbd "C-u") nil)))
+
+  (defun nhe/setup-window-by-class-name ()
+    (interactive)
+    (pcase exwm-class-name
+      ("teams-for-linux" (exwm-workspace-move-window 3))
+      ("discord" (exwm-workspace-move-window 3))
+      ("Spotify" (exwm-workspace-move-window 4))))
+      
+  (add-hook 'exwm-init-hook #'nhe/exwm-init-hook)
+  
+  (add-hook 'exwm-manage-finish-hook 
+            (lambda () 
+              (nhe/setup-window-by-class-name)))
+              
+  (add-hook 'exwm-floating-setup-hook
+            (lambda ()
+              (exwm-layout-hide-mode-line))))
+#+end_src
+** Systemtray
+#+begin_src emacs-lisp
+(use-package exwm-systemtray
+  :disabled
+  :if nhe/exwm-enabled
+  :after (exwm)
+  :config
+  (exwm-systemtray-enable)
+  (setq exwm-systemtray-height 35))
+#+end_src
+* Desktop Configuration
+#+begin_src emacs-lisp
+(defun nhe/run-xmodmap ()
+  (interactive)
+  (start-process-shell-command "xmodmap" nil "xmodmap ~/.condig/xmodmap/Xmodmap"))
+  
+(defun nhe/update-wallpapers ()
+  (interactive)
+  (start-process-shell-command
+    "feh" nil
+    (format "feh --bg-scale ~/.config/wallpapers/main.jpg")))
+ 
+(setq nhe/panel-process nil)
+(defun nhe/kill-panel ()
+  (interactive)
+  (when nhe/panel-process
+    (ignore-errors
+      (kill-process nhe/panel-process)))
+  (setq nhe/panel-process nil))
+
+(defun nhe/start-panel ()
+  (interactive)
+  (nhe/kill-panel)
+  (setq nhe/panel-process (start-process-shell-command "polybar" nil "polybar panel")))
+
+(defun nhe/update-screen-layout ()
+  (interactive)
+  (let ((layout-script "~/.bin/update-screens"))
+     (message "Running screen layout script: %s" layout-script)
+     (start-process-shell-command "xrandr" nil layout-script)))
+
+(defun nhe/configure-desktop ()
+  (interactive)
+    ;(nhe/run-xmodmap)
+    ;;(nhe/update-screen-layout)
+    (run-at-time "2 sec" nil (lambda () (nhe/update-wallpapers))))
+
+(defun nhe/on-exwm-init ()
+  (nhe/configure-desktop)
+  (nhe/start-panel))
+
+(when nhe/exwm-enabled
+  ;; Configure the desktop for first load
+  (add-hook 'exwm-init-hook #'nhe/on-exwm-init))
+#+end_src
+* Window Switcher
+#+begin_src emacs-lisp
+(defalias 'switch-to-buffer-original 'exwm-workspace-switch-to-buffer)
+#+end_src
+* Panel
+** Polybar
+#+begin_src emacs-lisp
+(defun nhe/send-polybar-hook (name number)
+  (start-process-shell-command "polybar-msg" nil (format "polybar-msg hook %s %s" name number)))
+
+(defun nhe/update-polybar-exwm ()
+  (nhe/send-polybar-hook "exwm" 1))
+
+(defun nhe/polybar-exwm-workspace ()
+  (pcase exwm-workspace-current-index
+    (0 "")
+    (1 "")
+    (2 "")
+    (3 "")
+    (4 "")))
+
+(defun nhe/telega-normalize-name (chat-name)
+  (let* ((trimmed-name (string-trim-left (string-trim-right chat-name "}") "◀{"))
+         (first-name (nth 0 (split-string trimmed-name " "))))
+    first-name))
+
+(defun nhe/propertized-to-polybar (buffer-name)
+  (if-let* ((text (substring-no-properties buffer-name))
+            (fg-face (get-text-property 0 'face buffer-name))
+            (fg-color (face-attribute fg-face :foreground)))
+    (format "%%{F%s}%s%%{F-}" fg-color (nhe/telega-normalize-name text))
+    text))
+
+(add-hook 'exwm-workspace-switch-hook #'nhe/update-polybar-exwm)
+#+end_src
+* Keybindings
+#+begin_src emacs-lisp
+(when nhe/exwm-enabled
+  ;; These keys should always pass through to Emacs
+  (setq exwm-input-prefix-keys
+    '(?\C-x
+      ?\C-h
+      ?\M-x
+      ?\M-`
+      ?\M-&
+      ?\M-:
+      ?\C-\M-j  ;; Buffer list
+      ?\C-\M-k  ;; Browser list
+      ?\C-\     ;; Ctrl+Space
+      ?\C-\;))
+
+  ;; Ctrl+Q will enable the next key to be sent directly
+  (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
+
+  (defun exwm/run-vimb ()
+    (exwm/run-in-background "vimb")
+    (exwm-workspace-switch-create 2))
+
+  (exwm/bind-function
+    "s-o" 'exwm/run-vimb)
+
+  (exwm/bind-command
+    "s-p" "playerctl play-pause"
+    "s-[" "playerctl previous"
+    "s-]" "playerctl next")
+
+  (use-package desktop-environment
+    :after exwm
+    :config (desktop-environment-mode)
+    :custom
+    (desktop-environment-brightness-small-increment "2%+")
+    (desktop-environment-brightness-small-decrement "2%-")
+    (desktop-environment-brightness-normal-increment "5%+")
+    (desktop-environment-brightness-normal-decrement "5%-"))
+
+  ;; This needs a more elegant ASCII banner
+  (defhydra hydra-exwm-move-resize (:timeout 4)
+    "Move/Resize Window (Shift is bigger steps, Ctrl moves window)"
+    ("j" (lambda () (interactive) (exwm-layout-enlarge-window 10)) "V 10")
+    ("J" (lambda () (interactive) (exwm-layout-enlarge-window 30)) "V 30")
+    ("k" (lambda () (interactive) (exwm-layout-shrink-window 10)) "^ 10")
+    ("K" (lambda () (interactive) (exwm-layout-shrink-window 30)) "^ 30")
+    ("h" (lambda () (interactive) (exwm-layout-shrink-window-horizontally 10)) "< 10")
+    ("H" (lambda () (interactive) (exwm-layout-shrink-window-horizontally 30)) "< 30")
+    ("l" (lambda () (interactive) (exwm-layout-enlarge-window-horizontally 10)) "> 10")
+    ("L" (lambda () (interactive) (exwm-layout-enlarge-window-horizontally 30)) "> 30")
+    ("C-j" (lambda () (interactive) (exwm-floating-move 0 10)) "V 10")
+    ("C-S-j" (lambda () (interactive) (exwm-floating-move 0 30)) "V 30")
+    ("C-k" (lambda () (interactive) (exwm-floating-move 0 -10)) "^ 10")
+    ("C-S-k" (lambda () (interactive) (exwm-floating-move 0 -30)) "^ 30")
+    ("C-h" (lambda () (interactive) (exwm-floating-move -10 0)) "< 10")
+    ("C-S-h" (lambda () (interactive) (exwm-floating-move -30 0)) "< 30")
+    ("C-l" (lambda () (interactive) (exwm-floating-move 10 0)) "> 10")
+    ("C-S-l" (lambda () (interactive) (exwm-floating-move 30 0)) "> 30")
+    ("f" nil "finished" :exit t))
+
+  ;; Workspace switching
+  (setq exwm-input-global-keys
+         `(([?\s-\M-r] . exwm-reset)
+           ([?\s-w] . exwm-workspace-switch)
+           ([?\s-r] . hydra-exwm-move-resize/body)
+           ([?\s-e] . dired-jump)
+           ([?\s-E] . (lambda () (interactive) (dired "~")))
+           ([?\s-q] . (lambda () (interactive) (kill-buffer)))
+           ([?\s-`] . (lambda () (interactive) (exwm-workspace-switch-create 0)))
+           ,@(mapcar (lambda (i)
+                       `(,(kbd (format "s-%d" i)) .
+                          (lambda ()
+                           (interactive)
+                           (exwm-workspace-switch-create ,i))))
+                      (number-sequence 0 9))))
+
+  (exwm-input-set-key (kbd "<s-return>") 'vterm)
+  (exwm-input-set-key (kbd "s-SPC") 'counsel-linux-app)
+  (exwm-input-set-key (kbd "s-m") 'exwm-layout-toggle-fullscreen))
+#+end_src
+* Config files
+** Xmodmap
+#+begin_src conf :tangle ~/.config/xmodmap/Xmodmap :noweb yes
+clear lock
+clear control
+keycode 66 = Control_L
+add control = Control_L
+add Lock = Control_R
+#+end_src
+** Polybar
+#+begin_src conf :tangle ~/.config/polybar/config :noweb yes
+[settings]
+screenchange-reload = true
+
+[globa/wm]
+margin-top 0
+margin-bottom 0
+
+[colors]
+background = #f0232635
+background-alt = #576075
+foreground = #A6Accd
+foreground-alt = #555
+primary = #ffb52a
+secondary = #e60053
+alert = #bd2c40
+underline-1 = #c792ea
+
+[bar/panel]
+width = 100%
+height = 24
+offset-x = 0
+offset-y = 0
+fixed-center = true
+enable-ipc = true
+
+background = ${colors.background}
+foreground = ${colors.foreground}
+
+line-size = 2
+line-color = #f00
+
+border-size = 0
+border-color = #000000
+
+padding-top = 5
+padding-left = 1
+padding-right = 1
+
+module-margin = 1
+
+font-0 = "Cantarell:size=10:weight=bold;2"
+font-1 = "Font Awesome:size=10;2"
+font-2 = "Material Icons:size=12;5"
+font-3 = "Fira Mono:size=8;-3"
+
+modules-left = exwm bspwm
+modules-center = spotify
+modules-right = xkeyboard memory cpu battery temperature date 
+
+tray-position = right
+tray-padding = 2
+
+cursor-click = pointer
+cursor-scroll = ns-resize
+
+[module/exwm]
+type = custom/ipc
+hook-0 = emacsclient -e "(nhe/polybar-exwm-workspace)" | sed -e 's/^"//' -e 's/"$//'
+initial = 1
+format-underline = ${colors.underline-1}
+format-background = ${colors.background-alt}
+format-padding = 1
+
+[module/xkeyboard]
+type = internal/xkeyboard
+blacklist-0 = num lock
+
+format-prefix-font = 1
+format-prefix-foreground = ${colors.foreground-alt}
+format-prefix-underline = ${colors.underline-1}
+
+label-layout =  %layout%
+label-layout-underline = ${colors.underline-1}
+
+label-indicator-padding = 2
+label-indicator-margin = 1
+label-indicator-underline = ${colors.underline-1}
+
+[module/bspwm]
+type = internal/bspwm
+
+label-focused = %index%
+label-focused-background = ${colors.background-alt}
+label-focused-underline= ${colors.primary}
+label-focused-padding = 2
+
+label-occupied = %index%
+label-occupied-padding = 2
+
+label-urgent = %index%!
+label-urgent-background = ${colors.alert}
+label-urgent-padding = 2
+
+label-empty = %index%
+label-empty-foreground = ${colors.foreground-alt}
+label-empty-padding = 2
+
+; Separator in between workspaces
+label-separator = |
+
+[module/spotify]
+type = custom/script
+exec = ~/.config/polybar/player_status.sh
+interval = 3
+
+[module/cpu]
+type = internal/cpu
+interval = 2
+format = <label> <ramp-coreload>
+format-underline = ${colors.underline-1}
+; click-left = emacsclient -e "(proced)"
+label = %percentage:2%%
+ramp-coreload-spacing = 0
+ramp-coreload-0 = ▁
+ramp-coreload-0-foreground = ${colors.foreground-alt}
+ramp-coreload-1 = ▂
+ramp-coreload-2 = ▃
+ramp-coreload-3 = ▄
+ramp-coreload-4 = ▅
+ramp-coreload-5 = ▆
+ramp-coreload-6 = ▇
+
+[module/memory]
+type = internal/memory
+interval = 2
+format-underline = ${colors.underline-1}
+label = %percentage_used%%
+
+[module/date]
+type = internal/date
+interval = 1
+
+date = "%b %e"
+date-alt = "%B %d"
+
+time = %l:%M:%S %p
+time-alt = %H:%M:%S
+
+format-prefix-foreground = ${colors.foreground-alt}
+format-underline = ${colors.underline-1}
+
+label =   %date%  %time%
+
+[module/battery]
+type = internal/battery
+battery = BAT0
+adapter = ADP1
+full-at = 98
+
+label-charging = %percentage%%
+format-charging = <animation-charging> <label-charging>
+format-charging-underline = ${colors.underline-1}
+
+label-discharging = %percentage%%
+format-discharging = <ramp-capacity> <label-discharging>
+format-discharging-underline = ${self.format-charging-underline}
+
+format-full = <ramp-capacity> <label-full>
+format-full-underline = ${self.format-charging-underline}
+
+ramp-capacity-0 = 
+ramp-capacity-1 = 
+ramp-capacity-2 = 
+ramp-capacity-3 = 
+ramp-capacity-4 = 
+
+animation-charging-0 = 
+animation-charging-1 = 
+animation-charging-2 = 
+animation-charging-3 = 
+animation-charging-4 = 
+animation-charging-framerate = 750
+
+[module/temperature]
+type = internal/temperature
+thermal-zone = 0
+warn-temperature = 60
+
+format = <label>
+format-underline = ${colors.underline-1}
+format-warn = <label-warn>
+format-warn-underline = ${self.format-underline}
+
+label = %temperature-c%
+label-warn = %temperature-c%!
+label-warn-foreground = ${colors.secondary}
+#+end_src
+** Dunst
+#+begin_src conf :tangle ~/.config/dunst/dunstrc :noweb yes
+[global]
+    ### Display ###
+    monitor = 0
+
+    # The geometry of the window:
+    #   [{width}]x{height}[+/-{x}+/-{y}]
+    geometry = "500x10-10+50"
+
+    # Show how many messages are currently hidden (because of geometry).
+    indicate_hidden = yes
+
+    # Shrink window if it's smaller than the width.  Will be ignored if
+    # width is 0.
+    shrink = no
+
+    # The transparency of the window.  Range: [0; 100].
+    transparency = 10
+
+    # The height of the entire notification.  If the height is smaller
+    # than the font height and padding combined, it will be raised
+    # to the font height and padding.
+    notification_height = 0
+
+    # Draw a line of "separator_height" pixel height between two
+    # notifications.
+    # Set to 0 to disable.
+    separator_height = 1
+    separator_color = frame
+
+    # Padding between text and separator.
+    padding = 8
+
+    # Horizontal padding.
+    horizontal_padding = 8
+
+    # Defines width in pixels of frame around the notification window.
+    # Set to 0 to disable.
+    frame_width = 2
+
+
+    # Defines color of the frame around the notification window.
+    frame_color = "#89AAEB"
+
+    # Sort messages by urgency.
+    sort = yes
+
+    # Don't remove messages, if the user is idle (no mouse or keyboard input)
+    # for longer than idle_threshold seconds.
+    idle_threshold = 120
+
+    ### Text ###
+
+    font = FiraCode NF 8
+
+    # The spacing between lines.  If the height is smaller than the
+    # font height, it will get raised to the font height.
+    line_height = 0
+    markup = full
+
+    # The format of the message.  Possible variables are:
+    #   %a  appname
+    #   %s  summary
+    #   %b  body
+    #   %i  iconname (including its path)
+    #   %I  iconname (without its path)
+    #   %p  progress value if set ([  0%] to [100%]) or nothing
+    #   %n  progress value if set without any extra characters
+    #   %%  Literal %
+    # Markup is allowed
+    format = "<b>%s</b>\n%b"
+
+    # Alignment of message text.
+    # Possible values are "left", "center" and "right".
+    alignment = left
+
+    # Show age of message if message is older than show_age_threshold
+    # seconds.
+    # Set to -1 to disable.
+    show_age_threshold = 60
+
+    # Split notifications into multiple lines if they don't fit into
+    # geometry.
+    word_wrap = yes
+
+    # When word_wrap is set to no, specify where to make an ellipsis in long lines.
+    # Possible values are "start", "middle" and "end".
+    ellipsize = middle
+
+    # Ignore newlines '\n' in notifications.
+    ignore_newline = no
+
+    # Stack together notifications with the same content
+    stack_duplicates = true
+
+    # Hide the count of stacked notifications with the same content
+    hide_duplicate_count = false
+
+    # Display indicators for URLs (U) and actions (A).
+    show_indicators = yes
+
+    ### Icons ###
+
+    # Align icons left/right/off
+    icon_position = left
+
+    # Scale larger icons down to this size, set to 0 to disable
+    max_icon_size = 64
+
+    # Paths to default icons.
+
+    ### History ###
+
+    # Should a notification popped up from history be sticky or timeout
+    # as if it would normally do.
+    sticky_history = no
+
+    # Maximum amount of notifications kept in history
+    history_length = 20
+
+    ### Misc/Advanced ###
+
+    # Browser for opening urls in context menu.
+    browser = vimb
+
+    # Always run rule-defined scripts, even if the notification is suppressed
+    always_run_script = true
+
+    # Define the title of the windows spawned by dunst
+    title = Dunst
+
+    # Define the class of the windows spawned by dunst
+    class = Dunst
+
+    startup_notification = false
+    verbosity = mesg
+
+    # Define the corner radius of the notification window
+    # in pixel size. If the radius is 0, you have no rounded
+    # corners.
+    # The radius will be automatically lowered if it exceeds half of the
+    # notification height to avoid clipping text and/or icons.
+    corner_radius = 4
+
+    mouse_left_click = close_current
+    mouse_middle_click = do_action
+    mouse_right_click = close_all
+
+# Experimental features that may or may not work correctly. Do not expect them
+# to have a consistent behaviour across releases.
+[experimental]
+    # Calculate the dpi to use on a per-monitor basis.
+    # If this setting is enabled the Xft.dpi value will be ignored and instead
+    # dunst will attempt to calculate an appropriate dpi value for each monitor
+    # using the resolution and physical size. This might be useful in setups
+    # where there are multiple screens with very different dpi values.
+    per_monitor_dpi = false
+
+[shortcuts]
+
+    # Shortcuts are specified as [modifier+][modifier+]...key
+    # Available modifiers are "ctrl", "mod1" (the alt-key), "mod2",
+    # "mod3" and "mod4" (windows-key).
+    # Xev might be helpful to find names for keys.
+
+    # Close notification.
+    #close = ctrl+space
+
+    # Close all notifications.
+    #close_all = ctrl+shift+space
+
+    # Redisplay last message(s).
+    # On the US keyboard layout "grave" is normally above TAB and left
+    # of "1". Make sure this key actually exists on your keyboard layout,
+    # e.g. check output of 'xmodmap -pke'
+    history = ctrl+grave
+
+    # Context menu.
+    context = ctrl+shift+period
+
+[urgency_low]
+    # IMPORTANT: colors have to be defined in quotation marks.
+    # Otherwise the "#" and following would be interpreted as a comment.
+    background = "#222222"
+    foreground = "#888888"
+    timeout = 10
+    # Icon for notifications with low urgency, uncomment to enable
+    #icon = /path/to/icon
+
+[urgency_normal]
+    background = "#1c1f26"
+    foreground = "#ffffff"
+    timeout = 10
+    # Icon for notifications with normal urgency, uncomment to enable
+    #icon = /path/to/icon
+
+[urgency_critical]
+    background = "#900000"
+    foreground = "#ffffff"
+    frame_color = "#ff0000"
+    timeout = 0
+    # Icon for notifications with critical urgency, uncomment to enable
+    #icon = /path/to/icon
+#+end_src

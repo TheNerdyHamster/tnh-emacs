@@ -58,6 +58,14 @@
   (defvar he/default-variable-font-size 100)
   #+end_src
 
+* Keep .emacs.d clean
+#+begin_src emacs-lisp
+(setq user-emacs-directory "~/.cache/emacs/"
+      backup-directory-alist `(("." . ,(expand-file-name "backups" user-emacs-directory)))
+      url-history-file (expand-file-name "url/history" user-emacs-directory)
+      auto-save-list-file-prefix (expand-file-name "auto-save-list/.saves-" user-emacs-directory)
+      projectile-known-projects-file (expand-file-name "projectile-bookmarks.eld" user-emacs-directory))
+#+end_src
 * Package System
 Installation of use-package.
 #+begin_src emacs-lisp
@@ -80,47 +88,17 @@ Installation of use-package.
 (setq use-package-always-ensure t)
 #+end_src
 
-* TODO Desktop enviorment
+* Server mode
 #+begin_src emacs-lisp
-(setq he/exwm-enabled (and (eq window-system 'x)
+(server-start)
+#+end_src
+* Desktop enviorment
+#+begin_src emacs-lisp
+(setq nhe/exwm-enabled (and (eq window-system 'x)
                            (seq-contains command-line-args "--use-exwm")))
 
-(when he/exwm-enabled
-(use-package exwm
-  :init
-  (setq mouse-autoselect-window nil
-        focus-follow-mouse t
-        exwm-workspace-warp-cursor t
-        exwm-workspace-number 5)
-  :config
-  (add-hook 'exwm-update-class-hook
-            (lambda ()
-              (exwm-workspace-rename-buffer exwm-class-name)))
-  (add-hook 'exwm-update-title-hook
-            (lambda ()
-              (when (string-equal exwm-class-name "Vimb")
-                (exwm-workspace-rename-buffer (format "vimb: %s" exwm-title)))))
-
-(exwm-enable))
-
-(setq exwm-input-prefix-keys
-      '(?\C-x
-        ?\C-h
-        ?\M-x
-        ?\M-&     ;; Async shell command
-        ?\M-:     ;; Eval
-        ?\C-\M-j  ;; Buffer list
-        ?\C-\M-k  ;; Browser list
-        ?\C-\     ;; Ctrl+Space
-        ?\C-\;)))
-#+end_src
-* Keep .emacs.d clean
-#+begin_src emacs-lisp
-(setq user-emacs-directory "~/.cache/emacs/"
-      backup-directory-alist `(("." . ,(expand-file-name "backups" user-emacs-directory)))
-      url-history-file (expand-file-name "url/history" user-emacs-directory)
-      auto-save-list-file-prefix (expand-file-name "auto-save-list/.saves-" user-emacs-directory)
-      projectile-known-projects-file (expand-file-name "projectile-bookmarks.eld" user-emacs-directory))
+(when nhe/exwm-enabled
+  (load-file "~/.emacs.d/exwm.el"))
 #+end_src
 * TODO Essential Configuration
  Configuration of UI Settings, that removes unnessecary elements such as Menubar, Toolbar, etc.
@@ -501,7 +479,7 @@ Provide icons within emacs, only if emacs is launch in GUI mode.
 (use-package centaur-tabs
   :config
   (setq centaur-tabs-height 32)
-  (setq centaur-tabs-bar-height 43)
+  (setq centaur-tabs-bar-height 35)
   (setq centaur-tabs-set-bar 'under)
   (setq centaur-tabs-set-icons t)
   (setq centaur-tabs-set-greyout-icons t)
@@ -516,7 +494,7 @@ Provide icons within emacs, only if emacs is launch in GUI mode.
   :ensure t
   :init
   (progn
-    (setq dashboard-items '((recents . 5)
+    (setq dashboard-items '((recents . 10)
 			    (projects . 10)))
     (setq dashboard-show-shortcuts nil
           dashboard-banner-logo-title "Welcome to The Nerdy Hamster Emacs"
@@ -812,14 +790,12 @@ Provide icons within emacs, only if emacs is launch in GUI mode.
    #+end_src
 ** Automatic tangel of Configuration Files
    #+begin_src emacs-lisp
-(defun he/org-babel-tangle-config ()
-  (when (string-equal (buffer-file-name)
-                      (expand-file-name "~/.emacs.d/Emacs.org"))
-    ;; Dynamic scoping to the rescue
+(defun nhe/org-babel-tangle-config ()
     (let ((org-confirm-babel-evaluate nil))
-      (org-babel-tangle))))
+      (org-babel-tangle)))
 
-(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'he/org-babel-tangle-config)))
+(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'nhe/org-babel-tangle-config 
+                                              'run-at-end 'only-in-org-mode)))
    #+end_src
 ** TOC
 #+begin_src emacs-lisp
@@ -977,7 +953,7 @@ Provide icons within emacs, only if emacs is launch in GUI mode.
 #+begin_src emacs-lisp
 (use-package dockerfile-mode
   :ensure t
-  :mode "Dockerfile*\\'")  
+  :mode "Dockerfile\\'")  
 #+end_src
 ** IDE Features with lsp
 *** lsp-mode
