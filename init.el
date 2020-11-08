@@ -54,9 +54,10 @@
  (dolist (mode '(org-mode-hook
                  vterm-mode-hook
                  shell-mode-hook
-	               treemacs-mode-hook
+	               dired-sidebar-mode-hook
                  eshell-mode-hook))
    (add-hook mode (lambda () (display-line-numbers-mode 0))))
+
 (setq read-process-output-max (* 1024 1024))
 (setq gc-cons-threshold 100000000)
  ;(setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
@@ -100,14 +101,14 @@
   (general-override-mode +1)
 
   (general-create-definer nhe/leader-key
-    :states '(normal insert visual emacs treemacs)
+    :states '(normal insert visual emacs)
     :keymap 'override
     :prefix "SPC"
     :global-prefix "C-SPC"
     :non-normal-prefix "C-SPC")
 
   (general-create-definer nhe/local-leader-key
-    :states '(normal insert visual emacs treemacs)
+    :states '(normal insert visual emacs)
     :keymap 'override
     :prefix "SPC m"
     :global-prefix "C-SPC m"
@@ -174,7 +175,7 @@
   "o" '(:ignore t :wk "open")
   "o t" '(vterm :wk "open terminal")
   "o d" '(docker :wk "open docker")
-  "o p" '(treemacs :wk "open treemacs"))
+  "o p" '(dired-sidebar-toggle-sidebar :wk "open sidebar"))
 
 (nhe/leader-key
   "q" '(:ignore t :wk "quit")
@@ -216,9 +217,35 @@
   (nhe/leader-key
     "t s" '(hydra-text-scale/body :wk "scale text")))
 
-(load-theme 'modus-vivendi)
+(use-package modus-vivendi-theme
+  :config
+  (load-theme 'modus-vivendi t)
+  :custom
+  (modus-vivendi-theme-bold-constructs nil)
+  (modus-vivendi-theme-slanted-constructs t)
+  (modus-vivendi-theme-syntax 'alt-syntax)
+  (modus-vivendi-theme-no-mixed-fonts t)
+  (modus-vivendi-theme-org-blocks 'greyscale)
+  (modus-vivendi-theme-headings '((t . rainbow)))
+  (modus-vivendi-theme-scale-headings t))
 ;; (use-package doom-themes
-;;   :init (load-theme 'doom-dracula t))
+;;      :init (load-theme 'doom-dracula t))
+
+;; (set-face-attribute 'cursor nil :background "#EB7C54")
+;; (set-face-attribute 'default nil :background "#050813"
+;;                     :family "JetBrains Mono" :height 110)
+;; (set-face-attribute 'hl-line nil :background "#081321")
+;; (set-face-attribute 'line-number nil :foreground "#213455" :background "#050816")
+;; (set-face-attribute 'line-number-current-line nil :foreground "#5589E9")
+;; (set-face-attribute 'mode-line nil :background "#132134" :foreground "#345589"
+;;                     :box '(:line-width 1 :color "#213455"))
+;; (set-face-attribute 'mode-line-inactive nil :background "#050813" :foreground "#213455"
+;;                     :box '(:line-width 1 :color "#213455"))
+;; (set-face-attribute 'region nil :background "#34848c" :foreground "#FFFFFF")
+
+;; (set-face-attribute 'font-lock-comment-delimiter-face nil :weight 'black)
+;; (set-face-attribute 'font-lock-comment-face nil :slant 'italic)
+;; (set-face-attribute 'font-lock-string-face nil :foreground "#3BAB60")
 
 (use-package command-log-mode)
 
@@ -243,19 +270,6 @@
 ;;   (require 'sublimity-scroll)
 ;;   :config
 ;;   (sublimity-mode 1))
-
-(use-package treemacs)
-
-(use-package treemacs-evil
-  :after treemacs)
-
-(use-package treemacs-projectile
-  :after treemacs)
-  
-(use-package treemacs-all-the-icons
-  :after treemacs
-  :config
-  (treemacs-load-theme "all-the-icons"))
 
 (use-package dired
   :ensure nil
@@ -323,6 +337,19 @@
 (use-package rainbow-mode
   :config
   (rainbow-mode 1))
+
+(use-package dired-sidebar
+  :ensure t
+  :commands (dired-sidebar-toggle-sidebar)
+  :init
+  (add-hook 'dired-sidebar-mode-hook
+            (lambda ()
+              (unless (file-remote-p default-directory)
+                (auto-revert-mode))))
+  :config
+  (setq dired-sidbar-theme 'vscode
+        dired-sidebar-use-term-integration t
+        dired-sidebar-use-custom-font t))
 
 (use-package centaur-tabs
   :config
@@ -591,7 +618,7 @@
  (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
 
 (defun he/org-mode-visual-fill ()
-  (setq visual-fill-column-width 100
+  (setq visual-fill-column-width 120
         visual-fill-column-center-text t)
   (visual-fill-column-mode 1))
 
@@ -739,6 +766,9 @@
 (use-package dockerfile-mode
   :ensure t
   :mode "Dockerfile\\'")
+
+(use-package yaml-mode
+  :mode "\\.ya?ml\\'")
 
 (defun he/lsp-mode-setup ()
   (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
