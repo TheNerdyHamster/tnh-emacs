@@ -348,8 +348,7 @@ Installation of use-package.
 *** Custom theme
 #+begin_src emacs-lisp
 ;; (set-face-attribute 'cursor nil :background "#EB7C54")
-;; (set-face-attribute 'default nil :background "#050813"
-;;                     :family "JetBrains Mono" :height 110)
+(set-face-attribute 'default nil :family "FiraCode NF" :height 110)
 ;; (set-face-attribute 'hl-line nil :background "#081321")
 ;; (set-face-attribute 'line-number nil :foreground "#213455" :background "#050816")
 ;; (set-face-attribute 'line-number-current-line nil :foreground "#5589E9")
@@ -427,66 +426,6 @@ Provide icons within emacs, only if emacs is launch in GUI mode.
   :after treemacs dired
   :ensure t
   :config (treemacs-icons-dired-mode))
-#+end_src
-*** Tools
-**** Git
-***** Magit 
-#+begin_src emacs-lisp
-(use-package magit
-  :custom
-  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
-  :config
-  (nhe/leader-key
-    "g" '(:ignore t :wk "git")
-    "g s" '(magit-status :wk "magit status")
-    "g b" '(magit-branch :wk "maigt branch")
-    "g B" '(magit-blame :wk "magit blame")))
-#+end_src
-****** Magit Evil
-#+begin_src emacs-lisp
-(use-package evil-magit
-  :after magit)
-#+end_src
-***** TODO Forge
-#+begin_src emacs-lisp
-;; NOTE: Make sure to configure a GitHub token before using this package!
-;; - https://magit.vc/manual/forge/Token-Creation.html#Token-Creation
-;; - https://magit.vc/manual/ghub/Getting-Started.html#Getting-Started
-(use-package forge)
-#+end_src
-**** Docker
-#+begin_src emacs-lisp
-(use-package docker
-  :ensure t)
-#+end_src
-**** Snippets
-#+begin_src emacs-lisp
-(use-package yasnippet-snippets)
-
-(use-package yasnippet
-  :ensure t
-  :commands yas-minor-mode
-  :hook (go-mode . yas-minor-mode))
-#+end_src
-*** UI
-**** Comments
-   #+begin_src emacs-lisp
- (use-package evil-nerd-commenter)
-   #+end_src
-**** Expand region
-#+begin_src emacs-lisp
-(use-package expand-region)
-#+end_src
-**** Rainbow Delimiters
-   #+begin_src emacs-lisp
-(use-package rainbow-delimiters
-  :hook (prog-mode . rainbow-delimiters-mode))
-   #+end_src
-**** Rainbow mode
-#+begin_src emacs-lisp
-(use-package rainbow-mode
-  :config
-  (rainbow-mode 1))
 #+end_src
 *** Dired Sidebar
 #+begin_src emacs-lisp
@@ -633,9 +572,9 @@ Provide icons within emacs, only if emacs is launch in GUI mode.
                              (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
 
   ;; Set faces for heading levels
-  (dolist (face '((org-level-1 . 1.2)
-                  (org-level-2 . 1.1)
-                  (org-level-3 . 1.05)
+  (dolist (face '((org-level-1 . 1.1)
+                  (org-level-2 . 1.05)
+                  (org-level-3 . 1.0)
                   (org-level-4 . 1.0)
                   (org-level-5 . 1.1)
                   (org-level-6 . 1.1)
@@ -885,12 +824,13 @@ Provide icons within emacs, only if emacs is launch in GUI mode.
   (company-idle-delay 0.0)
   :config
   (setq company-backends '(company-capf))
+  (setq company-auto-commit t))
 
 (use-package company-prescient
   :init (company-prescient-mode 1))
 
 (use-package company-box
-  :hook (company-mode . company-box-mode)))
+  :hook (company-mode . company-box-mode))
 #+end_src
 ** Languages
 *** Typescript
@@ -1068,6 +1008,77 @@ Provide icons within emacs, only if emacs is launch in GUI mode.
 (use-package counsel-projectile
   :config (counsel-projectile-mode))  
    #+end_src
+** Tools
+*** Git
+**** Magit 
+#+begin_src emacs-lisp
+(use-package magit
+  :custom
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
+  :config
+  (nhe/leader-key
+    "g" '(:ignore t :wk "git")
+    "g s" '(magit-status :wk "magit status")
+    "g b" '(magit-branch :wk "maigt branch")
+    "g B" '(magit-blame :wk "magit blame")))
+#+end_src
+***** Magit Evil
+#+begin_src emacs-lisp
+(use-package evil-magit
+  :after magit)
+#+end_src
+**** TODO Forge
+#+begin_src emacs-lisp
+;; NOTE: Make sure to configure a GitHub token before using this package!
+;; - https://magit.vc/manual/forge/Token-Creation.html#Token-Creation
+;; - https://magit.vc/manual/ghub/Getting-Started.html#Getting-Started
+(use-package forge)
+#+end_src
+*** Docker
+#+begin_src emacs-lisp
+(use-package docker
+  :ensure t)
+#+end_src
+*** Kubernetes
+#+begin_src emacs-lisp
+(use-package kubernetes
+  :ensure t
+  :commands (kubernetes-overview))
+
+;; If you want to pull in the Evil compatibility package.
+(use-package kubernetes-evil
+  :ensure t
+  :after kubernetes)
+#+end_src
+*** Snippets
+#+begin_src emacs-lisp
+(use-package yasnippet-snippets)
+
+(use-package yasnippet
+  :ensure t
+  :commands yas-minor-mode
+  :hook (go-mode . yas-minor-mode))
+#+end_src
+*** UI
+**** Comments
+   #+begin_src emacs-lisp
+ (use-package evil-nerd-commenter)
+   #+end_src
+**** Expand region
+#+begin_src emacs-lisp
+(use-package expand-region)
+#+end_src
+**** Rainbow Delimiters
+   #+begin_src emacs-lisp
+(use-package rainbow-delimiters
+  :hook (prog-mode . rainbow-delimiters-mode))
+   #+end_src
+**** Rainbow mode
+#+begin_src emacs-lisp
+(use-package rainbow-mode
+  :config
+  (rainbow-mode 1))
+#+end_src
 * Browser
 ** shrface
 #+begin_src emacs-lisp
