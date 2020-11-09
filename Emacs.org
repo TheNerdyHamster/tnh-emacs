@@ -912,10 +912,12 @@ Provide icons within emacs, only if emacs is launch in GUI mode.
   :hook
   (csharp-mode . rainbow-delimiters-mode)
   (csharp-mode . company-mode)
-  (csharp-mode . flycheck-mode))
+  (csharp-mode . flycheck-mode)
+  (csharp-mode . omnisharp-mode)
+)
 
 (use-package omnisharp
-  :after csharp-mode
+  :after csharp-mode company
   :commands omnisharp-install-server
   :config
   (setq indent-tabs-mode nil
@@ -927,7 +929,8 @@ Provide icons within emacs, only if emacs is launch in GUI mode.
     "o" '(:ignore o :which-key "omnisharp")
     "o r" '(omnisharp-run-code-action-refactoring :which-key "omnisharp refactor")
     "o b" '(recompile :which-key "omnisharp build/recompile")
-    ))
+    )
+  (add-to-list 'company-backends 'company-omnisharp))
 #+end_src
 *** Dockerfile
 #+begin_src emacs-lisp
@@ -1184,4 +1187,3 @@ Provide icons within emacs, only if emacs is launch in GUI mode.
   :config
   (elcord-mode 1))
 #+end_src
-
