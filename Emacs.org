@@ -530,18 +530,18 @@ Provide icons within emacs, only if emacs is launch in GUI mode.
   :defer 1
   :after counsel)
 
-(use-package ivy-posframe
-  :custom
-  (ivy-posframe-width      115)
-  (ivy-posframe-min-width  115)
-  (ivy-posframe-height     10)
-  (ivy-posframe-min-height 10)
-  :config
-  (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-center)))
-  (setq ivy-posframe-parameters '((parent-frame . nil)
-                                  (left-fringe . 8)
-                                  (right-fringe . 8)))
-   (ivy-posframe-mode 1))
+;; (use-package ivy-posframe
+;;   :custom
+;;   (ivy-posframe-width      115)
+;;   (ivy-posframe-min-width  115)
+;;   (ivy-posframe-height     10)
+;;   (ivy-posframe-min-height 10)
+;;   :config
+;;   (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-center)))
+;;   (setq ivy-posframe-parameters '((parent-frame . nil)
+;;                                   (left-fringe . 8)
+;;                                   (right-fringe . 8)))
+;;    (ivy-posframe-mode 1))
    #+end_src
 ** Helpful Commands
    #+begin_src emacs-lisp
@@ -808,6 +808,17 @@ Provide icons within emacs, only if emacs is launch in GUI mode.
   (nhe/leader-key
     "c n" '(mc/mark-next-line-like-this :wk "mc-mark and next")
     "c w" '(mc/mark-prev-line-like-this :wk "mc-mark and prev")))
+#+end_src
+** Super auto save
+#+begin_src emacs-lisp
+(use-package super-save
+  :ensure t
+  :defer 1
+  :diminish super-save-mode
+  :config
+  (super-save-mode +1)
+  (setq super-save-auto-save-when-idle t)
+  (setq auto-save-default nil))
 #+end_src
 * Development 
 ** Company Mode
