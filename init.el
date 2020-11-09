@@ -232,8 +232,7 @@
 ;;      :init (load-theme 'doom-dracula t))
 
 ;; (set-face-attribute 'cursor nil :background "#EB7C54")
-;; (set-face-attribute 'default nil :background "#050813"
-;;                     :family "JetBrains Mono" :height 110)
+(set-face-attribute 'default nil :family "FiraCode NF" :height 110)
 ;; (set-face-attribute 'hl-line nil :background "#081321")
 ;; (set-face-attribute 'line-number nil :foreground "#213455" :background "#050816")
 ;; (set-face-attribute 'line-number-current-line nil :foreground "#5589E9")
@@ -298,45 +297,6 @@
   :after treemacs dired
   :ensure t
   :config (treemacs-icons-dired-mode))
-
-(use-package magit
-  :custom
-  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
-  :config
-  (nhe/leader-key
-    "g" '(:ignore t :wk "git")
-    "g s" '(magit-status :wk "magit status")
-    "g b" '(magit-branch :wk "maigt branch")
-    "g B" '(magit-blame :wk "magit blame")))
-
-(use-package evil-magit
-  :after magit)
-
-;; NOTE: Make sure to configure a GitHub token before using this package!
-;; - https://magit.vc/manual/forge/Token-Creation.html#Token-Creation
-;; - https://magit.vc/manual/ghub/Getting-Started.html#Getting-Started
-(use-package forge)
-
-(use-package docker
-  :ensure t)
-
-(use-package yasnippet-snippets)
-
-(use-package yasnippet
-  :ensure t
-  :commands yas-minor-mode
-  :hook (go-mode . yas-minor-mode))
-
-(use-package evil-nerd-commenter)
-
-(use-package expand-region)
-
-(use-package rainbow-delimiters
-  :hook (prog-mode . rainbow-delimiters-mode))
-
-(use-package rainbow-mode
-  :config
-  (rainbow-mode 1))
 
 (use-package dired-sidebar
   :ensure t
@@ -431,18 +391,18 @@
   :defer 1
   :after counsel)
 
-(use-package ivy-posframe
-  :custom
-  (ivy-posframe-width      115)
-  (ivy-posframe-min-width  115)
-  (ivy-posframe-height     10)
-  (ivy-posframe-min-height 10)
-  :config
-  (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-center)))
-  (setq ivy-posframe-parameters '((parent-frame . nil)
-                                  (left-fringe . 8)
-                                  (right-fringe . 8)))
-   (ivy-posframe-mode 1))
+;; (use-package ivy-posframe
+;;   :custom
+;;   (ivy-posframe-width      115)
+;;   (ivy-posframe-min-width  115)
+;;   (ivy-posframe-height     10)
+;;   (ivy-posframe-min-height 10)
+;;   :config
+;;   (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-center)))
+;;   (setq ivy-posframe-parameters '((parent-frame . nil)
+;;                                   (left-fringe . 8)
+;;                                   (right-fringe . 8)))
+;;    (ivy-posframe-mode 1))
 
 (use-package helpful
  :custom
@@ -465,9 +425,9 @@
                             (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
 
  ;; Set faces for heading levels
- (dolist (face '((org-level-1 . 1.2)
-                 (org-level-2 . 1.1)
-                 (org-level-3 . 1.05)
+ (dolist (face '((org-level-1 . 1.1)
+                 (org-level-2 . 1.05)
+                 (org-level-3 . 1.0)
                  (org-level-4 . 1.0)
                  (org-level-5 . 1.1)
                  (org-level-6 . 1.1)
@@ -677,6 +637,15 @@
     "c n" '(mc/mark-next-line-like-this :wk "mc-mark and next")
     "c w" '(mc/mark-prev-line-like-this :wk "mc-mark and prev")))
 
+(use-package super-save
+  :ensure t
+  :defer 1
+  :diminish super-save-mode
+  :config
+  (super-save-mode +1)
+  (setq super-save-auto-save-when-idle t)
+  (setq auto-save-default nil))
+
 (use-package company
   :after lsp-mode
   :hook (lsp-mode . company-mode)
@@ -689,12 +658,13 @@
   (company-idle-delay 0.0)
   :config
   (setq company-backends '(company-capf))
+  (setq company-auto-commit t))
 
 (use-package company-prescient
   :init (company-prescient-mode 1))
 
 (use-package company-box
-  :hook (company-mode . company-box-mode)))
+  :hook (company-mode . company-box-mode))
 
 (use-package typescript-mode
   :mode "\\.ts\\'"
@@ -746,10 +716,12 @@
   :hook
   (csharp-mode . rainbow-delimiters-mode)
   (csharp-mode . company-mode)
-  (csharp-mode . flycheck-mode))
+  (csharp-mode . flycheck-mode)
+  (csharp-mode . omnisharp-mode)
+)
 
 (use-package omnisharp
-  :after csharp-mode
+  :after csharp-mode company
   :commands omnisharp-install-server
   :config
   (setq indent-tabs-mode nil
@@ -761,7 +733,8 @@
     "o" '(:ignore o :which-key "omnisharp")
     "o r" '(omnisharp-run-code-action-refactoring :which-key "omnisharp refactor")
     "o b" '(recompile :which-key "omnisharp build/recompile")
-    ))
+    )
+  (add-to-list 'company-backends 'company-omnisharp))
 
 (use-package dockerfile-mode
   :ensure t
@@ -835,6 +808,54 @@
 
 (use-package counsel-projectile
   :config (counsel-projectile-mode))
+
+(use-package magit
+  :custom
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
+  :config
+  (nhe/leader-key
+    "g" '(:ignore t :wk "git")
+    "g s" '(magit-status :wk "magit status")
+    "g b" '(magit-branch :wk "maigt branch")
+    "g B" '(magit-blame :wk "magit blame")))
+
+(use-package evil-magit
+  :after magit)
+
+;; NOTE: Make sure to configure a GitHub token before using this package!
+;; - https://magit.vc/manual/forge/Token-Creation.html#Token-Creation
+;; - https://magit.vc/manual/ghub/Getting-Started.html#Getting-Started
+(use-package forge)
+
+(use-package docker
+  :ensure t)
+
+(use-package kubernetes
+  :ensure t
+  :commands (kubernetes-overview))
+
+;; If you want to pull in the Evil compatibility package.
+(use-package kubernetes-evil
+  :ensure t
+  :after kubernetes)
+
+(use-package yasnippet-snippets)
+
+(use-package yasnippet
+  :ensure t
+  :commands yas-minor-mode
+  :hook (go-mode . yas-minor-mode))
+
+(use-package evil-nerd-commenter)
+
+(use-package expand-region)
+
+(use-package rainbow-delimiters
+  :hook (prog-mode . rainbow-delimiters-mode))
+
+(use-package rainbow-mode
+  :config
+  (rainbow-mode 1))
 
 (use-package shrface
   :defer t
