@@ -617,8 +617,8 @@
 (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'nhe/org-babel-tangle-config 
                                               'run-at-end 'only-in-org-mode)))
 
-(use-package toc-org
-  :hook (toc-org . org-mode))
+(use-package org-make-toc
+  :hook (org-mode . org-make-toc-mode))
 
 (setq-default tab-width 2)
 (setq-default evil-shift-width tab-width)
