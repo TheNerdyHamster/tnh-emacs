@@ -54,7 +54,7 @@
  (dolist (mode '(org-mode-hook
                  vterm-mode-hook
                  shell-mode-hook
-	               dired-sidebar-mode-hook
+	               treemacs-mode-hook
                  eshell-mode-hook))
    (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
@@ -101,14 +101,14 @@
   (general-override-mode +1)
 
   (general-create-definer nhe/leader-key
-    :states '(normal insert visual emacs)
+    :states '(normal insert visual emacs treemacs)
     :keymap 'override
     :prefix "SPC"
     :global-prefix "C-SPC"
     :non-normal-prefix "C-SPC")
 
   (general-create-definer nhe/local-leader-key
-    :states '(normal insert visual emacs)
+    :states '(normal insert visual emacs treemacs)
     :keymap 'override
     :prefix "SPC m"
     :global-prefix "C-SPC m"
@@ -175,7 +175,7 @@
   "o" '(:ignore t :wk "open")
   "o t" '(vterm :wk "open terminal")
   "o d" '(docker :wk "open docker")
-  "o p" '(dired-sidebar-toggle-sidebar :wk "open sidebar"))
+  "o p" '(treemacs :wk "open sidebar"))
 
 (nhe/leader-key
   "q" '(:ignore t :wk "quit")
@@ -270,6 +270,24 @@
 ;;   :config
 ;;   (sublimity-mode 1))
 
+(use-package treemacs
+  :config
+  (treemacs-git-mode 'deferred))
+
+(use-package treemacs-evil
+  :after treemacs)
+
+(use-package treemacs-projectile
+  :after treemacs)
+  
+(use-package treemacs-magit
+  :after treemacs)
+
+(use-package treemacs-all-the-icons
+  :after treemacs
+  :config
+  (treemacs-load-theme "all-the-icons"))
+
 (use-package dired
   :ensure nil
   :commands (dired dired-jump)
@@ -297,19 +315,6 @@
   :after treemacs dired
   :ensure t
   :config (treemacs-icons-dired-mode))
-
-(use-package dired-sidebar
-  :ensure t
-  :commands (dired-sidebar-toggle-sidebar)
-  :init
-  (add-hook 'dired-sidebar-mode-hook
-            (lambda ()
-              (unless (file-remote-p default-directory)
-                (auto-revert-mode))))
-  :config
-  (setq dired-sidbar-theme 'vscode
-        dired-sidebar-use-term-integration t
-        dired-sidebar-use-custom-font t))
 
 (use-package centaur-tabs
   :config
@@ -413,6 +418,12 @@
  ([remap describe-command] . helpful-command)
  ([remap describe-variable] . counsel-describe-variable)
  ([remap describe-key] . helpful-key))
+
+(use-package persp-mode
+  :config
+  (setq wg-morph-on nil) ;; switch off animation
+  (setq persp-autokill-buffer-on-remove 'kill-weak)
+  (add-hook 'window-setup-hook #'(lambda () (persp-mode 1))))
 
 ;; (setq max-lisp-eval-depth 10000)
 ;; (setq max-specpdl-size 5)  ; default is 1000, reduce the backtrace level

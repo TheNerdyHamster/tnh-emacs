@@ -1,0 +1,42 @@
+#+TITLE: The Nerdy Hamster Emacs
+#+AUTHOR: Leo Rönnebro
+
+The Nerdy Hamster Emacs, is my personal emacs configuration. That I am customizing after my needs.
+
+* Installation
+
+** Platforms supported
+
+| Linux | Yes |
+| Windows | No |
+| MacOS | No|
+
+This Emacs configuration is currently only tested on =Arch Linux=.
+
+** Emacs
+#+BEGIN_QUOTE
+I am currently running Emacs =28.0.50= =Master= Branch, the repo is *only* tested on Version =28.0.50=.
+#+END_QUOTE
+
+*** Arch-linux
+*Recomended* Install Emacs =28.0.50= or above.
+
+#+begin_src shell
+yay -S emacs-git
+#+end_src
+
+*** Post installation 
+Clone this repository to the =.emacs.d/= directory.
+#+begin_src shell
+git clone https://github.com/TheNerdyHamster/The-Nerdy-Hamster-Emacs.git ~/.emacs.d/
+#+end_src
+
+**** Icons 
+Packages such as =Centaur-tabs=, =Treemacs=, =doom-modeline= utilizes features from =all-the-icons=.
+
+When you start up emacs for the first time, run the following command.
+#+begin_src emacs-lisp
+M-x (all-the-icons-install-font)
+#+end_src
+
+
