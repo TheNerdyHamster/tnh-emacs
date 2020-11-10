@@ -124,7 +124,7 @@ Installation of use-package.
  (dolist (mode '(org-mode-hook
                  vterm-mode-hook
                  shell-mode-hook
-	               dired-sidebar-mode-hook
+	               treemacs-mode-hook
                  eshell-mode-hook))
    (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
@@ -180,14 +180,14 @@ Installation of use-package.
   (general-override-mode +1)
 
   (general-create-definer nhe/leader-key
-    :states '(normal insert visual emacs)
+    :states '(normal insert visual emacs treemacs)
     :keymap 'override
     :prefix "SPC"
     :global-prefix "C-SPC"
     :non-normal-prefix "C-SPC")
 
   (general-create-definer nhe/local-leader-key
-    :states '(normal insert visual emacs)
+    :states '(normal insert visual emacs treemacs)
     :keymap 'override
     :prefix "SPC m"
     :global-prefix "C-SPC m"
@@ -274,7 +274,7 @@ Installation of use-package.
   "o" '(:ignore t :wk "open")
   "o t" '(vterm :wk "open terminal")
   "o d" '(docker :wk "open docker")
-  "o p" '(dired-sidebar-toggle-sidebar :wk "open sidebar"))
+  "o p" '(treemacs :wk "open sidebar"))
 #+end_src
 ***** Quit
 #+begin_src emacs-lisp
@@ -397,6 +397,26 @@ Provide icons within emacs, only if emacs is launch in GUI mode.
 ;;   :config
 ;;   (sublimity-mode 1))
 #+end_src
+** Treemacs
+#+begin_src emacs-lisp
+(use-package treemacs
+  :config
+  (treemacs-git-mode 'deferred))
+
+(use-package treemacs-evil
+  :after treemacs)
+
+(use-package treemacs-projectile
+  :after treemacs)
+  
+(use-package treemacs-magit
+  :after treemacs)
+
+(use-package treemacs-all-the-icons
+  :after treemacs
+  :config
+  (treemacs-load-theme "all-the-icons"))
+#+end_src
 ** Dired
 #+begin_src emacs-lisp
 (use-package dired
@@ -426,21 +446,6 @@ Provide icons within emacs, only if emacs is launch in GUI mode.
   :after treemacs dired
   :ensure t
   :config (treemacs-icons-dired-mode))
-#+end_src
-*** Dired Sidebar
-#+begin_src emacs-lisp
-(use-package dired-sidebar
-  :ensure t
-  :commands (dired-sidebar-toggle-sidebar)
-  :init
-  (add-hook 'dired-sidebar-mode-hook
-            (lambda ()
-              (unless (file-remote-p default-directory)
-                (auto-revert-mode))))
-  :config
-  (setq dired-sidbar-theme 'vscode
-        dired-sidebar-use-term-integration t
-        dired-sidebar-use-custom-font t))
 #+end_src
 ** Centaur tabs
 #+begin_src emacs-lisp
@@ -555,6 +560,15 @@ Provide icons within emacs, only if emacs is launch in GUI mode.
   ([remap describe-variable] . counsel-describe-variable)
   ([remap describe-key] . helpful-key))  
    #+end_src
+* Window
+** Perp mode
+#+begin_src emacs-lisp
+(use-package persp-mode
+  :config
+  (setq wg-morph-on nil) ;; switch off animation
+  (setq persp-autokill-buffer-on-remove 'kill-weak)
+  (add-hook 'window-setup-hook #'(lambda () (persp-mode 1))))
+#+end_src
 * Debug info
 #+begin_src emacs-lisp
 ;; (setq max-lisp-eval-depth 10000)
