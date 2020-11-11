@@ -1,0 +1,225 @@
+#+TITLE: The Nerdy Hamster Emacs Configuration
+#+AUTHOR The Nerdy Hamster (Leo Rönnebro)
+#+PROPERTY: header-args:emacs-lisp :tangle ./init.new.el :mkdirp yes
+
+* Table Of Contents
+:CONTENTS:
+
+:END:
+ 
+:PROPERTIES:
+:TOC:      :include all :depth 2
+:END:
+
+* Bootstraps
+** Emacs defaults
+Removal of UI components that needs mouse.
+#+begin_src emacs-lisp
+(when window-system
+  (blink-cursor-mode 0)                           ; Disable the cursor blinking
+  (scroll-bar-mode 0)                             ; Disable the scroll bar
+  (tool-bar-mode 0)                               ; Disable the tool bar
+  (tooltip-mode 0))                               ; Disable the tooltips
+#+end_src
+
+Better default values for emacs. Inspierd by other configs.
+#+begin_src emacs-lisp
+(setq-default
+ ad-redefinition-action 'accept                   ; Silence warnings for redefinition
+ auto-save-list-file-prefix nil                   ; Prevent tracking for auto-saves
+ cursor-in-non-selected-windows nil               ; Hide the cursor in inactive windows
+ cursor-type 'bar                                 ; Prefer a bar-shaped cursor by default
+ delete-by-moving-to-trash t                      ; Delete files to trash
+ fill-column 80                                   ; Set width for automatic line breaks
+ gc-cons-threshold (* 8 1024 1024)                ; We're not living in the 70s anymore
+ read-process-output-max (* 1024 1024)            ; Increase the read output for larger files.
+ help-window-select t                             ; Focus new help windows when opened
+ indent-tabs-mode nil                             ; Stop using tabs to indent
+ inhibit-startup-screen t                         ; Disable start-up screen
+ initial-scratch-message ""                       ; Empty the initial *scratch* buffer
+ mouse-yank-at-point t                            ; Yank at point rather than pointer
+ recenter-positions '(5 top bottom)               ; Set re-centering positions
+ scroll-conservatively most-positive-fixnum       ; Always scroll by one line
+ scroll-margin 2                                  ; Add a margin when scrolling vertically
+ select-enable-clipboard t                        ; Merge system's and Emacs' clipboard
+ sentence-end-double-space nil                    ; Use a single space after dots
+ show-help-function nil                           ; Disable help text on most UI elements
+ tab-width 4                                      ; Set width for tabs
+ uniquify-buffer-name-style 'forward              ; Uniquify buffer names
+ window-combination-resize t                      ; Resize windows proportionally
+ x-stretch-cursor t)                              ; Stretch cursor to the glyph width
+(cd "~/")                                         ; Move to the user directory
+(delete-selection-mode 1)                         ; Replace region when inserting text
+(fringe-mode '(2 . 0))                            ; Initialize thinner vertical fringes
+(fset 'yes-or-no-p 'y-or-n-p)                     ; Replace yes/no prompts with y/n
+(global-subword-mode 1)                           ; Iterate through CamelCase words
+(menu-bar-mode 0)                                 ; Disable the menu bar
+(mouse-avoidance-mode 'exile)                     ; Avoid collision of mouse with point
+(put 'downcase-region 'disabled nil)              ; Enable downcase-region
+(put 'upcase-region 'disabled nil)                ; Enable upcase-region
+(set-default-coding-systems 'utf-8)               ; Default to utf-8 encoding
+(column-number-mode)                              ; Toggle column number mode for mode lines.
+(global-display-line-numbers-mode t)              ; Toggle line numbers within buffer
+#+end_src
+
+Enable fullscreen on startup
+#+begin_src emacs-lisp
+(if (eq window-system 'ns)
+    (set-frame-parameter nil 'fullscreen 'maximized)
+  (set-frame-parameter nil 'fullscreen 'fullboth))
+#+end_src
+
+Garbage collection when =focus-out-hook= is called
+#+begin_src emacs-lisp
+(add-hook 'focus-out-hook #'garbage-collect)
+#+end_src
+
+** Load private config =.config.el=
+=~/.emacs.d/.config.el= contains both sensible information and configuration options, and values that shoudlent be shared with the public. Such as =tokens=, =email=, =passwords=, and =usernames=.
+#+begin_src emacs-lisp
+(defvar nhe/waka-time-token    nil               "The Waka time API token to use.")
+(defvar nhe/font-family        "Fira Code NF"     "Default font family to use")
+(defvar nhe/font-size-default  100               "The font size to use for default text.")
+(defvar nhe/font-size-large    1.2               "The font size to use for larger text.")
+(defvar nhe/font-size-small    .8                "The font size to use for smaller text.")
+
+(let ((secret.el (expand-file-name ".config.el" user-emacs-directory)))
+  (load config.el t))
+#+end_src
+
+** Keep =.emacs.d= clean
+Due to files for both =backups=, and =packages= are stored within =.emacs.d= by default, and creates a mess within the folder. The default files are moved to =cache=
+#+begin_src emacs-lisp
+(setq user-emacs-directory "~/.cache/emacs/"
+      backup-directory-alist `(("." . ,(expand-file-name "backups" user-emacs-directory)))
+      url-history-file (expand-file-name "url/history" user-emacs-directory)
+      auto-save-list-file-prefix (expand-file-name "auto-save-list/.saves-" user-emacs-directory)
+      projectile-known-projects-file (expand-file-name "projectile-bookmarks.eld" user-emacs-directory))
+#+end_src
+
+** Package configuration system
+|use-package| https://github.com/jwiegley/use-package | 
+#+begin_qoute
+The =use-package= macro allows you to isolate package configuration in your =.emacs= file in a way that is both performance-oriented and, well, tidy. I created it because I have over 80 packages that I use in Emacs, and things were getting difficult to manage. Yet with this utility my total load time is around 2 seconds, with no loss of functionality! - From [[https://github.com/jwiegley/use-package#use-package][use-package documentation]]
+#+end_qoute
+
+#+begin_src emacs-lisp
+(require 'package)
+
+(setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                         ("org" . "https://orgmode.org/elpa/")
+                         ("elpa" . "https://elpa.gnu.org/packages/")))
+
+(package-initialize)
+(unless package-archive-contents
+  (package-refresh-contents))
+
+  ;; Initialize use-package on non-Linux platforms
+(unless (package-installed-p 'use-package)
+  (package-install 'use-package))
+
+(require 'use-package)
+(setq use-package-always-ensure t)
+#+end_src
+
+** Server mode
+| Documentation | https://www.gnu.org/software/emacs/manual/html_node/emacs/Emacs-Server.html |
+It is possible to use emacs with server mode, which gives you some powerful features such as information for =Polybar= 
+#+begin_src emacs-lisp
+(server-start)
+#+end_src
+
+** Desktop enviorment - =EXWM=
+It is possible to use =Emacs= as a Window manager with =EXWM=.
+To start =EXWM= you will need to get =~/.emacs.d/exwm.el= and then run =emacs --use-exwm=
+#+begin_src emacs-lisp
+(setq nhe/exwm-enabled (and (eq window-system 'x)
+                           (seq-contains command-line-args "--use-exwm")))
+
+(when nhe/exwm-enabled
+  (load-file "~/.emacs.d/exwm.el"))
+#+end_src
+
+* GUI
+** Theme
+| =modus-vivendi= | https://gitlab.com/protesilaos/modus-themes |
+Load default theme, and change settings to my preference
+#+begin_src emacs-lisp
+(use-package modus-vivendi-theme
+  :config
+  (load-theme 'modus-vivendi t)
+  :custom
+  (modus-vivendi-theme-bold-constructs nil)
+  (modus-vivendi-theme-slanted-constructs t)
+  (modus-vivendi-theme-syntax 'alt-syntax)
+  (modus-vivendi-theme-no-mixed-fonts t)
+  (modus-vivendi-theme-org-blocks 'greyscale)
+  (modus-vivendi-theme-headings '((t . rainbow)))
+  (modus-vivendi-theme-scale-headings t)
+  :config
+  (set-face-attribute 'default nil :family "FiraCode NF" :height 110))
+#+end_src
+
+** Icons
+| =all-the-icons= | https://github.com/domtronn/all-the-icons.el |
+Provide icon support for emacs, for graphical interface.
+#+begin_src emacs-lisp
+(use-package all-the-icons
+  :if (display-graphic-p)
+  :commands all-the-icons-install-fonts
+  :init
+  (unless (find-font (font-spec :name "all-the-icons"))
+    (all-the-icons-install-fonts t)))
+#+end_src
+
+** Modeline
+| =Doom-modeline= | https://github.com/seagle0128/doom-modeline |
+Fancy looking mode-line for emacs.
+#+begin_src emacs-lisp
+(use-package doom-modeline
+  :init (doom-modeline-mode 1)
+  :custom 
+  (doom-modeline-height 15)
+  (doom-themes-visual-bell-config)
+  :config
+  (display-battery-mode t)
+  (display-time-mode t))
+#+end_src
+
+** Line numbers
+
+** Font
+Set default font to =fira-code=.
+#+begin_src emacs-lisp
+(set-face-attribute 'default nil :font nhe/font-family :height nhe/font-size-default)
+
+(set-face-attribute 'fixed-pitch nil :font nhe/font-family :height he/font-size-default)
+
+(set-face-attribute 'variable-pitch nil :font nhe/font-family :height he/font-size-medium :weight 'regular)
+
+#+end_src
+
+*** Ligatures
+| =ligature.el= | https://github.com/mickeynp/ligature.el |
+Ligatures is currently only working with Emacs =20.0.50= =Master branch=. Due to a bug within Emacs =27=.
+#+begin_src emacs-lisp
+(use-package ligature
+  :load-path "~/.emacs.d/github/ligature"
+  :config
+  ;; Enable the www ligature in every possible major mode
+  (ligature-set-ligatures 't '("www"))
+
+  ;; Enable ligatures in programming modes                                                           
+  (ligature-set-ligatures 'prog-mode '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\" "{-" "::"
+  ":::" ":=" "!!" "!=" "!==" "-}" "----" "-->" "->" "->>"
+  "-<" "-<<" "-~" "#{" "#[" "##" "###" "####" "#(" "#?" "#_"
+  "#_(" ".-" ".=" ".." "..<" "..." "?=" "??" ";;" "/*" "/**"
+  "/=" "/==" "/>" "//" "///" "&&" "||" "||=" "|=" "|>" "^=" "$>"
+  "++" "+++" "+>" "=:=" "==" "===" "==>" "=>" "=>>" "<="
+  "=<<" "=/=" ">-" ">=" ">=>" ">>" ">>-" ">>=" ">>>" "<*"
+  "<*>" "<|" "<|>" "<$" "<$>" "<!--" "<-" "<--" "<->" "<+"
+  "<+>" "<=" "<==" "<=>" "<=<" "<>" "<<" "<<-" "<<=" "<<<"
+  "<~" "<~~" "</" "</>" "~@" "~-" "~>" "~~" "~~>" "%%"))
+
+  (global-ligature-mode 't))
+#+end_src
