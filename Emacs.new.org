@@ -1,5 +1,5 @@
 #+TITLE: The Nerdy Hamster Emacs Configuration
-#+AUTHOR The Nerdy Hamster (Leo Rönnebro)
+#+AUTHOR: The Nerdy Hamster (Leo Rönnebro)
 #+PROPERTY: header-args:emacs-lisp :tangle ./init.new.el :mkdirp yes
 
 * Table Of Contents
@@ -99,9 +99,11 @@ Due to files for both =backups=, and =packages= are stored within =.emacs.d= by 
 
 ** Package configuration system
 |use-package| https://github.com/jwiegley/use-package | 
-#+begin_qoute
-The =use-package= macro allows you to isolate package configuration in your =.emacs= file in a way that is both performance-oriented and, well, tidy. I created it because I have over 80 packages that I use in Emacs, and things were getting difficult to manage. Yet with this utility my total load time is around 2 seconds, with no loss of functionality! - From [[https://github.com/jwiegley/use-package#use-package][use-package documentation]]
-#+end_qoute
+#+begin_quote
+The =use-package= macro allows you to isolate package configuration in your =.emacs= file in a way that is both performance-oriented and, well, tidy. I created it because I have over 80 packages that I use in Emacs, and things were getting difficult to manage. Yet with this utility my total load time is around 2 seconds, with no loss of functionality! 
+
+- From [[https://github.com/jwiegley/use-package#use-package][use-package documentation]]
+#+end_quote
 
 #+begin_src emacs-lisp
 (require 'package)
@@ -187,7 +189,16 @@ Fancy looking mode-line for emacs.
 #+end_src
 
 ** Line numbers
-
+Due to line lunbers are active for all modes, we need to turn it off for we dont want line number in.
+Modes without line-numbers: =org-mode=, =vterm-mode=, =shell-mode=, =treemacs-mode=, and =eshell-mode=.
+#+begin_src emacs-lisp
+(dolist (mode '(org-mode-hook
+                vterm-mode-hook
+                shell-mode-hook
+                treemacs-mode-hook
+                eshell-mode-hook))
+  (add-hook mode (lambda () (display-line-numbers-mode 0))))
+#+end_src
 ** Font
 Set default font to =fira-code=.
 #+begin_src emacs-lisp
