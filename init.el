@@ -276,7 +276,7 @@
   (treemacs-git-mode 'deferred))
 
 (use-package treemacs-evil
-  :after treemacs)
+  :after evil)
 
 (use-package treemacs-projectile
   :after treemacs)
@@ -955,4 +955,5 @@
 (use-package wakatime-mode 
   :defer 2
   :config
+  (setq wakatime-api-key nhe/waka-time-token)
   (global-wakatime-mode))
