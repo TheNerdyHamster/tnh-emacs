@@ -49,7 +49,7 @@
  (global-hl-line-mode +1)    ; Enable line highlight
  (column-number-mode)
  (global-display-line-numbers-mode t)
-
+ 
  ;; Disable line numbers for some modes
  (dolist (mode '(org-mode-hook
                  vterm-mode-hook
@@ -418,16 +418,6 @@
  ([remap describe-command] . helpful-command)
  ([remap describe-variable] . counsel-describe-variable)
  ([remap describe-key] . helpful-key))
-
-(use-package persp-mode
-  :config
-  (setq wg-morph-on nil) ;; switch off animation
-  (setq persp-autokill-buffer-on-remove 'kill-weak)
-  (add-hook 'window-setup-hook #'(lambda () (persp-mode 1))))
-
-;; (setq max-lisp-eval-depth 10000)
-;; (setq max-specpdl-size 5)  ; default is 1000, reduce the backtrace level
-;; (setq debug-on-error t)
 
 (defun he/org-font-setup ()
  ;; Replace list hyphen with dot
@@ -868,79 +858,6 @@
   :config
   (rainbow-mode 1))
 
-(use-package shrface
-  :defer t
-  :config
-  (shrface-basic)
-  (shrface-trial)
-  (setq shrface-href-versatile t))
-
-(use-package eww
-  :defer t
-  :init
-  (add-hook 'eww-after-render-hook #'shrface-mode)
-  :config
-  (require 'shrface))
-
-(with-eval-after-load 'eww
-  (define-key eww-mode-map (kbd "<tab>") 'org-cycle)
-  (define-key eww-mode-map (kbd "S-<tab>") 'org-shifttab)
-  (define-key eww-mode-map (kbd "C-t") 'shrface-toggle-bullets)
-  (define-key eww-mode-map (kbd "C-j") 'shrface-next-headline)
-  (define-key eww-mode-map (kbd "C-k") 'shrface-previous-headline)
-  (define-key eww-mode-map (kbd "C-i") 'shrface-links-counsel) ; or 'shrface-links-helm
-  (define-key eww-mode-map (kbd "C-o") 'shrface-headline-counsel)) ; or 'shrface-headline-helm
-
-(use-package shr-tag-pre-highlight
-  :ensure t
-  :after shr
-  :config
-  (add-to-list 'shr-external-rendering-functions '(pre . shrface-shr-tag-pre-highlight))
-  (when (version< emacs-version "26")
-    (with-eval-after-load 'eww
-      (advice-add 'eww-display-html :around
-                  'eww-display-html--override-shr-external-rendering-functions))))
-                  
-(defun shrface-shr-tag-pre-highlight (pre)
-  "Highlighting code in PRE."
-  (let* ((shr-folding-mode 'none)
-         (shr-current-font 'default)
-         (code (with-temp-buffer
-                 (shr-generic pre)
-                 (setq-local fill-column 120)
-                 (indent-rigidly (point-min) (point-max) 2)
-                 (if (eq "" (dom-texts pre))
-                     nil
-                   (progn
-                     (setq-local fill-column shrface-paragraph-fill-column)
-                     (indent-rigidly (point-min) (point-max) shrface-paragraph-indentation)))
-                 (buffer-string)))
-         (lang (or (shr-tag-pre-highlight-guess-language-attr pre)
-                   (let ((sym (language-detection-string code)))
-                     (and sym (symbol-name sym)))))
-         (mode (and lang
-                    (shr-tag-pre-highlight--get-lang-mode lang))))
-    (shr-ensure-newline)
-    (insert (make-string shrface-paragraph-indentation ?\ )) ; make indent string
-    ;; (insert (propertize (concat "#+BEGIN_SRC " lang) 'face 'org-block-begin-line))
-    (shr-ensure-newline)
-    (setq start (point))
-    (insert
-     (or (and (fboundp mode)
-              (with-demoted-errors "Error while fontifying: %S"
-                (shrface-tag-pre-highlight-fontify code mode)
-                ))
-         code))
-    (shr-ensure-newline)
-    (setq end (point))
-    (insert (make-string shrface-paragraph-indentation ?\ )) ; make indent string
-    ;; (insert (propertize "#+END_SRC" 'face 'org-block-end-line ) )
-    (let* ((beg start)
-           (xx (make-overlay beg end)))
-      (overlay-put xx 'face '(:background "#292b2e" :height 90)))
-    (shr-ensure-newline)
-    (insert "\n")))
-
 (use-package vterm
   :commands vterm
   :config
@@ -949,3 +866,8 @@
 (use-package elcord
   :config
   (elcord-mode 1))
+
+;; (use-package wakatime-mode 
+;;   :defer 2
+;;   :config
+;;   (global-wakatime-mode))

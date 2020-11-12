@@ -1,80 +1,94 @@
-#+TITLE: The Nerdy Hamster Emacs
-#+AUTHOR: The Nerdy Hamster
+#+TITLE: The Nerdy Hamster Emacs Configuration
+#+AUTHOR: The Nerdy Hamster (Leo Rönnebro)
 #+PROPERTY: header-args:emacs-lisp :tangle ./init.el :mkdirp yes
 
-* Table of Contents
+* Table Of Contents
+:CONTENTS:
+
+:END:
+ 
 :PROPERTIES:
 :TOC:      :include all :depth 2
 :END:
 
-:CONTENTS:
-- [[#table-of-contents][Table of Contents]]
-- [[#variabels][Variabels]]
-- [[#keep-emacsd-clean][Keep .emacs.d clean]]
-- [[#package-system][Package System]]
-- [[#server-mode][Server mode]]
-- [[#desktop-enviorment][Desktop enviorment]]
-- [[#essential-configuration][Essential Configuration]]
-  - [[#font][Font]]
-  - [[#restart-emacs][Restart emacs]]
-- [[#keybinding-configuration][Keybinding Configuration]]
-  - [[#global-keys][Global keys]]
-  - [[#general][General]]
-  - [[#evil][Evil]]
-  - [[#global-keybindings][Global keybindings]]
-  - [[#hydra][Hydra]]
-- [[#ui-configuration][UI Configuration]]
-  - [[#theme][Theme]]
-  - [[#command-log-mode][Command Log Mode]]
-  - [[#all-the-icons][All the Icons]]
-  - [[#modeline][Modeline]]
-  - [[#sublimity][Sublimity]]
-  - [[#treemacs][Treemacs]]
-  - [[#dired][Dired]]
-  - [[#centaur-tabs][Centaur tabs]]
-  - [[#dashboard][Dashboard]]
-  - [[#which-key][Which Key]]
-  - [[#ivy--counsel][Ivy & Counsel]]
-  - [[#helpful-commands][Helpful Commands]]
-- [[#window][Window]]
-  - [[#perp-mode][Perp mode]]
-- [[#debug-info][Debug info]]
-- [[#org-mode][Org Mode]]
-  - [[#custom-font-faces][Custom Font Faces]]
-  - [[#basic-config][Basic Config]]
-  - [[#custom-bullets][Custom Bullets]]
-  - [[#layout-org-buffers][Layout Org Buffers]]
-  - [[#configure-babel][Configure Babel]]
-  - [[#templates][Templates]]
-  - [[#automatic-tangel-of-configuration-files][Automatic tangel of Configuration Files]]
-  - [[#org-make-toc][Org make toc]]
-- [[#editor-configuration][Editor configuration]]
-  - [[#tab-width][Tab width]]
-  - [[#spaces-instead-of-tabs-for-indention][Spaces instead of tabs for indention]]
-  - [[#smart-parens][Smart parens]]
-  - [[#undoredo][Undo/Redo]]
-  - [[#multiple-cursors][Multiple cursors]]
-  - [[#super-auto-save][Super auto save]]
-- [[#development][Development]]
-  - [[#company-mode][Company Mode]]
-  - [[#languages][Languages]]
-  - [[#ide-features-with-lsp][IDE Features with lsp]]
-  - [[#flycheck][Flycheck]]
-  - [[#projectile][Projectile]]
-  - [[#tools][Tools]]
-- [[#browser][Browser]]
-  - [[#shrface][shrface]]
-- [[#terminal][Terminal]]
-  - [[#vterm][vterm]]
-- [[#misc][Misc]]
-  - [[#elcord][Elcord]]
-:END:
-* Variabels
+* Bootstraps
+** Emacs defaults
+Removal of UI components that needs mouse.
 #+begin_src emacs-lisp
-  (defvar he/default-font-size 100)
-  (defvar he/default-variable-font-size 100)
+(when window-system
+  (blink-cursor-mode 0)                           ; Disable the cursor blinking
+  (scroll-bar-mode 0)                             ; Disable the scroll bar
+  (tool-bar-mode 0)                               ; Disable the tool bar
+  (tooltip-mode 0))                               ; Disable the tooltips
 #+end_src
-* Keep .emacs.d clean
+
+Better default values for emacs. Inspierd by other configs.
+#+begin_src emacs-lisp
+(setq-default
+ ad-redefinition-action 'accept                   ; Silence warnings for redefinition
+ auto-save-list-file-prefix nil                   ; Prevent tracking for auto-saves
+ cursor-in-non-selected-windows nil               ; Hide the cursor in inactive windows
+ cursor-type 'bar                                 ; Prefer a bar-shaped cursor by default
+ delete-by-moving-to-trash t                      ; Delete files to trash
+ fill-column 80                                   ; Set width for automatic line breaks
+ gc-cons-threshold (* 8 1024 1024)                ; We're not living in the 70s anymore
+ read-process-output-max (* 1024 1024)            ; Increase the read output for larger files.
+ help-window-select t                             ; Focus new help windows when opened
+ indent-tabs-mode nil                             ; Stop using tabs to indent
+ inhibit-startup-screen t                         ; Disable start-up screen
+ initial-scratch-message ""                       ; Empty the initial *scratch* buffer
+ mouse-yank-at-point t                            ; Yank at point rather than pointer
+ recenter-positions '(5 top bottom)               ; Set re-centering positions
+ scroll-conservatively most-positive-fixnum       ; Always scroll by one line
+ scroll-margin 2                                  ; Add a margin when scrolling vertically
+ select-enable-clipboard t                        ; Merge system's and Emacs' clipboard
+ sentence-end-double-space nil                    ; Use a single space after dots
+ show-help-function nil                           ; Disable help text on most UI elements
+ tab-width 4                                      ; Set width for tabs
+ uniquify-buffer-name-style 'forward              ; Uniquify buffer names
+ window-combination-resize t                      ; Resize windows proportionally
+ x-stretch-cursor t)                              ; Stretch cursor to the glyph width
+(cd "~/")                                         ; Move to the user directory
+(delete-selection-mode 1)                         ; Replace region when inserting text
+(fringe-mode '(2 . 0))                            ; Initialize thinner vertical fringes
+(fset 'yes-or-no-p 'y-or-n-p)                     ; Replace yes/no prompts with y/n
+(global-subword-mode 1)                           ; Iterate through CamelCase words
+(menu-bar-mode 0)                                 ; Disable the menu bar
+(mouse-avoidance-mode 'exile)                     ; Avoid collision of mouse with point
+(put 'downcase-region 'disabled nil)              ; Enable downcase-region
+(put 'upcase-region 'disabled nil)                ; Enable upcase-region
+(set-default-coding-systems 'utf-8)               ; Default to utf-8 encoding
+(column-number-mode)                              ; Toggle column number mode for mode lines.
+(global-display-line-numbers-mode t)              ; Toggle line numbers within buffer
+#+end_src
+
+Enable fullscreen on startup
+#+begin_src emacs-lisp
+(if (eq window-system 'ns)
+    (set-frame-parameter nil 'fullscreen 'maximized)
+  (set-frame-parameter nil 'fullscreen 'fullboth))
+#+end_src
+
+Garbage collection when =focus-out-hook= is called
+#+begin_src emacs-lisp
+(add-hook 'focus-out-hook #'garbage-collect)
+#+end_src
+
+** Load private config =.config.el=
+=~/.emacs.d/.config.el= contains both sensible information and configuration options, and values that shoudlent be shared with the public. Such as =tokens=, =email=, =passwords=, and =usernames=.
+#+begin_src emacs-lisp
+(defvar nhe/waka-time-token    nil               "The Waka time API token to use.")
+(defvar nhe/font-family        "Fira Code NF"    "Default font family to use")
+(defvar nhe/font-size-default  100               "The font size to use for default text.")
+(defvar nhe/font-size-large    1.2               "The font size to use for larger text.")
+(defvar nhe/font-size-small    .8                "The font size to use for smaller text.")
+
+(let ((secret.el (expand-file-name ".config.el" user-emacs-directory)))
+  (load config.el t))
+#+end_src
+
+** Keep =.emacs.d= clean
+Due to files for both =backups=, and =packages= are stored within =.emacs.d= by default, and creates a mess within the folder. The default files are moved to =cache=
 #+begin_src emacs-lisp
 (setq user-emacs-directory "~/.cache/emacs/"
       backup-directory-alist `(("." . ,(expand-file-name "backups" user-emacs-directory)))
@@ -82,10 +96,16 @@
       auto-save-list-file-prefix (expand-file-name "auto-save-list/.saves-" user-emacs-directory)
       projectile-known-projects-file (expand-file-name "projectile-bookmarks.eld" user-emacs-directory))
 #+end_src
-* Package System
-Installation of use-package.
+
+** Package configuration system
+|use-package| https://github.com/jwiegley/use-package | 
+#+begin_quote
+The =use-package= macro allows you to isolate package configuration in your =.emacs= file in a way that is both performance-oriented and, well, tidy. I created it because I have over 80 packages that I use in Emacs, and things were getting difficult to manage. Yet with this utility my total load time is around 2 seconds, with no loss of functionality! 
+
+- From [[https://github.com/jwiegley/use-package#use-package][use-package documentation]]
+#+end_quote
+
 #+begin_src emacs-lisp
-;; Initialize package sources
 (require 'package)
 
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
@@ -104,11 +124,16 @@ Installation of use-package.
 (setq use-package-always-ensure t)
 #+end_src
 
-* Server mode
+** Server mode
+| Documentation | https://www.gnu.org/software/emacs/manual/html_node/emacs/Emacs-Server.html |
+It is possible to use emacs with server mode, which gives you some powerful features such as information for =Polybar= 
 #+begin_src emacs-lisp
 (server-start)
 #+end_src
-* Desktop enviorment
+
+** Desktop enviorment - =EXWM=
+It is possible to use =Emacs= as a Window manager with =EXWM=.
+To start =EXWM= you will need to get =~/.emacs.d/exwm.el= and then run =emacs --use-exwm=
 #+begin_src emacs-lisp
 (setq nhe/exwm-enabled (and (eq window-system 'x)
                            (seq-contains command-line-args "--use-exwm")))
@@ -116,48 +141,80 @@ Installation of use-package.
 (when nhe/exwm-enabled
   (load-file "~/.emacs.d/exwm.el"))
 #+end_src
-* TODO Essential Configuration
- Configuration of UI Settings, that removes unnessecary elements such as Menubar, Toolbar, etc.
- #+begin_src emacs-lisp
- (setq inhibit-startup-message t)
- (setq initial-buffer-choice "*dashboard*")
 
- (scroll-bar-mode -1)        ; Disable visible scrollbar
- (tool-bar-mode -1)          ; Disable the toolbar
- (tooltip-mode -1)           ; Disable tooltips
- (set-fringe-mode 10)        ; Give some breathing room
+* UI
+** Theme
+| =modus-vivendi= | https://gitlab.com/protesilaos/modus-themes |
+Load default theme, and change settings to my preference
+#+begin_src emacs-lisp
+(use-package modus-vivendi-theme
+  :config
+  (load-theme 'modus-vivendi t)
+  :custom
+  (modus-vivendi-theme-bold-constructs nil)
+  (modus-vivendi-theme-slanted-constructs t)
+  (modus-vivendi-theme-syntax 'alt-syntax)
+  (modus-vivendi-theme-no-mixed-fonts t)
+  (modus-vivendi-theme-org-blocks 'greyscale)
+  (modus-vivendi-theme-headings '((t . rainbow)))
+  (modus-vivendi-theme-scale-headings t)
+  :config
+  (set-face-attribute 'default nil :family "FiraCode NF" :height 110))
+#+end_src
 
- (menu-bar-mode -1)            ; Disable the menu bar
+** Icons
+| =all-the-icons= | https://github.com/domtronn/all-the-icons.el |
+Provide icon support for emacs, for graphical interface.
+#+begin_src emacs-lisp
+(use-package all-the-icons
+  :if (display-graphic-p)
+  :commands all-the-icons-install-fonts
+  :init
+  (unless (find-font (font-spec :name "all-the-icons"))
+    (all-the-icons-install-fonts t)))
+#+end_src
 
- ;; Set up the visible bell
-;; (setq visible-bell t)
+* GUI
+** Modeline
+| =Doom-modeline= | https://github.com/seagle0128/doom-modeline |
+Fancy looking mode-line for emacs.
+#+begin_src emacs-lisp
+(use-package doom-modeline
+  :init (doom-modeline-mode 1)
+  :custom 
+  (doom-modeline-height 15)
+  (doom-themes-visual-bell-config)
+  :config
+  (display-battery-mode t)
+  (display-time-mode t))
+#+end_src
 
- (global-hl-line-mode +1)    ; Enable line highlight
- (column-number-mode)
- (global-display-line-numbers-mode t)
+*** Line numbers
+Due to line lunbers are active for all modes, we need to turn it off for we dont want line number in.
+Modes without line-numbers: =org-mode=, =vterm-mode=, =shell-mode=, =treemacs-mode=, and =eshell-mode=.
+#+begin_src emacs-lisp
+(dolist (mode '(org-mode-hook
+                vterm-mode-hook
+                shell-mode-hook
+                treemacs-mode-hook
+                eshell-mode-hook))
+  (add-hook mode (lambda () (display-line-numbers-mode 0))))
+#+end_src
+*** Font
+Set default font to =fira-code=.
+#+begin_src emacs-lisp
+(set-face-attribute 'default nil :font nhe/font-family :height nhe/font-size-default)
 
- ;; Disable line numbers for some modes
- (dolist (mode '(org-mode-hook
-                 vterm-mode-hook
-                 shell-mode-hook
-	               treemacs-mode-hook
-                 eshell-mode-hook))
-   (add-hook mode (lambda () (display-line-numbers-mode 0))))
+(set-face-attribute 'fixed-pitch nil :font nhe/font-family :height he/font-size-default)
 
-(setq read-process-output-max (* 1024 1024))
-(setq gc-cons-threshold 100000000)
- ;(setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
-  #+END_SRC
-** Font 
-   #+begin_src emacs-lisp
-(set-face-attribute 'default nil :font "Fira Code NF" :height he/default-font-size)
+(set-face-attribute 'variable-pitch nil :font nhe/font-family :height he/font-size-medium :weight 'regular)
 
-;; Set the fixed pitch face
-(set-face-attribute 'fixed-pitch nil :font "Fira Code NF" :height he/default-font-size)
+#+end_src
 
-;; Set the variable pitch face
-(set-face-attribute 'variable-pitch nil :font "Fira Code NF" :height he/default-variable-font-size :weight 'regular)
-
+**** Ligatures
+| =ligature.el= | https://github.com/mickeynp/ligature.el |
+Ligatures is currently only working with Emacs =20.0.50= =Master branch=. Due to a bug within Emacs =27=.
+#+begin_src emacs-lisp
 (use-package ligature
   :load-path "~/.emacs.d/github/ligature"
   :config
@@ -178,242 +235,14 @@ Installation of use-package.
 
   (global-ligature-mode 't))
 #+end_src
-** Restart emacs
-#+begin_src emacs-lisp
-(use-package restart-emacs)
-#+end_src
-* Keybinding Configuration  
-** Global keys
-#+begin_src emacs-lisp
-(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
-(global-unset-key (kbd "C-SPC"))
-#+end_src
-** General
-#+begin_src emacs-lisp
-(use-package general
-  :config
-  (general-auto-unbind-keys)
-  (general-override-mode +1)
 
-  (general-create-definer nhe/leader-key
-    :states '(normal insert visual emacs treemacs)
-    :keymap 'override
-    :prefix "SPC"
-    :global-prefix "C-SPC"
-    :non-normal-prefix "C-SPC")
-
-  (general-create-definer nhe/local-leader-key
-    :states '(normal insert visual emacs treemacs)
-    :keymap 'override
-    :prefix "SPC m"
-    :global-prefix "C-SPC m"
-    :non-normal-prefix "C-SPC m"))
-    
-  
-#+end_src
-** Evil
-#+begin_src emacs-lisp
-(use-package evil
-  :init
-  (setq evil-want-integration t)
-  (setq evil-want-keybinding nil)
-  (setq evil-want-C-u-scroll t)
-  (setq evil-want-C-i-jump nil)
-  :config
-  (evil-mode 1)
-  (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
-  (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
-
-  ;; Use visual line motions even outside of visual-line-mode buffers
-  (evil-global-set-key 'motion "j" 'evil-next-visual-line)
-  (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
-
-  (evil-set-initial-state 'messages-buffer-mode 'normal)
-  (evil-set-initial-state 'dashboard-mode 'normal))
-#+end_src
-*** Evil Collection
-#+begin_src emacs-lisp
-(use-package evil-collection
-  :after evil
-  :config
-  (evil-collection-init))
-#+end_src
-** Global keybindings
-**** Global mode
-***** General
-#+begin_src emacs-lisp
-(nhe/leader-key 
-  "/"   '(evilnc-comment-or-uncomment-lines :wk "comment/uncomment")
-  ";"   '(counsel-M-x :wk "M-x")
-  "."   '(counsel-find-file :wk "find file")
-  "SPC" '(counsel-projectile-find-file :wk "find file project")
-  "TAB" '(evil-switch-to-windows-last-buffer :wk "switch to previous buffer"))
-#+end_src
-***** Buffer
-#+begin_src emacs-lisp
-(nhe/leader-key
-  "b"   '(:ignore t :wk "buffer")
-  "b b" '(counsel-switch-buffer :wk "switch buffer")
-  "b d" '(kill-current-buffer :wk "kill buffer")
-  "b i" '(ibuffer-list-buffers :wk "ibuffer")
-  "b s" '(save-buffer :wk "save buffer")
-  "b p" '(evil-prev-buffer :wk "prev buffer")
-  "b n" '(evil-next-buffer :wk "next buffer"))
-#+end_src
-***** File
-#+begin_src emacs-lisp
-(nhe/leader-key
-  "f" '(:ignore f :wk "file")
-  "f f" '(counsel-find-file :wk "find file")
-  "f s" '(save-buffer :wk "save file")
-  "f r" '(recover-file :wk "recover file"))
-#+end_src
-***** Help
-#+begin_src emacs-lisp
-(nhe/leader-key
-  "h" '(:ignore t :wk "help")
-  "h f" '(describe-function :wk "describe function")
-  "h k" '(describe-key :wk "describe key")
-  "h m" '(describe-mode :wk "describe mode")
-  "h b" '(describe-bindings :wk "describe bindings")
-  "h v" '(describe-variable :wk "describe variable")
-  "h p" '(describe-package :wk "describe package"))
-#+end_src
-***** Local leader
-#+begin_src emacs-lisp
-(nhe/leader-key
-  "m" '(:ignore t :wk "local-leader"))
-#+end_src
-***** Open
-#+begin_src emacs-lisp
-(nhe/leader-key
-  "o" '(:ignore t :wk "open")
-  "o t" '(vterm :wk "open terminal")
-  "o d" '(docker :wk "open docker")
-  "o p" '(treemacs :wk "open sidebar"))
-#+end_src
-***** Quit
-#+begin_src emacs-lisp
-(nhe/leader-key
-  "q" '(:ignore t :wk "quit")
-  "q q" '(save-buffers-kill-emacs :wk "save and quit")
-  "q Q" '(kill-emacs :wk "quit no-save")
-  "q r" '(restart-emacs :wk "restart emacs"))
-#+end_src
-***** Search
-#+begin_src emacs-lisp
-(nhe/leader-key
-  "s" '(:ignore t :wk "search")
-  "s s" '(swiper :wk "search buffer")
-  "s p" '(counsel-projectile-rg :wk "search project"))
-#+end_src
-***** Toggle
-#+begin_src emacs-lisp
-(nhe/leader-key
-  "t" '(:ignore t :wk "toggle"))
-#+end_src
-***** Window
-#+begin_src emacs-lisp
-(nhe/leader-key
-  "w" '(:ignore t :wk "window")
-  "w w" '(other-window :wk "other window")
-  "w d" '(evil-window-delete :wk "remove window")
-  "w o" '(delete-other-windows :wk "remove other windows")
-  "w h" '(evil-window-split :wk "split window horizontally")
-  "w v" '(evil-window-vsplit :wk "split window vertically"))
-#+end_src
-**** Prog mode
-#+begin_src emacs-lisp
-(nhe/local-leader-key
-  :keymaps 'prog-mode
-  "=" '(:ignore t :wk "format")
-  "d" '(:ignore t :wk "documentation")
-  "g" '(:ignore t :wk "goto")
-  "i" '(:ignore t :wk "insert"))
-#+end_src
-** Hydra
-#+begin_src emacs-lisp
-(use-package hydra
-  :config
-  (defhydra hydra-text-scale (:timeout 4)
-    "scale text"
-    ("j" (text-scale-adjust 0.1) "in")
-    ("k" (text-scale-adjust -0.1) "out")
-    ("f" nil "finished" :exit t))
-    
-  (nhe/leader-key
-    "t s" '(hydra-text-scale/body :wk "scale text")))
-#+end_src
-* UI Configuration 
-** Theme
-#+begin_src emacs-lisp
-(use-package modus-vivendi-theme
-  :config
-  (load-theme 'modus-vivendi t)
-  :custom
-  (modus-vivendi-theme-bold-constructs nil)
-  (modus-vivendi-theme-slanted-constructs t)
-  (modus-vivendi-theme-syntax 'alt-syntax)
-  (modus-vivendi-theme-no-mixed-fonts t)
-  (modus-vivendi-theme-org-blocks 'greyscale)
-  (modus-vivendi-theme-headings '((t . rainbow)))
-  (modus-vivendi-theme-scale-headings t))
-;; (use-package doom-themes
-;;      :init (load-theme 'doom-dracula t))
-#+end_src
-*** Custom theme
-#+begin_src emacs-lisp
-;; (set-face-attribute 'cursor nil :background "#EB7C54")
-(set-face-attribute 'default nil :family "FiraCode NF" :height 110)
-;; (set-face-attribute 'hl-line nil :background "#081321")
-;; (set-face-attribute 'line-number nil :foreground "#213455" :background "#050816")
-;; (set-face-attribute 'line-number-current-line nil :foreground "#5589E9")
-;; (set-face-attribute 'mode-line nil :background "#132134" :foreground "#345589"
-;;                     :box '(:line-width 1 :color "#213455"))
-;; (set-face-attribute 'mode-line-inactive nil :background "#050813" :foreground "#213455"
-;;                     :box '(:line-width 1 :color "#213455"))
-;; (set-face-attribute 'region nil :background "#34848c" :foreground "#FFFFFF")
-
-;; (set-face-attribute 'font-lock-comment-delimiter-face nil :weight 'black)
-;; (set-face-attribute 'font-lock-comment-face nil :slant 'italic)
-;; (set-face-attribute 'font-lock-string-face nil :foreground "#3BAB60")
-#+end_src
-** Command Log Mode
-   #+begin_src emacs-lisp
-   (use-package command-log-mode)
-   #+end_src
-** All the Icons 
-Provide icons within emacs, only if emacs is launch in GUI mode.
-#+begin_src emacs-lisp
-   (use-package all-the-icons
-     :if (display-graphic-p)
-     :commands all-the-icons-install-fonts
-     :init
-     (unless (find-font (font-spec :name "all-the-icons"))
-       (all-the-icons-install-fonts t)))
-#+end_src
-** Modeline
-   #+begin_src emacs-lisp
-   
-   (use-package doom-modeline
-     :init (doom-modeline-mode 1)
-     :custom 
-     (doom-modeline-height 15)
-     (doom-themes-visual-bell-config))
-
-    (display-battery-mode t)
-    (display-time-mode t)  
-
-   #+end_src
-** Sublimity
-#+begin_src emacs-lisp
-;; (use-package sublimity
-;;   :init
-;;   (require 'sublimity-scroll)
-;;   :config
-;;   (sublimity-mode 1))
-#+end_src
 ** Treemacs
+| =treemacs= | https://github.com/Alexander-Miller/treemacs |
+| =treemacs-evil= | https://melpa.org/#/treemacs-evil |
+| =treemacs-projectile= | https://melpa.org/#/treemacs-projectile |
+| =treemacs-magit= | https://melpa.org/#/treemacs-magit |
+| =treemacs-all-the-icons= | https://melpa.org/#/treemacs-all-the-icons |
+Treemacs is the main file and project explorer I use within emacs.
 #+begin_src emacs-lisp
 (use-package treemacs
   :config
@@ -433,37 +262,9 @@ Provide icons within emacs, only if emacs is launch in GUI mode.
   :config
   (treemacs-load-theme "all-the-icons"))
 #+end_src
-** Dired
-#+begin_src emacs-lisp
-(use-package dired
-  :ensure nil
-  :commands (dired dired-jump)
-  :bind (("C-x C-j" . dired-jump))
-  :custom ((dired-listing-switches "-agho --group-directories-first"))
-  :config
-  (evil-collection-define-key 'normal 'dired-mode-map
-    "h" 'dired-single-up-directory
-    "l" 'dired-single-buffer))
-
-(use-package dired-single)
-
-(use-package dired-open
-  :config
-  (setq dired-open-extensions '(("png" . "feh")
-                                ("mkv" . "mpv"))))
-
-(use-package dired-hide-dotfiles
-  :hook (dired-mode . dired-hide-dotfiles-mode)
-  :config
-  (evil-collection-define-key 'normal dired-mode-map
-    "H" 'dired-hide-dotfiles-mode))
-
-(use-package treemacs-icons-dired
-  :after treemacs dired
-  :ensure t
-  :config (treemacs-icons-dired-mode))
-#+end_src
-** Centaur tabs
+** Centaur Tabs
+| =centaur-tabs= | |
+Add tabs to emacs for buffer per each frame.
 #+begin_src emacs-lisp
 (use-package centaur-tabs
   :config
@@ -478,6 +279,8 @@ Provide icons within emacs, only if emacs is launch in GUI mode.
   (centaur-tabs-mode 1))
 #+end_src
 ** Dashboard
+| =dashboard= | |
+Dashboard for emacs, which I set as default buffer on startup.
 #+begin_src emacs-lisp
 (use-package dashboard
   :ensure t
@@ -505,124 +308,216 @@ Provide icons within emacs, only if emacs is launch in GUI mode.
   (setq dashboard-center-content t)
   (dashboard-setup-startup-hook))
 #+end_src
-** Which Key
-   #+begin_src emacs-lisp
- (use-package which-key
+** Which key
+| =which-key | |
+#+begin_src emacs-lisp
+(use-package which-key
   :init (which-key-mode)
   :diminish which-key-mode
   :config
   (setq which-key-idle-delay 0.4))  
-   #+end_src
-** Ivy & Counsel
-   #+begin_src emacs-lisp
- (use-package ivy
-  :diminish
-  :bind (("C-s" . swiper)
-         :map ivy-minibuffer-map
-         ("TAB" . ivy-alt-done)
-         ("C-l" . ivy-alt-done)
-         ("C-j" . ivy-next-line)
-         ("C-k" . ivy-previous-line)
-         :map ivy-switch-buffer-map
-         ("C-k" . ivy-previous-line)
-         ("C-l" . ivy-done)
-         ("C-d" . ivy-switch-buffer-kill)
-         :map ivy-reverse-i-search-map
-         ("C-k" . ivy-previous-line)
-         ("C-d" . ivy-reverse-i-search-kill))
+#+end_src
+* Keybindings
+** Global keys
+Modify global keys to for own preference.
+#+begin_src emacs-lisp
+(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+(global-unset-key (kbd "C-SPC"))
+#+end_src
+** General
+| =general= | https://github.com/noctuid/general.el |
+=General= gives evil and none-evil users a more convivent way to bind keybindings with or without a prefix.
+#+begin_src emacs-lisp
+(use-package general
   :config
-  (ivy-mode 1))
+  (general-auto-unbind-keys)
+  (general-override-mode +1)
 
-(use-package ivy-rich
+  (general-create-definer nhe/leader-key
+    :states '(normal insert visual emacs treemacs)
+    :keymap 'override
+    :prefix "SPC"
+    :global-prefix "C-SPC"
+    :non-normal-prefix "C-SPC")
+
+  (general-create-definer nhe/local-leader-key
+    :states '(normal insert visual emacs treemacs)
+    :keymap 'override
+    :prefix "SPC m"
+    :global-prefix "C-SPC m"
+    :non-normal-prefix "C-SPC m"))
+#+end_src
+** Evil
+| =evil= | https://github.com/emacs-evil/evil |
+Provide =VI= like keybindings within emacs.
+#+begin_src emacs-lisp
+(use-package evil
   :init
-  (ivy-rich-mode 1))
-
-(use-package counsel
-  :bind (("C-M-j" . 'counsel-switch-buffer)
-         ("M-x" . counsel-M-x)
-         ("C-x C-f" . counsel-find-file)
-         :map minibuffer-local-map
-         ("C-r" . 'counsel-minibuffer-history))
+  (setq evil-want-integration t)
+  (setq evil-want-keybinding nil)
+  (setq evil-want-C-u-scroll t)
+  (setq evil-want-C-i-jump nil)
   :config
-  (setq ivy-initial-inputs-alist nil)
-  (counsel-mode 1)) 
+  (evil-mode 1)
+  (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
+  (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
 
-(use-package smex 
-  :defer 1
-  :after counsel)
+  ;; Use visual line motions even outside of visual-line-mode buffers
+  (evil-global-set-key 'motion "j" 'evil-next-visual-line)
+  (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
 
-;; (use-package ivy-posframe
-;;   :custom
-;;   (ivy-posframe-width      115)
-;;   (ivy-posframe-min-width  115)
-;;   (ivy-posframe-height     10)
-;;   (ivy-posframe-min-height 10)
-;;   :config
-;;   (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-center)))
-;;   (setq ivy-posframe-parameters '((parent-frame . nil)
-;;                                   (left-fringe . 8)
-;;                                   (right-fringe . 8)))
-;;    (ivy-posframe-mode 1))
-   #+end_src
-** Helpful Commands
-   #+begin_src emacs-lisp
- (use-package helpful
-  :custom
-  (counsel-describe-function-function #'helpful-callable)
-  (counsel-describe-variable-function #'helpful-variable)
-  :bind
-  ([remap describe-function] . counsel-describe-function)
-  ([remap describe-command] . helpful-command)
-  ([remap describe-variable] . counsel-describe-variable)
-  ([remap describe-key] . helpful-key))  
-   #+end_src
-* Window
-** Perp mode
+  (evil-set-initial-state 'messages-buffer-mode 'normal)
+  (evil-set-initial-state 'dashboard-mode 'normal))
+#+end_src
+*** Evil Collection
+| =evil-collection= | https://github.com/emacs-evil/evil-collection |
+Better evil keybindings for emacs.
 #+begin_src emacs-lisp
-(use-package persp-mode
+(use-package evil-collection
+  :after evil
   :config
-  (setq wg-morph-on nil) ;; switch off animation
-  (setq persp-autokill-buffer-on-remove 'kill-weak)
-  (add-hook 'window-setup-hook #'(lambda () (persp-mode 1))))
+  (evil-collection-init))
 #+end_src
-* Debug info
+** Global Keybindings
+Custom shortcuts with prefix.
+*** Global mode
+**** General
 #+begin_src emacs-lisp
-;; (setq max-lisp-eval-depth 10000)
-;; (setq max-specpdl-size 5)  ; default is 1000, reduce the backtrace level
-;; (setq debug-on-error t)
-
+(nhe/leader-key 
+  "/"   '(evilnc-comment-or-uncomment-lines :wk "comment/uncomment")
+  ";"   '(counsel-M-x :wk "M-x")
+  "."   '(counsel-find-file :wk "find file")
+  "SPC" '(counsel-projectile-find-file :wk "find file project")
+  "TAB" '(evil-switch-to-windows-last-buffer :wk "switch to previous buffer"))
 #+end_src
-* Org Mode 
+**** Buffer
+#+begin_src emacs-lisp
+(nhe/leader-key
+  "b"   '(:ignore t :wk "buffer")
+  "b b" '(counsel-switch-buffer :wk "switch buffer")
+  "b d" '(kill-current-buffer :wk "kill buffer")
+  "b i" '(ibuffer-list-buffers :wk "ibuffer")
+  "b s" '(save-buffer :wk "save buffer")
+  "b p" '(evil-prev-buffer :wk "prev buffer")
+  "b n" '(evil-next-buffer :wk "next buffer"))
+#+end_src
+**** File
+#+begin_src emacs-lisp
+(nhe/leader-key
+  "f" '(:ignore f :wk "file")
+  "f f" '(counsel-find-file :wk "find file")
+  "f s" '(save-buffer :wk "save file")
+  "f r" '(recover-file :wk "recover file"))
+#+end_src
+**** Help
+#+begin_src emacs-lisp
+(nhe/leader-key
+  "h" '(:ignore t :wk "help")
+  "h f" '(describe-function :wk "describe function")
+  "h k" '(describe-key :wk "describe key")
+  "h m" '(describe-mode :wk "describe mode")
+  "h b" '(describe-bindings :wk "describe bindings")
+  "h v" '(describe-variable :wk "describe variable")
+  "h p" '(describe-package :wk "describe package"))
+#+end_src
+**** Local leader
+#+begin_src emacs-lisp
+(nhe/leader-key
+  "m" '(:ignore t :wk "local-leader"))
+#+end_src
+**** Open
+#+begin_src emacs-lisp
+(nhe/leader-key
+  "o" '(:ignore t :wk "open")
+  "o t" '(vterm :wk "open terminal")
+  "o d" '(docker :wk "open docker")
+  "o p" '(treemacs :wk "open sidebar"))
+#+end_src
+**** Quit
+#+begin_src emacs-lisp
+(nhe/leader-key
+  "q" '(:ignore t :wk "quit")
+  "q q" '(save-buffers-kill-emacs :wk "save and quit")
+  "q Q" '(kill-emacs :wk "quit no-save")
+  "q r" '(restart-emacs :wk "restart emacs"))
+#+end_src
+**** Search
+#+begin_src emacs-lisp
+(nhe/leader-key
+  "s" '(:ignore t :wk "search")
+  "s s" '(swiper :wk "search buffer")
+  "s p" '(counsel-projectile-rg :wk "search project"))
+#+end_src
+**** Toggle
+#+begin_src emacs-lisp
+(nhe/leader-key
+  "t" '(:ignore t :wk "toggle"))
+#+end_src
+**** Window
+#+begin_src emacs-lisp
+(nhe/leader-key
+  "w" '(:ignore t :wk "window")
+  "w w" '(other-window :wk "other window")
+  "w d" '(evil-window-delete :wk "remove window")
+  "w o" '(delete-other-windows :wk "remove other windows")
+  "w h" '(evil-window-split :wk "split window horizontally")
+  "w v" '(evil-window-vsplit :wk "split window vertically"))
+#+end_src
+*** Prog mode
+#+begin_src emacs-lisp
+(nhe/local-leader-key
+  :keymaps 'prog-mode
+  "=" '(:ignore t :wk "format")
+  "d" '(:ignore t :wk "documentation")
+  "g" '(:ignore t :wk "goto")
+  "i" '(:ignore t :wk "insert"))
+#+end_src
+** Hydra
+| =hydra= | https://github.com/abo-abo/hydra |
+A convinent way of shorten keyboard commands.
+#+begin_src emacs-lisp
+(use-package hydra
+  :config
+  (defhydra hydra-text-scale (:timeout 4)
+    "scale text"
+    ("j" (text-scale-adjust 0.1) "in")
+    ("k" (text-scale-adjust -0.1) "out")
+    ("f" nil "finished" :exit t))
+    
+  (nhe/leader-key
+    "t s" '(hydra-text-scale/body :wk "scale text")))
+#+end_src
+* Org Mode
 ** Custom Font Faces 
-   #+begin_src emacs-lisp
- (defun he/org-font-setup ()
-  ;; Replace list hyphen with dot
-  (font-lock-add-keywords 'org-mode
-                          '(("^ *\\([-]\\) "
-                             (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+#+begin_src emacs-lisp
+(defun he/org-font-setup ()
+;; Replace list hyphen with dot
+(font-lock-add-keywords 'org-mode
+                        '(("^ *\\([-]\\) "
+                           (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
 
-  ;; Set faces for heading levels
-  (dolist (face '((org-level-1 . 1.1)
-                  (org-level-2 . 1.05)
-                  (org-level-3 . 1.0)
-                  (org-level-4 . 1.0)
-                  (org-level-5 . 1.1)
-                  (org-level-6 . 1.1)
-                  (org-level-7 . 1.1)
-                  (org-level-8 . 1.1)))
-    (set-face-attribute (car face) nil :font "Fira Code NF" :weight 'regular :height (cdr face)))
+;; Set faces for heading levels
+(dolist (face '((org-level-1 . 1.1)
+                (org-level-2 . 1.05)
+                (org-level-3 . 1.0)
+                (org-level-4 . 1.0)
+                (org-level-5 . 1.1)
+                (org-level-6 . 1.1)
+                (org-level-7 . 1.1)
+                (org-level-8 . 1.1)))
+  (set-face-attribute (car face) nil :font "Fira Code NF" :weight 'regular :height (cdr face)))
 
-  ;; Ensure that anything that should be fixed-pitch in Org files appears that way
-  (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
-  (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
-  (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
-  (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))  
-   #+end_src
+;; Ensure that anything that should be fixed-pitch in Org files appears that way
+(set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+(set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
+(set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
+(set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+(set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+(set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+(set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))  
+#+end_src
 ** Basic Config 
-   #+begin_src emacs-lisp
+#+begin_src emacs-lisp
 (defun he/org-mode-setup ()
   (org-indent-mode)
   (variable-pitch-mode 1)
@@ -631,7 +526,7 @@ Provide icons within emacs, only if emacs is launch in GUI mode.
 (use-package org
   :hook (org-mode . he/org-mode-setup)
   :config
-  (setq org-ellipsis " ▾")
+  (setq org-ellipsis " ...")
 
   (setq org-agenda-start-with-log-mode t)
   (setq org-log-done 'time)
@@ -749,17 +644,17 @@ Provide icons within emacs, only if emacs is launch in GUI mode.
     (lambda () (interactive) (org-capture nil "jj")))
 
   (he/org-font-setup))
-   #+end_src
+#+end_src
 ** Custom Bullets
-   #+begin_src emacs-lisp
- (use-package org-bullets
+#+begin_src emacs-lisp
+use-package org-bullets
   :after org
   :hook (org-mode . org-bullets-mode)
   :custom
   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))  
-   #+end_src
+#+end_src
 ** Layout Org Buffers 
-   #+begin_src emacs-lisp
+#+begin_src emacs-lisp
 (defun he/org-mode-visual-fill ()
   (setq visual-fill-column-width 120
         visual-fill-column-center-text t)
@@ -769,32 +664,32 @@ Provide icons within emacs, only if emacs is launch in GUI mode.
   :hook (org-mode . he/org-mode-visual-fill))
    #+end_src
 ** Configure Babel 
-   #+begin_src emacs-lisp
+#+begin_src emacs-lisp
 (org-babel-do-load-languages
   'org-babel-load-languages
   '((emacs-lisp . t)
     (python . t)))
 
 (push '("conf-unix" . conf-unix) org-src-lang-modes)
-   #+end_src
+#+end_src
 ** Templates 
-   #+begin_src emacs-lisp
- ;; This is needed as of Org 9.2
+#+begin_src emacs-lisp
+;; This is needed as of Org 9.2
 (require 'org-tempo)
 
 (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
 (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
 (add-to-list 'org-structure-template-alist '("py" . "src python"))  
-   #+end_src
+#+end_src
 ** Automatic tangel of Configuration Files
-   #+begin_src emacs-lisp
+#+begin_src emacs-lisp
 (defun nhe/org-babel-tangle-config ()
     (let ((org-confirm-babel-evaluate nil))
       (org-babel-tangle)))
 
 (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'nhe/org-babel-tangle-config 
                                               'run-at-end 'only-in-org-mode)))
-   #+end_src
+#+end_src
 ** Org make toc
 #+begin_src emacs-lisp
 (use-package org-make-toc
@@ -1123,85 +1018,6 @@ Provide icons within emacs, only if emacs is launch in GUI mode.
   :config
   (rainbow-mode 1))
 #+end_src
-* Browser
-** shrface
-#+begin_src emacs-lisp
-(use-package shrface
-  :defer t
-  :config
-  (shrface-basic)
-  (shrface-trial)
-  (setq shrface-href-versatile t))
-
-(use-package eww
-  :defer t
-  :init
-  (add-hook 'eww-after-render-hook #'shrface-mode)
-  :config
-  (require 'shrface))
-
-(with-eval-after-load 'eww
-  (define-key eww-mode-map (kbd "<tab>") 'org-cycle)
-  (define-key eww-mode-map (kbd "S-<tab>") 'org-shifttab)
-  (define-key eww-mode-map (kbd "C-t") 'shrface-toggle-bullets)
-  (define-key eww-mode-map (kbd "C-j") 'shrface-next-headline)
-  (define-key eww-mode-map (kbd "C-k") 'shrface-previous-headline)
-  (define-key eww-mode-map (kbd "C-i") 'shrface-links-counsel) ; or 'shrface-links-helm
-  (define-key eww-mode-map (kbd "C-o") 'shrface-headline-counsel)) ; or 'shrface-headline-helm
-#+end_src
-*** Code highligithn
-#+begin_src emacs-lisp
-
-(use-package shr-tag-pre-highlight
-  :ensure t
-  :after shr
-  :config
-  (add-to-list 'shr-external-rendering-functions '(pre . shrface-shr-tag-pre-highlight))
-  (when (version< emacs-version "26")
-    (with-eval-after-load 'eww
-      (advice-add 'eww-display-html :around
-                  'eww-display-html--override-shr-external-rendering-functions))))
-                  
-(defun shrface-shr-tag-pre-highlight (pre)
-  "Highlighting code in PRE."
-  (let* ((shr-folding-mode 'none)
-         (shr-current-font 'default)
-         (code (with-temp-buffer
-                 (shr-generic pre)
-                 (setq-local fill-column 120)
-                 (indent-rigidly (point-min) (point-max) 2)
-                 (if (eq "" (dom-texts pre))
-                     nil
-                   (progn
-                     (setq-local fill-column shrface-paragraph-fill-column)
-                     (indent-rigidly (point-min) (point-max) shrface-paragraph-indentation)))
-                 (buffer-string)))
-         (lang (or (shr-tag-pre-highlight-guess-language-attr pre)
-                   (let ((sym (language-detection-string code)))
-                     (and sym (symbol-name sym)))))
-         (mode (and lang
-                    (shr-tag-pre-highlight--get-lang-mode lang))))
-    (shr-ensure-newline)
-    (insert (make-string shrface-paragraph-indentation ?\ )) ; make indent string
-    ;; (insert (propertize (concat "#+BEGIN_SRC " lang) 'face 'org-block-begin-line))
-    (shr-ensure-newline)
-    (setq start (point))
-    (insert
-     (or (and (fboundp mode)
-              (with-demoted-errors "Error while fontifying: %S"
-                (shrface-tag-pre-highlight-fontify code mode)
-                ))
-         code))
-    (shr-ensure-newline)
-    (setq end (point))
-    (insert (make-string shrface-paragraph-indentation ?\ )) ; make indent string
-    ;; (insert (propertize "#+END_SRC" 'face 'org-block-end-line ) )
-    (let* ((beg start)
-           (xx (make-overlay beg end)))
-      (overlay-put xx 'face '(:background "#292b2e" :height 90)))
-    (shr-ensure-newline)
-    (insert "\n")))
-#+end_src
 * Terminal
 ** vterm
 #+begin_src emacs-lisp
@@ -1210,10 +1026,78 @@ Provide icons within emacs, only if emacs is launch in GUI mode.
   :config
   (setq vterm-max-scrollback 10000))
 #+end_src
+* File manager
+** Dired
 * Misc
 ** Elcord
 #+begin_src emacs-lisp
 (use-package elcord
   :config
   (elcord-mode 1))
+#+end_src
+** Wakatime
+#+begin_src emacs-lisp
+(use-package wakatime-mode 
+  :defer 2
+  :config
+  (global-wakatime-mode))
+#+end_src
+* Other
+Not sure what I should class this packages as yet.
+** Ivy
+| =ivy= | |
+| =ivy-rich= | |
+#+begin_src emacs-lisp
+(use-package ivy
+  :diminish
+  :bind (("C-s" . swiper)
+         :map ivy-minibuffer-map
+         ("TAB" . ivy-alt-done)
+         ("C-l" . ivy-alt-done)
+         ("C-j" . ivy-next-line)
+         ("C-k" . ivy-previous-line)
+         :map ivy-switch-buffer-map
+         ("C-k" . ivy-previous-line)
+         ("C-l" . ivy-done)
+         ("C-d" . ivy-switch-buffer-kill)
+         :map ivy-reverse-i-search-map
+         ("C-k" . ivy-previous-line)
+         ("C-d" . ivy-reverse-i-search-kill))
+  :config
+  (ivy-mode 1))
+
+(use-package ivy-rich
+  :init
+  (ivy-rich-mode 1))
+#+end_src
+** Counsel
+| =counsel= | |
+| =smex= | |
+#+begin_src emacs-lisp
+(use-package counsel
+  :bind (("C-M-j" . 'counsel-switch-buffer)
+         ("M-x" . counsel-M-x)
+         ("C-x C-f" . counsel-find-file)
+         :map minibuffer-local-map
+         ("C-r" . 'counsel-minibuffer-history))
+  :config
+  (setq ivy-initial-inputs-alist nil)
+  (counsel-mode 1)) 
+
+(use-package smex 
+  :defer 1
+  :after counsel)
+#+end_src
+** Helpful Commands
+| =helpful= | |
+#+begin_src emacs-lisp
+(use-package helpful
+  :custom
+  (counsel-describe-function-function #'helpful-callable)
+  (counsel-describe-variable-function #'helpful-variable)
+  :bind
+  ([remap describe-function] . counsel-describe-function)
+  ([remap describe-command] . helpful-command)
+  ([remap describe-variable] . counsel-describe-variable)
+  ([remap describe-key] . helpful-key))  
 #+end_src
