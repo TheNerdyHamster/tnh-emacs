@@ -83,7 +83,7 @@ Garbage collection when =focus-out-hook= is called
 (defvar nhe/font-size-large    1.2               "The font size to use for larger text.")
 (defvar nhe/font-size-small    .8                "The font size to use for smaller text.")
 
-(let ((secret.el (expand-file-name ".config.el" user-emacs-directory)))
+(let ((config.el (expand-file-name ".config.el" user-emacs-directory)))
   (load config.el t))
 #+end_src
 
@@ -174,22 +174,7 @@ Provide icon support for emacs, for graphical interface.
     (all-the-icons-install-fonts t)))
 #+end_src
 
-* GUI
-** Modeline
-| =Doom-modeline= | https://github.com/seagle0128/doom-modeline |
-Fancy looking mode-line for emacs.
-#+begin_src emacs-lisp
-(use-package doom-modeline
-  :init (doom-modeline-mode 1)
-  :custom 
-  (doom-modeline-height 15)
-  (doom-themes-visual-bell-config)
-  :config
-  (display-battery-mode t)
-  (display-time-mode t))
-#+end_src
-
-*** Line numbers
+** Line numbers
 Due to line lunbers are active for all modes, we need to turn it off for we dont want line number in.
 Modes without line-numbers: =org-mode=, =vterm-mode=, =shell-mode=, =treemacs-mode=, and =eshell-mode=.
 #+begin_src emacs-lisp
@@ -200,18 +185,18 @@ Modes without line-numbers: =org-mode=, =vterm-mode=, =shell-mode=, =treemacs-mo
                 eshell-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 #+end_src
-*** Font
+** Font
 Set default font to =fira-code=.
 #+begin_src emacs-lisp
 (set-face-attribute 'default nil :font nhe/font-family :height nhe/font-size-default)
 
-(set-face-attribute 'fixed-pitch nil :font nhe/font-family :height he/font-size-default)
+(set-face-attribute 'fixed-pitch nil :font nhe/font-family :height nhe/font-size-default)
 
-(set-face-attribute 'variable-pitch nil :font nhe/font-family :height he/font-size-medium :weight 'regular)
+(set-face-attribute 'variable-pitch nil :font nhe/font-family :height nhe/font-size-small :weight 'regular)
 
 #+end_src
 
-**** Ligatures
+*** Ligatures
 | =ligature.el= | https://github.com/mickeynp/ligature.el |
 Ligatures is currently only working with Emacs =20.0.50= =Master branch=. Due to a bug within Emacs =27=.
 #+begin_src emacs-lisp
@@ -234,6 +219,141 @@ Ligatures is currently only working with Emacs =20.0.50= =Master branch=. Due to
   "<~" "<~~" "</" "</>" "~@" "~-" "~>" "~~" "~~>" "%%"))
 
   (global-ligature-mode 't))
+#+end_src
+
+* GUI
+** Modeline
+| =Doom-modeline= | https://github.com/seagle0128/doom-modeline |
+#+begin_src emacs-lisp
+(use-package doom-modeline
+  :init (doom-modeline-mode 1)
+  :custom 
+  (doom-modeline-height 15)
+  (doom-themes-visual-bell-config)
+  :config
+  (display-battery-mode t)
+  (display-time-mode t))
+(use-package doom-modeline
+  :demand t
+  :custom
+  (doom-modeline-bar-width 1)
+  (doom-modeline-buffer-file-name-style 'truncate-with-project)
+  (doom-modeline-enable-word-count t)
+  (doom-modeline-icon (display-graphic-p))
+  (doom-modeline-major-mode-icon nil)
+  (doom-modeline-percent-position nil)
+  (doom-modeline-vcs-max-length 28)
+  :config
+  (doom-modeline-def-segment nhe/buffer
+    "The buffer description and major mode icon."
+    (concat (doom-modeline-spc)
+            (doom-modeline--buffer-name)
+            (doom-modeline-spc)))
+  (doom-modeline-def-segment nhe/buffer-position
+    "The buffer position."
+    (let* ((active (doom-modeline--active))
+           (face (if active 'mode-line 'mode-line-inactive)))
+      (propertize (concat (doom-modeline-spc)
+                          (format-mode-line "%l:%c")
+                          (doom-modeline-spc))
+                  'face face)))
+  (doom-modeline-def-segment nhe/buffer-simple
+    "The buffer name but simpler."
+    (let* ((active (doom-modeline--active))
+           (face (cond ((and buffer-file-name (buffer-modified-p)) 'doom-modeline-buffer-modified)
+                       (active 'doom-modeline-buffer-file)
+                       (t 'mode-line-inactive))))
+      (concat (doom-modeline-spc)
+              (propertize "%b" 'face face)
+              (doom-modeline-spc))))
+  (doom-modeline-def-segment nhe/default-directory
+    "The buffer directory."
+    (let* ((active (doom-modeline--active))
+           (face (if active 'doom-modeline-buffer-path 'mode-line-inactive)))
+      (concat (doom-modeline-spc)
+              (propertize (abbreviate-file-name default-directory) 'face face)
+              (doom-modeline-spc))))
+  (doom-modeline-def-segment nhe/flycheck
+    "The error status with color codes and icons."
+    (when (bound-and-true-p flycheck-mode)
+      (let ((active (doom-modeline--active))
+            (icon doom-modeline--flycheck-icon)
+            (text doom-modeline--flycheck-text))
+        (concat
+         (when icon
+           (concat (doom-modeline-spc)
+                   (if active icon (doom-modeline-propertize-icon icon 'mode-line-inactive))))
+         (when text
+           (concat (if icon (doom-modeline-vspc) (doom-modeline-spc))
+                   (if active text (propertize text 'face 'mode-line-inactive))))
+         (when (or icon text)
+           (doom-modeline-spc))))))
+  (doom-modeline-def-segment nhe/info
+    "The topic and nodes in Info buffers."
+    (let ((active (doom-modeline--active)))
+      (concat
+       (propertize " (" 'face (if active 'mode-line 'mode-line-inactive))
+       (propertize (if (stringp Info-current-file)
+                       (replace-regexp-in-string
+                        "%" "%%"
+                        (file-name-sans-extension (file-name-nondirectory Info-current-file)))
+                     (format "*%S*" Info-current-file))
+                   'face (if active 'doom-modeline-info 'mode-line-inactive))
+       (propertize ") " 'face (if active 'mode-line 'mode-line-inactive))
+       (when Info-current-node
+         (propertize (concat (replace-regexp-in-string "%" "%%" Info-current-node)
+                             (doom-modeline-spc))
+                     'face (if active 'doom-modeline-buffer-path 'mode-line-inactive))))))
+  (doom-modeline-def-segment nhe/major-mode
+    "The current major mode, including environment information."
+    (let* ((active (doom-modeline--active))
+           (face (if active 'doom-modeline-buffer-major-mode 'mode-line-inactive)))
+      (concat (doom-modeline-spc)
+              (propertize (format-mode-line mode-name) 'face face)
+              (doom-modeline-spc))))
+  (doom-modeline-def-segment nhe/process
+    "The ongoing process details."
+    (let ((result (format-mode-line mode-line-process)))
+      (concat (if (doom-modeline--active)
+                  result
+                (propertize result 'face 'mode-line-inactive))
+              (doom-modeline-spc))))
+  (doom-modeline-def-segment nhe/space
+    "A simple space."
+    (doom-modeline-spc))
+  (doom-modeline-def-segment nhe/vcs
+    "The version control system information."
+    (when-let ((branch doom-modeline--vcs-text))
+      (let ((active (doom-modeline--active))
+            (text (concat ":" branch)))
+        (concat (doom-modeline-spc)
+                (if active text (propertize text 'face 'mode-line-inactive))
+                (doom-modeline-spc)))))
+  (doom-modeline-mode 1)
+  (doom-modeline-def-modeline 'info
+    '(bar modals nhe/buffer nhe/info nhe/buffer-position selection-info)
+    '(irc-buffers matches nhe/process debug nhe/major-mode workspace-name))
+  (doom-modeline-def-modeline 'main
+    '(bar modals nhe/buffer remote-host nhe/buffer-position nhe/flycheck selection-info)
+    '(irc-buffers matches nhe/process nhe/vcs debug nhe/major-mode workspace-name))
+  (doom-modeline-def-modeline 'message
+    '(bar modals nhe/buffer-simple nhe/buffer-position selection-info)
+    '(irc-buffers matches nhe/process nhe/major-mode workspace-name))
+  (doom-modeline-def-modeline 'org-src
+    '(bar modals nhe/buffer-simple nhe/buffer-position nhe/flycheck selection-info)
+    '(irc-buffers matches nhe/process debug nhe/major-mode workspace-name))
+  (doom-modeline-def-modeline 'package
+    '(bar modals nhe/space package)
+    '(irc-buffers matches nhe/process debug nhe/major-mode workspace-name))
+  (doom-modeline-def-modeline 'project
+    '(bar modals nhe/default-directory)
+    '(irc-buffers matches nhe/process debug nhe/major-mode workspace-name))
+  (doom-modeline-def-modeline 'special
+    '(bar modals nhe/buffer nhe/buffer-position selection-info)
+    '(irc-buffers matches nhe/process debug nhe/major-mode workspace-name))
+  (doom-modeline-def-modeline 'vcs
+    '(bar modals nhe/buffer remote-host nhe/buffer-position selection-info)
+    '(irc-buffers matches nhe/process debug nhe/major-mode workspace-name)))
 #+end_src
 
 ** Treemacs
@@ -371,7 +491,6 @@ Provide =VI= like keybindings within emacs.
 #+end_src
 *** Evil Collection
 | =evil-collection= | https://github.com/emacs-evil/evil-collection |
-Better evil keybindings for emacs.
 #+begin_src emacs-lisp
 (use-package evil-collection
   :after evil
@@ -486,6 +605,65 @@ A convinent way of shorten keyboard commands.
     
   (nhe/leader-key
     "t s" '(hydra-text-scale/body :wk "scale text")))
+#+end_src
+* Other
+Not sure what I should class this packages as yet.
+** Counsel
+| =counsel= | |
+| =smex= | |
+#+begin_src emacs-lisp
+(use-package counsel
+  :bind (("C-M-j" . 'counsel-switch-buffer)
+         ("M-x" . counsel-M-x)
+         ("C-x C-f" . counsel-find-file)
+         :map minibuffer-local-map
+         ("C-r" . 'counsel-minibuffer-history))
+  :config
+  (setq ivy-initial-inputs-alist nil)
+  (counsel-mode 1)) 
+
+(use-package smex 
+  :defer 1
+  :after counsel)
+#+end_src
+** Ivy
+| =ivy= | |
+| =ivy-rich= | |
+#+begin_src emacs-lisp
+(use-package ivy
+  :diminish
+  :bind (("C-s" . swiper)
+         :map ivy-minibuffer-map
+         ("TAB" . ivy-alt-done)
+         ("C-l" . ivy-alt-done)
+         ("C-j" . ivy-next-line)
+         ("C-k" . ivy-previous-line)
+         :map ivy-switch-buffer-map
+         ("C-k" . ivy-previous-line)
+         ("C-l" . ivy-done)
+         ("C-d" . ivy-switch-buffer-kill)
+         :map ivy-reverse-i-search-map
+         ("C-k" . ivy-previous-line)
+         ("C-d" . ivy-reverse-i-search-kill))
+  :config
+  (ivy-mode 1))
+
+(use-package ivy-rich
+  :init
+  (ivy-rich-mode 1))
+#+end_src
+** Helpful Commands
+| =helpful= | |
+#+begin_src emacs-lisp
+(use-package helpful
+  :custom
+  (counsel-describe-function-function #'helpful-callable)
+  (counsel-describe-variable-function #'helpful-variable)
+  :bind
+  ([remap describe-function] . counsel-describe-function)
+  ([remap describe-command] . helpful-command)
+  ([remap describe-variable] . counsel-describe-variable)
+  ([remap describe-key] . helpful-key))  
 #+end_src
 * Org Mode
 ** Custom Font Faces 
@@ -647,7 +825,7 @@ A convinent way of shorten keyboard commands.
 #+end_src
 ** Custom Bullets
 #+begin_src emacs-lisp
-use-package org-bullets
+(use-package org-bullets
   :after org
   :hook (org-mode . org-bullets-mode)
   :custom
@@ -1041,63 +1219,4 @@ use-package org-bullets
   :defer 2
   :config
   (global-wakatime-mode))
-#+end_src
-* Other
-Not sure what I should class this packages as yet.
-** Ivy
-| =ivy= | |
-| =ivy-rich= | |
-#+begin_src emacs-lisp
-(use-package ivy
-  :diminish
-  :bind (("C-s" . swiper)
-         :map ivy-minibuffer-map
-         ("TAB" . ivy-alt-done)
-         ("C-l" . ivy-alt-done)
-         ("C-j" . ivy-next-line)
-         ("C-k" . ivy-previous-line)
-         :map ivy-switch-buffer-map
-         ("C-k" . ivy-previous-line)
-         ("C-l" . ivy-done)
-         ("C-d" . ivy-switch-buffer-kill)
-         :map ivy-reverse-i-search-map
-         ("C-k" . ivy-previous-line)
-         ("C-d" . ivy-reverse-i-search-kill))
-  :config
-  (ivy-mode 1))
-
-(use-package ivy-rich
-  :init
-  (ivy-rich-mode 1))
-#+end_src
-** Counsel
-| =counsel= | |
-| =smex= | |
-#+begin_src emacs-lisp
-(use-package counsel
-  :bind (("C-M-j" . 'counsel-switch-buffer)
-         ("M-x" . counsel-M-x)
-         ("C-x C-f" . counsel-find-file)
-         :map minibuffer-local-map
-         ("C-r" . 'counsel-minibuffer-history))
-  :config
-  (setq ivy-initial-inputs-alist nil)
-  (counsel-mode 1)) 
-
-(use-package smex 
-  :defer 1
-  :after counsel)
-#+end_src
-** Helpful Commands
-| =helpful= | |
-#+begin_src emacs-lisp
-(use-package helpful
-  :custom
-  (counsel-describe-function-function #'helpful-callable)
-  (counsel-describe-variable-function #'helpful-variable)
-  :bind
-  ([remap describe-function] . counsel-describe-function)
-  ([remap describe-command] . helpful-command)
-  ([remap describe-variable] . counsel-describe-variable)
-  ([remap describe-key] . helpful-key))  
 #+end_src
