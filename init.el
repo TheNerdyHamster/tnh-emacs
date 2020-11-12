@@ -1,5 +1,60 @@
-(defvar he/default-font-size 100)
-(defvar he/default-variable-font-size 100)
+(when window-system
+  (blink-cursor-mode 0)                           ; Disable the cursor blinking
+  (scroll-bar-mode 0)                             ; Disable the scroll bar
+  (tool-bar-mode 0)                               ; Disable the tool bar
+  (tooltip-mode 0))                               ; Disable the tooltips
+
+(setq-default
+ ad-redefinition-action 'accept                   ; Silence warnings for redefinition
+ auto-save-list-file-prefix nil                   ; Prevent tracking for auto-saves
+ cursor-in-non-selected-windows nil               ; Hide the cursor in inactive windows
+ cursor-type 'bar                                 ; Prefer a bar-shaped cursor by default
+ delete-by-moving-to-trash t                      ; Delete files to trash
+ fill-column 80                                   ; Set width for automatic line breaks
+ gc-cons-threshold (* 8 1024 1024)                ; We're not living in the 70s anymore
+ read-process-output-max (* 1024 1024)            ; Increase the read output for larger files.
+ help-window-select t                             ; Focus new help windows when opened
+ indent-tabs-mode nil                             ; Stop using tabs to indent
+ inhibit-startup-screen t                         ; Disable start-up screen
+ initial-scratch-message ""                       ; Empty the initial *scratch* buffer
+ mouse-yank-at-point t                            ; Yank at point rather than pointer
+ recenter-positions '(5 top bottom)               ; Set re-centering positions
+ scroll-conservatively most-positive-fixnum       ; Always scroll by one line
+ scroll-margin 2                                  ; Add a margin when scrolling vertically
+ select-enable-clipboard t                        ; Merge system's and Emacs' clipboard
+ sentence-end-double-space nil                    ; Use a single space after dots
+ show-help-function nil                           ; Disable help text on most UI elements
+ tab-width 4                                      ; Set width for tabs
+ uniquify-buffer-name-style 'forward              ; Uniquify buffer names
+ window-combination-resize t                      ; Resize windows proportionally
+ x-stretch-cursor t)                              ; Stretch cursor to the glyph width
+(cd "~/")                                         ; Move to the user directory
+(delete-selection-mode 1)                         ; Replace region when inserting text
+(fringe-mode '(2 . 0))                            ; Initialize thinner vertical fringes
+(fset 'yes-or-no-p 'y-or-n-p)                     ; Replace yes/no prompts with y/n
+(global-subword-mode 1)                           ; Iterate through CamelCase words
+(menu-bar-mode 0)                                 ; Disable the menu bar
+(mouse-avoidance-mode 'exile)                     ; Avoid collision of mouse with point
+(put 'downcase-region 'disabled nil)              ; Enable downcase-region
+(put 'upcase-region 'disabled nil)                ; Enable upcase-region
+(set-default-coding-systems 'utf-8)               ; Default to utf-8 encoding
+(column-number-mode)                              ; Toggle column number mode for mode lines.
+(global-display-line-numbers-mode t)              ; Toggle line numbers within buffer
+
+(if (eq window-system 'ns)
+    (set-frame-parameter nil 'fullscreen 'maximized)
+  (set-frame-parameter nil 'fullscreen 'fullboth))
+
+(add-hook 'focus-out-hook #'garbage-collect)
+
+(defvar nhe/waka-time-token    nil               "The Waka time API token to use.")
+(defvar nhe/font-family        "Fira Code NF"    "Default font family to use")
+(defvar nhe/font-size-default  100               "The font size to use for default text.")
+(defvar nhe/font-size-large    1.2               "The font size to use for larger text.")
+(defvar nhe/font-size-small    .8                "The font size to use for smaller text.")
+
+(let ((config.el (expand-file-name ".config.el" user-emacs-directory)))
+  (load config.el t))
 
 (setq user-emacs-directory "~/.cache/emacs/"
       backup-directory-alist `(("." . ,(expand-file-name "backups" user-emacs-directory)))
@@ -7,7 +62,6 @@
       auto-save-list-file-prefix (expand-file-name "auto-save-list/.saves-" user-emacs-directory)
       projectile-known-projects-file (expand-file-name "projectile-bookmarks.eld" user-emacs-directory))
 
-;; Initialize package sources
 (require 'package)
 
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
@@ -33,42 +87,39 @@
 (when nhe/exwm-enabled
   (load-file "~/.emacs.d/exwm.el"))
 
-(setq inhibit-startup-message t)
- (setq initial-buffer-choice "*dashboard*")
+(use-package modus-vivendi-theme
+  :config
+  (load-theme 'modus-vivendi t)
+  :custom
+  (modus-vivendi-theme-bold-constructs nil)
+  (modus-vivendi-theme-slanted-constructs t)
+  (modus-vivendi-theme-syntax 'alt-syntax)
+  (modus-vivendi-theme-no-mixed-fonts t)
+  (modus-vivendi-theme-org-blocks 'greyscale)
+  (modus-vivendi-theme-headings '((t . rainbow)))
+  (modus-vivendi-theme-scale-headings t)
+  :config
+  (set-face-attribute 'default nil :family "FiraCode NF" :height 110))
 
- (scroll-bar-mode -1)        ; Disable visible scrollbar
- (tool-bar-mode -1)          ; Disable the toolbar
- (tooltip-mode -1)           ; Disable tooltips
- (set-fringe-mode 10)        ; Give some breathing room
+(use-package all-the-icons
+  :if (display-graphic-p)
+  :commands all-the-icons-install-fonts
+  :init
+  (unless (find-font (font-spec :name "all-the-icons"))
+    (all-the-icons-install-fonts t)))
 
- (menu-bar-mode -1)            ; Disable the menu bar
+(dolist (mode '(org-mode-hook
+                vterm-mode-hook
+                shell-mode-hook
+                treemacs-mode-hook
+                eshell-mode-hook))
+  (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
- ;; Set up the visible bell
-;; (setq visible-bell t)
+(set-face-attribute 'default nil :font nhe/font-family :height nhe/font-size-default)
 
- (global-hl-line-mode +1)    ; Enable line highlight
- (column-number-mode)
- (global-display-line-numbers-mode t)
- 
- ;; Disable line numbers for some modes
- (dolist (mode '(org-mode-hook
-                 vterm-mode-hook
-                 shell-mode-hook
-	               treemacs-mode-hook
-                 eshell-mode-hook))
-   (add-hook mode (lambda () (display-line-numbers-mode 0))))
+(set-face-attribute 'fixed-pitch nil :font nhe/font-family :height nhe/font-size-default)
 
-(setq read-process-output-max (* 1024 1024))
-(setq gc-cons-threshold 100000000)
- ;(setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
-
-(set-face-attribute 'default nil :font "Fira Code NF" :height he/default-font-size)
-
-;; Set the fixed pitch face
-(set-face-attribute 'fixed-pitch nil :font "Fira Code NF" :height he/default-font-size)
-
-;; Set the variable pitch face
-(set-face-attribute 'variable-pitch nil :font "Fira Code NF" :height he/default-variable-font-size :weight 'regular)
+(set-face-attribute 'variable-pitch nil :font nhe/font-family :height nhe/font-size-small :weight 'regular)
 
 (use-package ligature
   :load-path "~/.emacs.d/github/ligature"
@@ -90,7 +141,197 @@
 
   (global-ligature-mode 't))
 
-(use-package restart-emacs)
+(use-package doom-modeline
+  :init (doom-modeline-mode 1)
+  :custom 
+  (doom-modeline-height 15)
+  (doom-themes-visual-bell-config)
+  :config
+  (display-battery-mode t)
+  (display-time-mode t))
+(use-package doom-modeline
+  :demand t
+  :custom
+  (doom-modeline-bar-width 1)
+  (doom-modeline-buffer-file-name-style 'truncate-with-project)
+  (doom-modeline-enable-word-count t)
+  (doom-modeline-icon (display-graphic-p))
+  (doom-modeline-major-mode-icon nil)
+  (doom-modeline-percent-position nil)
+  (doom-modeline-vcs-max-length 28)
+  :config
+  (doom-modeline-def-segment nhe/buffer
+    "The buffer description and major mode icon."
+    (concat (doom-modeline-spc)
+            (doom-modeline--buffer-name)
+            (doom-modeline-spc)))
+  (doom-modeline-def-segment nhe/buffer-position
+    "The buffer position."
+    (let* ((active (doom-modeline--active))
+           (face (if active 'mode-line 'mode-line-inactive)))
+      (propertize (concat (doom-modeline-spc)
+                          (format-mode-line "%l:%c")
+                          (doom-modeline-spc))
+                  'face face)))
+  (doom-modeline-def-segment nhe/buffer-simple
+    "The buffer name but simpler."
+    (let* ((active (doom-modeline--active))
+           (face (cond ((and buffer-file-name (buffer-modified-p)) 'doom-modeline-buffer-modified)
+                       (active 'doom-modeline-buffer-file)
+                       (t 'mode-line-inactive))))
+      (concat (doom-modeline-spc)
+              (propertize "%b" 'face face)
+              (doom-modeline-spc))))
+  (doom-modeline-def-segment nhe/default-directory
+    "The buffer directory."
+    (let* ((active (doom-modeline--active))
+           (face (if active 'doom-modeline-buffer-path 'mode-line-inactive)))
+      (concat (doom-modeline-spc)
+              (propertize (abbreviate-file-name default-directory) 'face face)
+              (doom-modeline-spc))))
+  (doom-modeline-def-segment nhe/flycheck
+    "The error status with color codes and icons."
+    (when (bound-and-true-p flycheck-mode)
+      (let ((active (doom-modeline--active))
+            (icon doom-modeline--flycheck-icon)
+            (text doom-modeline--flycheck-text))
+        (concat
+         (when icon
+           (concat (doom-modeline-spc)
+                   (if active icon (doom-modeline-propertize-icon icon 'mode-line-inactive))))
+         (when text
+           (concat (if icon (doom-modeline-vspc) (doom-modeline-spc))
+                   (if active text (propertize text 'face 'mode-line-inactive))))
+         (when (or icon text)
+           (doom-modeline-spc))))))
+  (doom-modeline-def-segment nhe/info
+    "The topic and nodes in Info buffers."
+    (let ((active (doom-modeline--active)))
+      (concat
+       (propertize " (" 'face (if active 'mode-line 'mode-line-inactive))
+       (propertize (if (stringp Info-current-file)
+                       (replace-regexp-in-string
+                        "%" "%%"
+                        (file-name-sans-extension (file-name-nondirectory Info-current-file)))
+                     (format "*%S*" Info-current-file))
+                   'face (if active 'doom-modeline-info 'mode-line-inactive))
+       (propertize ") " 'face (if active 'mode-line 'mode-line-inactive))
+       (when Info-current-node
+         (propertize (concat (replace-regexp-in-string "%" "%%" Info-current-node)
+                             (doom-modeline-spc))
+                     'face (if active 'doom-modeline-buffer-path 'mode-line-inactive))))))
+  (doom-modeline-def-segment nhe/major-mode
+    "The current major mode, including environment information."
+    (let* ((active (doom-modeline--active))
+           (face (if active 'doom-modeline-buffer-major-mode 'mode-line-inactive)))
+      (concat (doom-modeline-spc)
+              (propertize (format-mode-line mode-name) 'face face)
+              (doom-modeline-spc))))
+  (doom-modeline-def-segment nhe/process
+    "The ongoing process details."
+    (let ((result (format-mode-line mode-line-process)))
+      (concat (if (doom-modeline--active)
+                  result
+                (propertize result 'face 'mode-line-inactive))
+              (doom-modeline-spc))))
+  (doom-modeline-def-segment nhe/space
+    "A simple space."
+    (doom-modeline-spc))
+  (doom-modeline-def-segment nhe/vcs
+    "The version control system information."
+    (when-let ((branch doom-modeline--vcs-text))
+      (let ((active (doom-modeline--active))
+            (text (concat ":" branch)))
+        (concat (doom-modeline-spc)
+                (if active text (propertize text 'face 'mode-line-inactive))
+                (doom-modeline-spc)))))
+  (doom-modeline-mode 1)
+  (doom-modeline-def-modeline 'info
+    '(bar modals nhe/buffer nhe/info nhe/buffer-position selection-info)
+    '(irc-buffers matches nhe/process debug nhe/major-mode workspace-name))
+  (doom-modeline-def-modeline 'main
+    '(bar modals nhe/buffer remote-host nhe/buffer-position nhe/flycheck selection-info)
+    '(irc-buffers matches nhe/process nhe/vcs debug nhe/major-mode workspace-name))
+  (doom-modeline-def-modeline 'message
+    '(bar modals nhe/buffer-simple nhe/buffer-position selection-info)
+    '(irc-buffers matches nhe/process nhe/major-mode workspace-name))
+  (doom-modeline-def-modeline 'org-src
+    '(bar modals nhe/buffer-simple nhe/buffer-position nhe/flycheck selection-info)
+    '(irc-buffers matches nhe/process debug nhe/major-mode workspace-name))
+  (doom-modeline-def-modeline 'package
+    '(bar modals nhe/space package)
+    '(irc-buffers matches nhe/process debug nhe/major-mode workspace-name))
+  (doom-modeline-def-modeline 'project
+    '(bar modals nhe/default-directory)
+    '(irc-buffers matches nhe/process debug nhe/major-mode workspace-name))
+  (doom-modeline-def-modeline 'special
+    '(bar modals nhe/buffer nhe/buffer-position selection-info)
+    '(irc-buffers matches nhe/process debug nhe/major-mode workspace-name))
+  (doom-modeline-def-modeline 'vcs
+    '(bar modals nhe/buffer remote-host nhe/buffer-position selection-info)
+    '(irc-buffers matches nhe/process debug nhe/major-mode workspace-name)))
+
+(use-package treemacs
+  :config
+  (treemacs-git-mode 'deferred))
+
+(use-package treemacs-evil
+  :after treemacs)
+
+(use-package treemacs-projectile
+  :after treemacs)
+  
+(use-package treemacs-magit
+  :after treemacs)
+
+(use-package treemacs-all-the-icons
+  :after treemacs
+  :config
+  (treemacs-load-theme "all-the-icons"))
+
+(use-package centaur-tabs
+  :config
+  (setq centaur-tabs-height 32)
+  (setq centaur-tabs-bar-height 35)
+  (setq centaur-tabs-set-bar 'under)
+  (setq centaur-tabs-set-icons t)
+  (setq centaur-tabs-set-greyout-icons t)
+  (setq centaur-tabs-icon-scale-factor 0.75)
+  ;; (setq centaur-tabs-icon-v-adjust -0.1)
+  (setq x-underline-at-descent-line t)
+  (centaur-tabs-mode 1))
+
+(use-package dashboard
+  :ensure t
+  :init
+  (progn
+    (setq dashboard-items '((recents . 10)
+			    (projects . 10)))
+    (setq dashboard-show-shortcuts nil
+          dashboard-banner-logo-title "Welcome to The Nerdy Hamster Emacs"
+          dashboard-set-file-icons t
+          dashboard-set-heading-icons t
+          dashboard-startup-banner 'logo
+          dashboard-set-navigator t
+          dashboard-navigator-buttons
+    `(((,(all-the-icons-octicon "mark-github" :height 1.1 :v-adjust 0.0)
+              "Github"
+	      "Browse homepage"
+              (lambda (&rest _) (browse-url "https://github.com/TheNerdyHamster/The-Nerdy-Hamster-Emacs")))
+            (,(all-the-icons-faicon "linkedin" :height 1.1 :v-adjust 0.0)
+              "Linkedin"
+              "My Linkedin"
+              (lambda (&rest _) (browse-url "https://www.linkedin.com/in/leo-ronnebro/" error)))
+	  ))))
+  :config
+  (setq dashboard-center-content t)
+  (dashboard-setup-startup-hook))
+
+(use-package which-key
+  :init (which-key-mode)
+  :diminish which-key-mode
+  :config
+  (setq which-key-idle-delay 0.4))
 
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 (global-unset-key (kbd "C-SPC"))
@@ -217,148 +458,19 @@
   (nhe/leader-key
     "t s" '(hydra-text-scale/body :wk "scale text")))
 
-(use-package modus-vivendi-theme
+(use-package counsel
+  :bind (("C-M-j" . 'counsel-switch-buffer)
+         ("M-x" . counsel-M-x)
+         ("C-x C-f" . counsel-find-file)
+         :map minibuffer-local-map
+         ("C-r" . 'counsel-minibuffer-history))
   :config
-  (load-theme 'modus-vivendi t)
-  :custom
-  (modus-vivendi-theme-bold-constructs nil)
-  (modus-vivendi-theme-slanted-constructs t)
-  (modus-vivendi-theme-syntax 'alt-syntax)
-  (modus-vivendi-theme-no-mixed-fonts t)
-  (modus-vivendi-theme-org-blocks 'greyscale)
-  (modus-vivendi-theme-headings '((t . rainbow)))
-  (modus-vivendi-theme-scale-headings t))
-;; (use-package doom-themes
-;;      :init (load-theme 'doom-dracula t))
+  (setq ivy-initial-inputs-alist nil)
+  (counsel-mode 1)) 
 
-;; (set-face-attribute 'cursor nil :background "#EB7C54")
-(set-face-attribute 'default nil :family "FiraCode NF" :height 110)
-;; (set-face-attribute 'hl-line nil :background "#081321")
-;; (set-face-attribute 'line-number nil :foreground "#213455" :background "#050816")
-;; (set-face-attribute 'line-number-current-line nil :foreground "#5589E9")
-;; (set-face-attribute 'mode-line nil :background "#132134" :foreground "#345589"
-;;                     :box '(:line-width 1 :color "#213455"))
-;; (set-face-attribute 'mode-line-inactive nil :background "#050813" :foreground "#213455"
-;;                     :box '(:line-width 1 :color "#213455"))
-;; (set-face-attribute 'region nil :background "#34848c" :foreground "#FFFFFF")
-
-;; (set-face-attribute 'font-lock-comment-delimiter-face nil :weight 'black)
-;; (set-face-attribute 'font-lock-comment-face nil :slant 'italic)
-;; (set-face-attribute 'font-lock-string-face nil :foreground "#3BAB60")
-
-(use-package command-log-mode)
-
-(use-package all-the-icons
-  :if (display-graphic-p)
-  :commands all-the-icons-install-fonts
-  :init
-  (unless (find-font (font-spec :name "all-the-icons"))
-    (all-the-icons-install-fonts t)))
-
-(use-package doom-modeline
-  :init (doom-modeline-mode 1)
-  :custom 
-  (doom-modeline-height 15)
-  (doom-themes-visual-bell-config))
-
- (display-battery-mode t)
- (display-time-mode t)
-
-;; (use-package sublimity
-;;   :init
-;;   (require 'sublimity-scroll)
-;;   :config
-;;   (sublimity-mode 1))
-
-(use-package treemacs
-  :config
-  (treemacs-git-mode 'deferred))
-
-(use-package treemacs-evil
-  :after treemacs)
-
-(use-package treemacs-projectile
-  :after treemacs)
-  
-(use-package treemacs-magit
-  :after treemacs)
-
-(use-package treemacs-all-the-icons
-  :after treemacs
-  :config
-  (treemacs-load-theme "all-the-icons"))
-
-(use-package dired
-  :ensure nil
-  :commands (dired dired-jump)
-  :bind (("C-x C-j" . dired-jump))
-  :custom ((dired-listing-switches "-agho --group-directories-first"))
-  :config
-  (evil-collection-define-key 'normal 'dired-mode-map
-    "h" 'dired-single-up-directory
-    "l" 'dired-single-buffer))
-
-(use-package dired-single)
-
-(use-package dired-open
-  :config
-  (setq dired-open-extensions '(("png" . "feh")
-                                ("mkv" . "mpv"))))
-
-(use-package dired-hide-dotfiles
-  :hook (dired-mode . dired-hide-dotfiles-mode)
-  :config
-  (evil-collection-define-key 'normal dired-mode-map
-    "H" 'dired-hide-dotfiles-mode))
-
-(use-package treemacs-icons-dired
-  :after treemacs dired
-  :ensure t
-  :config (treemacs-icons-dired-mode))
-
-(use-package centaur-tabs
-  :config
-  (setq centaur-tabs-height 32)
-  (setq centaur-tabs-bar-height 35)
-  (setq centaur-tabs-set-bar 'under)
-  (setq centaur-tabs-set-icons t)
-  (setq centaur-tabs-set-greyout-icons t)
-  (setq centaur-tabs-icon-scale-factor 0.75)
-  ;; (setq centaur-tabs-icon-v-adjust -0.1)
-  (setq x-underline-at-descent-line t)
-  (centaur-tabs-mode 1))
-
-(use-package dashboard
-  :ensure t
-  :init
-  (progn
-    (setq dashboard-items '((recents . 10)
-			    (projects . 10)))
-    (setq dashboard-show-shortcuts nil
-          dashboard-banner-logo-title "Welcome to The Nerdy Hamster Emacs"
-          dashboard-set-file-icons t
-          dashboard-set-heading-icons t
-          dashboard-startup-banner 'logo
-          dashboard-set-navigator t
-          dashboard-navigator-buttons
-    `(((,(all-the-icons-octicon "mark-github" :height 1.1 :v-adjust 0.0)
-              "Github"
-	      "Browse homepage"
-              (lambda (&rest _) (browse-url "https://github.com/TheNerdyHamster/The-Nerdy-Hamster-Emacs")))
-            (,(all-the-icons-faicon "linkedin" :height 1.1 :v-adjust 0.0)
-              "Linkedin"
-              "My Linkedin"
-              (lambda (&rest _) (browse-url "https://www.linkedin.com/in/leo-ronnebro/" error)))
-	  ))))
-  :config
-  (setq dashboard-center-content t)
-  (dashboard-setup-startup-hook))
-
-(use-package which-key
- :init (which-key-mode)
- :diminish which-key-mode
- :config
- (setq which-key-idle-delay 0.4))
+(use-package smex 
+  :defer 1
+  :after counsel)
 
 (use-package ivy
   :diminish
@@ -382,68 +494,41 @@
   :init
   (ivy-rich-mode 1))
 
-(use-package counsel
-  :bind (("C-M-j" . 'counsel-switch-buffer)
-         ("M-x" . counsel-M-x)
-         ("C-x C-f" . counsel-find-file)
-         :map minibuffer-local-map
-         ("C-r" . 'counsel-minibuffer-history))
-  :config
-  (setq ivy-initial-inputs-alist nil)
-  (counsel-mode 1)) 
-
-(use-package smex 
-  :defer 1
-  :after counsel)
-
-;; (use-package ivy-posframe
-;;   :custom
-;;   (ivy-posframe-width      115)
-;;   (ivy-posframe-min-width  115)
-;;   (ivy-posframe-height     10)
-;;   (ivy-posframe-min-height 10)
-;;   :config
-;;   (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-center)))
-;;   (setq ivy-posframe-parameters '((parent-frame . nil)
-;;                                   (left-fringe . 8)
-;;                                   (right-fringe . 8)))
-;;    (ivy-posframe-mode 1))
-
 (use-package helpful
- :custom
- (counsel-describe-function-function #'helpful-callable)
- (counsel-describe-variable-function #'helpful-variable)
- :bind
- ([remap describe-function] . counsel-describe-function)
- ([remap describe-command] . helpful-command)
- ([remap describe-variable] . counsel-describe-variable)
- ([remap describe-key] . helpful-key))
+  :custom
+  (counsel-describe-function-function #'helpful-callable)
+  (counsel-describe-variable-function #'helpful-variable)
+  :bind
+  ([remap describe-function] . counsel-describe-function)
+  ([remap describe-command] . helpful-command)
+  ([remap describe-variable] . counsel-describe-variable)
+  ([remap describe-key] . helpful-key))
 
 (defun he/org-font-setup ()
- ;; Replace list hyphen with dot
- (font-lock-add-keywords 'org-mode
-                         '(("^ *\\([-]\\) "
-                            (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+;; Replace list hyphen with dot
+(font-lock-add-keywords 'org-mode
+                        '(("^ *\\([-]\\) "
+                           (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
 
- ;; Set faces for heading levels
- (dolist (face '((org-level-1 . 1.1)
-                 (org-level-2 . 1.05)
-                 (org-level-3 . 1.0)
-                 (org-level-4 . 1.0)
-                 (org-level-5 . 1.1)
-                 (org-level-6 . 1.1)
-                 (org-level-7 . 1.1)
-                 (org-level-8 . 1.1)))
-   (set-face-attribute (car face) nil :font "Fira Code NF" :weight 'regular :height (cdr face)))
+;; Set faces for heading levels
+(dolist (face '((org-level-1 . 1.1)
+                (org-level-2 . 1.05)
+                (org-level-3 . 1.0)
+                (org-level-4 . 1.0)
+                (org-level-5 . 1.1)
+                (org-level-6 . 1.1)
+                (org-level-7 . 1.1)
+                (org-level-8 . 1.1)))
+  (set-face-attribute (car face) nil :font "Fira Code NF" :weight 'regular :height (cdr face)))
 
- ;; Ensure that anything that should be fixed-pitch in Org files appears that way
- (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
- (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
- (set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
- (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
- (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
- (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
- (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
+;; Ensure that anything that should be fixed-pitch in Org files appears that way
+(set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+(set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
+(set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
+(set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+(set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+(set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+(set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
 
 (defun he/org-mode-setup ()
   (org-indent-mode)
@@ -453,7 +538,7 @@
 (use-package org
   :hook (org-mode . he/org-mode-setup)
   :config
-  (setq org-ellipsis " ▾")
+  (setq org-ellipsis " ...")
 
   (setq org-agenda-start-with-log-mode t)
   (setq org-log-done 'time)
@@ -573,10 +658,10 @@
   (he/org-font-setup))
 
 (use-package org-bullets
- :after org
- :hook (org-mode . org-bullets-mode)
- :custom
- (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
+  :after org
+  :hook (org-mode . org-bullets-mode)
+  :custom
+  (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
 
 (defun he/org-mode-visual-fill ()
   (setq visual-fill-column-width 120
@@ -867,7 +952,7 @@
   :config
   (elcord-mode 1))
 
-;; (use-package wakatime-mode 
-;;   :defer 2
-;;   :config
-;;   (global-wakatime-mode))
+(use-package wakatime-mode 
+  :defer 2
+  :config
+  (global-wakatime-mode))
