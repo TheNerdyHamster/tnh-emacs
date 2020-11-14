@@ -40,6 +40,8 @@
 (set-default-coding-systems 'utf-8)               ; Default to utf-8 encoding
 (column-number-mode)                              ; Toggle column number mode for mode lines.
 (global-display-line-numbers-mode t)              ; Toggle line numbers within buffer
+;; (setq confirm-kill-processes nil)                      ; No need to confirm to kill a process....
+;; (setq confirm-kill-emacs t)                            ; Confirm to quit emacs
 
 (if (eq window-system 'ns)
     (set-frame-parameter nil 'fullscreen 'maximized)
@@ -51,7 +53,7 @@
 (defvar nhe/font-family        "Fira Code NF"    "Default font family to use")
 (defvar nhe/font-size-default  100               "The font size to use for default text.")
 (defvar nhe/font-size-large    1.2               "The font size to use for larger text.")
-(defvar nhe/font-size-small    .8                "The font size to use for smaller text.")
+(defvar nhe/font-size-small    .9                "The font size to use for smaller text.")
 
 (let ((config.el (expand-file-name ".config.el" user-emacs-directory)))
   (load config.el t))
@@ -78,6 +80,7 @@
 
 (require 'use-package)
 (setq use-package-always-ensure t)
+(setq use-package-compute-statistics t)
 
 (server-start)
 
@@ -145,131 +148,10 @@
   :init (doom-modeline-mode 1)
   :custom 
   (doom-modeline-height 15)
-  (doom-themes-visual-bell-config)
-  :config
-  (display-battery-mode t)
-  (display-time-mode t))
-(use-package doom-modeline
-  :demand t
-  :custom
-  (doom-modeline-bar-width 1)
-  (doom-modeline-buffer-file-name-style 'truncate-with-project)
-  (doom-modeline-enable-word-count t)
-  (doom-modeline-icon (display-graphic-p))
-  (doom-modeline-major-mode-icon nil)
-  (doom-modeline-percent-position nil)
-  (doom-modeline-vcs-max-length 28)
-  :config
-  (doom-modeline-def-segment nhe/buffer
-    "The buffer description and major mode icon."
-    (concat (doom-modeline-spc)
-            (doom-modeline--buffer-name)
-            (doom-modeline-spc)))
-  (doom-modeline-def-segment nhe/buffer-position
-    "The buffer position."
-    (let* ((active (doom-modeline--active))
-           (face (if active 'mode-line 'mode-line-inactive)))
-      (propertize (concat (doom-modeline-spc)
-                          (format-mode-line "%l:%c")
-                          (doom-modeline-spc))
-                  'face face)))
-  (doom-modeline-def-segment nhe/buffer-simple
-    "The buffer name but simpler."
-    (let* ((active (doom-modeline--active))
-           (face (cond ((and buffer-file-name (buffer-modified-p)) 'doom-modeline-buffer-modified)
-                       (active 'doom-modeline-buffer-file)
-                       (t 'mode-line-inactive))))
-      (concat (doom-modeline-spc)
-              (propertize "%b" 'face face)
-              (doom-modeline-spc))))
-  (doom-modeline-def-segment nhe/default-directory
-    "The buffer directory."
-    (let* ((active (doom-modeline--active))
-           (face (if active 'doom-modeline-buffer-path 'mode-line-inactive)))
-      (concat (doom-modeline-spc)
-              (propertize (abbreviate-file-name default-directory) 'face face)
-              (doom-modeline-spc))))
-  (doom-modeline-def-segment nhe/flycheck
-    "The error status with color codes and icons."
-    (when (bound-and-true-p flycheck-mode)
-      (let ((active (doom-modeline--active))
-            (icon doom-modeline--flycheck-icon)
-            (text doom-modeline--flycheck-text))
-        (concat
-         (when icon
-           (concat (doom-modeline-spc)
-                   (if active icon (doom-modeline-propertize-icon icon 'mode-line-inactive))))
-         (when text
-           (concat (if icon (doom-modeline-vspc) (doom-modeline-spc))
-                   (if active text (propertize text 'face 'mode-line-inactive))))
-         (when (or icon text)
-           (doom-modeline-spc))))))
-  (doom-modeline-def-segment nhe/info
-    "The topic and nodes in Info buffers."
-    (let ((active (doom-modeline--active)))
-      (concat
-       (propertize " (" 'face (if active 'mode-line 'mode-line-inactive))
-       (propertize (if (stringp Info-current-file)
-                       (replace-regexp-in-string
-                        "%" "%%"
-                        (file-name-sans-extension (file-name-nondirectory Info-current-file)))
-                     (format "*%S*" Info-current-file))
-                   'face (if active 'doom-modeline-info 'mode-line-inactive))
-       (propertize ") " 'face (if active 'mode-line 'mode-line-inactive))
-       (when Info-current-node
-         (propertize (concat (replace-regexp-in-string "%" "%%" Info-current-node)
-                             (doom-modeline-spc))
-                     'face (if active 'doom-modeline-buffer-path 'mode-line-inactive))))))
-  (doom-modeline-def-segment nhe/major-mode
-    "The current major mode, including environment information."
-    (let* ((active (doom-modeline--active))
-           (face (if active 'doom-modeline-buffer-major-mode 'mode-line-inactive)))
-      (concat (doom-modeline-spc)
-              (propertize (format-mode-line mode-name) 'face face)
-              (doom-modeline-spc))))
-  (doom-modeline-def-segment nhe/process
-    "The ongoing process details."
-    (let ((result (format-mode-line mode-line-process)))
-      (concat (if (doom-modeline--active)
-                  result
-                (propertize result 'face 'mode-line-inactive))
-              (doom-modeline-spc))))
-  (doom-modeline-def-segment nhe/space
-    "A simple space."
-    (doom-modeline-spc))
-  (doom-modeline-def-segment nhe/vcs
-    "The version control system information."
-    (when-let ((branch doom-modeline--vcs-text))
-      (let ((active (doom-modeline--active))
-            (text (concat ":" branch)))
-        (concat (doom-modeline-spc)
-                (if active text (propertize text 'face 'mode-line-inactive))
-                (doom-modeline-spc)))))
-  (doom-modeline-mode 1)
-  (doom-modeline-def-modeline 'info
-    '(bar modals nhe/buffer nhe/info nhe/buffer-position selection-info)
-    '(irc-buffers matches nhe/process debug nhe/major-mode workspace-name))
-  (doom-modeline-def-modeline 'main
-    '(bar modals nhe/buffer remote-host nhe/buffer-position nhe/flycheck selection-info)
-    '(irc-buffers matches nhe/process nhe/vcs debug nhe/major-mode workspace-name))
-  (doom-modeline-def-modeline 'message
-    '(bar modals nhe/buffer-simple nhe/buffer-position selection-info)
-    '(irc-buffers matches nhe/process nhe/major-mode workspace-name))
-  (doom-modeline-def-modeline 'org-src
-    '(bar modals nhe/buffer-simple nhe/buffer-position nhe/flycheck selection-info)
-    '(irc-buffers matches nhe/process debug nhe/major-mode workspace-name))
-  (doom-modeline-def-modeline 'package
-    '(bar modals nhe/space package)
-    '(irc-buffers matches nhe/process debug nhe/major-mode workspace-name))
-  (doom-modeline-def-modeline 'project
-    '(bar modals nhe/default-directory)
-    '(irc-buffers matches nhe/process debug nhe/major-mode workspace-name))
-  (doom-modeline-def-modeline 'special
-    '(bar modals nhe/buffer nhe/buffer-position selection-info)
-    '(irc-buffers matches nhe/process debug nhe/major-mode workspace-name))
-  (doom-modeline-def-modeline 'vcs
-    '(bar modals nhe/buffer remote-host nhe/buffer-position selection-info)
-    '(irc-buffers matches nhe/process debug nhe/major-mode workspace-name)))
+  (doom-themes-visual-bell-config))
+
+ (display-battery-mode t)
+ (display-time-mode t)
 
 (use-package treemacs
   :config
@@ -695,6 +577,8 @@
 (use-package org-make-toc
   :hook (org-mode . org-make-toc-mode))
 
+(use-package org-mime)
+
 (setq-default tab-width 2)
 (setq-default evil-shift-width tab-width)
 
@@ -755,7 +639,9 @@
 (use-package typescript-mode
   :mode "\\.ts\\'"
   :config
-  (setq typescript-indent-level 2))
+  (setq typescript-indent-level 2)
+  (require 'dap-node)
+  (dap-node-setup))
 
 (use-package js2-mode
   :mode "\\/.*\\.js\\'"
@@ -863,13 +749,13 @@
 
 (use-package lsp-ui
   :hook (lsp-mode . lsp-ui-mode))
-  ;; :custom
-  ;; (setq lsp-ui-doc-position 'bottom))
 
 (use-package lsp-treemacs
   :after lsp)
 
 (use-package lsp-ivy)
+
+(use-package dap-mode)
 
 (use-package flycheck
   :hook (after-init-hook . global-flycheck-mode)
@@ -947,6 +833,148 @@
   :commands vterm
   :config
   (setq vterm-max-scrollback 10000))
+
+
+
+(defvar nhe/current-transparency 100 "Current transparency")
+(defun change-transparency (n)
+  "change transparency to a given value"
+  (interactive "nValue: ")
+  (setq nhe/current-transparency n)
+  (set-frame-parameter (selected-frame) 'alpha `(,n . ,n))
+  (add-to-list 'default-frame-alist `(alpha . (,n . ,n))))
+
+(use-package mu4e
+  :if (eq system-type 'gnu/linux)
+  :ensure nil
+  :config
+  (add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")
+
+  (require 'org-mu4e)
+  (setq mail-user-agent 'mu4e-user-agent)
+
+  ;; Refresh mail with isync every 5 min.
+  (setq mu4e-update-interval (* 5 60))
+  (setq mu4e-get-mail-command "mbsync -c ~/.emacs.d/mu4e/.mbsyncrc -a")
+  (setq mu4e-maildir (expand-file-name "~/.maildir"))
+
+  ;; Email account contexts
+  (setq mu4e-contexts
+        `(,(make-mu4e-context
+            :name "Personal"
+            :match-func (lambda (msg) (when msg
+                                        (string-prefix-p "/Hamsterapps/Personal" (mu4e-message-field msg :maildir))))
+            :vars '(
+                    (user-full-name . "Leo Rönnebro")
+                    (user-mail-address . "leo.ronnebro@hamsterapps.net")
+                    (mu4e-sent-folder . "/Hamsterapps/Personal/Sent")
+                    (mu4e-trash-folder . "/Hamsterapps/Personal/Trash")
+                    (mu4e-drafts-folder . "/Hamsterapps/Personal/Drafts")
+                    (mu4e-refile-folder . "/Hamsterapps/Personal/Archive")
+                    (mu4e-sent-messages-behavior . sent)
+                   ))
+          ;; ,(make-mu4e-context
+          ;;   :name "Personal"
+          ;;   :match-func (lambda (msg) (when msg
+          ;;                               (string-prefix-p "/Hamsterapps/Personal" (mu4e-message-field msg :maildir))))
+          ;;   :vars '(
+          ;;           (user-full-name . "Leo Rönnebro")
+          ;;           (user-mail-address . "leo.ronnebro@hamsterapps.net")
+          ;;           (mu4e-sent-folder . "/Hamsterapps/Personal/Sent")
+          ;;           (mu4e-trash-folder . "/Hamsterapps/Personal/Trash")
+          ;;           (mu4e-drafts-folder . "/Hamsterapps/Personal/Drafts")
+          ;;           (mu4e-refile-folder . "/Hamsterapps/Personal/Archive")
+          ;;           (mu4e-sent-messages-behavior . sent)
+          ;;          ))
+         ))
+  (setq mu4e-context-policy 'pick-first)
+
+  (defun remove-nth-element (nth list)
+    (if (zerop nth) (cdr list)
+      (let ((last (nthcdr (1- nth) list)))
+        (setcdr last (cddr last))
+        list)))
+  (setq mu4e-marks (remove-nth-element 5 mu4e-marks))
+  (add-to-list 'mu4e-marks
+       '(trash
+         :char ("d" . "▼")
+         :prompt "dtrash"
+         :dyn-target (lambda (target msg) (mu4e-get-trash-folder msg))
+         :action (lambda (docid msg target) 
+                   (mu4e~proc-move docid
+                      (mu4e~mark-check-target target) "-N"))))
+
+ ;; Mu4e Display options
+ (setq mu4e-view-show-images t
+       mu4e-view-show-addresses 't)
+
+ ;; Composing mail
+ (setq mu4e-compose-dont-reply-to-self t)
+
+ ;; Sending mail
+ (setq message-send-mail-function 'smtpmail-send-it
+       smtpmail-smtp-server "smtp.fastmail.com"
+       smtpmail-smtp-service 465
+       smtpmail-stream-type 'ssl)
+
+ ;; Signing messages with gpg key
+ (setq mml-secure-openpgp-signers '("5721050E1BA6130F98380CE9EDE08F17D532268D"))
+
+ (setq mu4e-maildir-shortcuts
+       '(("/hamsterapps/Personal/INBOX"    . ?i)
+         ("/hamsterapps/Personal/Sent"     . ?s)
+         ("/hamsterapps/Personal/Drafts"   . ?d)
+         ("/hamsterapps/Personal/Trash"    . ?t)
+         ("/hamsterapps/Personal/All Mail" . ?a)))
+
+(add-to-list 'mu4e-bookmarks
+             (make-mu4e-bookmark
+              :name "All Inboxes"
+              :query "maildir:/Hamsterapps/Personal/INBOX"
+              :key ?i))
+
+;; Kill mu4e buffers on leave
+(setq message-kill-buffer-on-exit t)
+
+;; Confirmation when quiting mu4e feels kinda overkill
+(setq mu4e-confirm-quit nil)
+(setq nhe/mu4e-inbox-query
+      "(maildir:/Hamsterapps/Personal/Inbox) AND flag:unread")
+
+(defun nhe/mu4e-go-to-inbox ()
+  (interactive)
+  (mu4e-headers-search nhe/mu4e-inbox-query))
+
+(run-at-time "15 sec" nil
+             (lambda ()
+               (let ((current-prefix-arg '(4)))
+                 (call-interactively 'mu4e)))))
+
+(nhe/leader-key
+  "m" '(:ignore t :wk "mail")
+  "mm" '(mu4e :wk "launch mail")
+  "mi" '(nhe/mu4e-go-to-inbox :wk "goto inbox")
+  "mu" '(mu4e-update-mail-and-index :wk "index mail"))
+
+(use-package mu4e-alert
+  :ensure t
+  :after mu4e
+  :hook ((after-init . mu4e-alert-enable-mode-line-display) ;
+         (after-init . mu4e-alert-enable-notifications))
+  :config (mu4e-alert-set-default-style 'libnotify)
+  :init
+  (setq mu4e-alert-interesting-mail-query
+    (concat
+     "flag:unread maildir:/Hamsterapps/Personal/INBOX"
+     ;;"OR"
+     ;;"mail"
+    ))
+  (mu4e-alert-enable-mode-line-display)
+  (defun gjstein-refresh-mu4e-alert-mode-line ()
+    (interactive)
+    (mu4e~proc-kill)
+    (mu4e-alert-enable-mode-line-display))
+  (run-with-timer 0 60 'gjstein-refresh-mu4e-alert-mode-line))
 
 (use-package elcord
   :config
