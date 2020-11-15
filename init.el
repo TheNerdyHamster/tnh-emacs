@@ -894,6 +894,7 @@
       (let ((last (nthcdr (1- nth) list)))
         (setcdr last (cddr last))
         list)))
+
   (setq mu4e-marks (remove-nth-element 5 mu4e-marks))
   (add-to-list 'mu4e-marks
        '(trash
@@ -907,6 +908,39 @@
  ;; Mu4e Display options
  (setq mu4e-view-show-images t
        mu4e-view-show-addresses 't)
+
+ ;; mu4e prefer html, and change the luminace of the html preview
+ (setq mu4e-view-prefer-html t
+       shr-color-visible-luminance-min 80)
+
+ (defun nhe/mu4e-html2text (msg)
+   "My html2text function; shows short message inline, show
+   long messages in some external browser (see `browse-url-generic-program')."
+  (let ((html (or (mu4e-message-field msg :body-html) "")))
+    (if (> (length html) 20000)
+      (progn
+	      (mu4e-action-view-in-browser msg)
+	      "[Viewing message in external browser]")
+      (mu4e-shr2text msg))))
+
+(setq mu4e-html2text-command 'nhe/mu4e-html2text)
+
+
+(defun nhe/enabled-custom-compose-settings ()
+  "Custom settings for message composition with mu4e"
+  (set-fill-column 72)
+  (flyspell-mode))
+
+(add-hook 'mu4e-compose-mode-hook 'nhe/enabled-custom-compose-settings)
+
+(add-hook 'mu4e-view-mode-hook
+  (lambda ()
+    (local-set-key (kbd "<tab>") 'shr-next-link)
+    (local-set-key (kbd "<backtab>") 'shr-previous-link)))
+
+ ;; Use imagemagick if it is aviable
+ (when (fboundp 'imagemagick-register-types)
+   (imagemagick-register-types))
 
  ;; Composing mail
  (setq mu4e-compose-dont-reply-to-self t)
@@ -936,10 +970,21 @@
 ;; Kill mu4e buffers on leave
 (setq message-kill-buffer-on-exit t)
 
+;; Set custom attachements download directory
+(setq mu4e-attachment-dir "~/Documents/Attachments")
+
 ;; Confirmation when quiting mu4e feels kinda overkill
 (setq mu4e-confirm-quit nil)
 (setq nhe/mu4e-inbox-query
       "(maildir:/Hamsterapps/Personal/Inbox) AND flag:unread")
+
+(add-to-list 'mu4e-header-info-custom
+  '(:full-mailing-list
+      ( :name "Mailing-list"
+        :shortname "ML"
+        :help "Full name for mailing list"
+        :function (lambda (msg)
+            (or (mu4e-message-field msg :mailing-list) "")))))
 
 (defun nhe/mu4e-go-to-inbox ()
   (interactive)
