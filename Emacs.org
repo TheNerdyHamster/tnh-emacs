@@ -457,11 +457,17 @@ Provide =VI= like keybindings within emacs.
 #+begin_src emacs-lisp
 (nhe/leader-key
   "w" '(:ignore t :wk "window")
-  "w w" '(other-window :wk "other window")
-  "w d" '(evil-window-delete :wk "remove window")
+  "w w" '(aw-flip-window :wk "other window")
+  "w s" '(ace-window :wk "ace window")
+  "w d" '(evil-window-delete :wk "delete window")
+  "w s" '(ace-swap-window :wk "swap window")
   "w o" '(delete-other-windows :wk "remove other windows")
-  "w h" '(evil-window-split :wk "split window horizontally")
-  "w v" '(evil-window-vsplit :wk "split window vertically"))
+  "w h" '(evil-window-left :wk "window left")
+  "w j" '(evil-window-down :wk "window down")
+  "w k" '(evil-window-up :wk "window up")
+  "w l" '(evil-window-right :wk "window right")
+  "w v" '(evil-window-split :wk "split window horizontally")
+  "w b" '(evil-window-vsplit :wk "split window vertically"))
 #+end_src
 *** Prog mode
 #+begin_src emacs-lisp
@@ -1097,8 +1103,13 @@ Not sure what I should class this packages as yet.
 * File manager
 ** Dired
 * Window Management
+** Ace Window
+| =ace-window= | |
 #+begin_src emacs-lisp
-
+(use-package ace-window
+  :config
+  (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+  (ace-window-display-mode))
 #+end_src
 * Custom
 ** Transparency mangement
