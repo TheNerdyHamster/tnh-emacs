@@ -3,14 +3,53 @@
 #+PROPERTY: header-args:emacs-lisp :tangle ./init.el :mkdirp yes
 
 * Table Of Contents
-:CONTENTS:
-
-:END:
- 
 :PROPERTIES:
 :TOC:      :include all :depth 2
 :END:
 
+:CONTENTS:
+- [[#table-of-contents][Table Of Contents]]
+- [[#bootstraps][Bootstraps]]
+  - [[#emacs-defaults][Emacs defaults]]
+  - [[#load-private-config-configel][Load private config .config.el]]
+  - [[#keep-emacsd-clean][Keep .emacs.d clean]]
+  - [[#package-configuration-system][Package configuration system]]
+  - [[#server-mode][Server mode]]
+  - [[#desktop-enviorment---exwm][Desktop enviorment - EXWM]]
+- [[#gui][GUI]]
+  - [[#theme][Theme]]
+  - [[#icons][Icons]]
+  - [[#line-numbers][Line numbers]]
+  - [[#font][Font]]
+- [[#features][Features]]
+  - [[#gui][GUI]]
+  - [[#navigation][Navigation]]
+  - [[#completion][Completion]]
+  - [[#editor][Editor]]
+  - [[#buffers--windows][Buffers & Windows]]
+  - [[#integrations][Integrations]]
+  - [[#vterm][vterm]]
+- [[#development][Development]]
+  - [[#languages][Languages]]
+  - [[#features][Features]]
+  - [[#version-control][Version control]]
+- [[#org-mode][Org Mode]]
+  - [[#custom-font-faces][Custom Font Faces]]
+  - [[#basic-config][Basic Config]]
+  - [[#custom-bullets][Custom Bullets]]
+  - [[#layout-org-buffers][Layout Org Buffers]]
+  - [[#configure-babel][Configure Babel]]
+  - [[#templates][Templates]]
+  - [[#automatic-tangel-of-configuration-files][Automatic tangel of Configuration Files]]
+  - [[#org-make-toc][Org make toc]]
+  - [[#html-support][HTML Support]]
+- [[#applications][Applications]]
+  - [[#emacs][Emacs]]
+  - [[#general][General]]
+- [[#custom--helpers][Custom / Helpers]]
+  - [[#transparency-mangement][Transparency mangement]]
+  - [[#dates][Dates]]
+:END:
 
 * Bootstraps
 ** Emacs defaults
