@@ -148,10 +148,10 @@
   :init (doom-modeline-mode 1)
   :custom 
   (doom-modeline-height 15)
-  (doom-themes-visual-bell-config))
-
- (display-battery-mode t)
- (display-time-mode t)
+  (doom-themes-visual-bell-config)
+  :config
+  (display-battery-mode t)
+  (display-time-mode t))
 
 (use-package treemacs
   :config
@@ -213,27 +213,33 @@
   :init (which-key-mode)
   :diminish which-key-mode
   :config
-  (setq which-key-idle-delay 0.4))
+  (setq which-key-idle-delay 0.4)
+  (setq which-key-sort-order 'which-key-prefix-then-key-order))
 
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
-(global-unset-key (kbd "C-SPC"))
 
 (use-package general
   :config
   (general-auto-unbind-keys)
   (general-override-mode +1)
 
-  (general-create-definer nhe/leader-key
+  (general-create-definer nhe/leader-key-hydra
     :states '(normal insert visual emacs treemacs)
     :keymap 'override
     :prefix "SPC"
+    :global-prefix "C-M-SPC")
+
+  (general-create-definer nhe/leader-key
+    :states '(normal insert visual emacs treemacs)
+    :keymap 'override
+    :prefix "C-SPC"
     :global-prefix "C-SPC"
     :non-normal-prefix "C-SPC")
 
   (general-create-definer nhe/local-leader-key
     :states '(normal insert visual emacs treemacs)
     :keymap 'override
-    :prefix "SPC m"
+    :prefix "C-SPC m"
     :global-prefix "C-SPC m"
     :non-normal-prefix "C-SPC m"))
 
@@ -245,6 +251,7 @@
   (setq evil-want-C-i-jump nil)
   :config
   (evil-mode 1)
+  ;;(evil-define-key 'normal 'insert 'visual (kbd "C-c") 'hydra-master/body)
   (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
   (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
 
@@ -259,6 +266,14 @@
   :after evil
   :config
   (evil-collection-init))
+
+(nhe/leader-key-hydra
+  "/"   '(evilnc-comment-or-uncomment-lines :wk "comment/uncomment")
+  ";"   '(counsel-M-x :wk "M-x")
+  "."   '(counsel-find-file :wk "find file")
+  "SPC" '(counsel-projectile-find-file :wk "find file project")
+  "TAB" '(evil-switch-to-windows-last-buffer :wk "switch to previous buffer")
+  "d" '(hydra-dates/body :wk "dates"))
 
 (nhe/leader-key 
   "/"   '(evilnc-comment-or-uncomment-lines :wk "comment/uncomment")
@@ -275,6 +290,9 @@
   "b s" '(save-buffer :wk "save buffer")
   "b p" '(evil-prev-buffer :wk "prev buffer")
   "b n" '(evil-next-buffer :wk "next buffer"))
+
+(nhe/leader-key
+  "d" '(hydra-dates/body :wk "dates"))
 
 (nhe/leader-key
   "f" '(:ignore f :wk "file")
@@ -336,6 +354,8 @@
   "i" '(:ignore t :wk "insert"))
 
 (use-package hydra
+  :custom 
+  (hydra-default-hint nil)
   :config
   (defhydra hydra-text-scale (:timeout 4)
     "scale text"
@@ -346,19 +366,46 @@
   (nhe/leader-key
     "t s" '(hydra-text-scale/body :wk "scale text")))
 
-(use-package counsel
-  :bind (("C-M-j" . 'counsel-switch-buffer)
-         ("M-x" . counsel-M-x)
-         ("C-x C-f" . counsel-find-file)
-         :map minibuffer-local-map
-         ("C-r" . 'counsel-minibuffer-history))
-  :config
-  (setq ivy-initial-inputs-alist nil)
-  (counsel-mode 1)) 
+(defvar-local nhe/hydra-super-body nil)
 
-(use-package smex 
-  :defer 1
-  :after counsel)
+(defun nhe/hydra-heading (&rest headings)
+  "Format HEADINGS to look preatty in a hydra docstring"
+  (mapconcat (lambda (it)
+               (propertize (format "%-20s" it) 'face 'shadow))
+             headings
+             nil))
+             
+(defun nhe/hydra-set-super ()
+  (when-let* ((suffix "-mode")
+              (position (- (length suffix)))
+              (mode (symbol-name major-mode))
+              (name (if (string= suffix (substring mode position))
+                        (substring mode 0 position)
+                     mode))
+              (body (intern (format "hydra-%s/body" name))))
+   (when (functionp body)
+     (setq nhe/hydra-super-body body))))
+
+(defun nhe/hydra-super ()
+  (interactive)
+  (if nhe/hydra-super-body
+      (funcall nhe/hydra-super-body)
+    (user-error "nhe/hydra-super: nhe/hydra-super-body is not set!")))
+
+(defhydra hydra-dates (:color blue)
+  (concat "\n " (nhe/hydra-heading "Dates" "Insert" "Insert with Time")
+          "
+ _q_ quit              _d_ short             _D_ short             ^^
+ ^^                    _i_ iso               _I_ iso               ^^
+ ^^                    _l_ long              _L_ long              ^^
+")
+  ("q" nil)
+  ("d" nhe/date-short)
+  ("D" nhe/date-short-with-time)
+  ("i" nhe/date-iso)
+  ("I" nhe/date-iso-with-time)
+  ("l" nhe/date-long)
+  ("L" nhe/date-long-with-time))
 
 (use-package ivy
   :diminish
@@ -382,6 +429,20 @@
   :init
   (ivy-rich-mode 1))
 
+(use-package counsel
+  :bind (("C-M-j" . 'counsel-switch-buffer)
+         ("M-x" . counsel-M-x)
+         ("C-x C-f" . counsel-find-file)
+         :map minibuffer-local-map
+         ("C-r" . 'counsel-minibuffer-history))
+  :config
+  (setq ivy-initial-inputs-alist nil)
+  (counsel-mode 1)) 
+
+(use-package smex 
+  :defer 1
+  :after counsel)
+
 (use-package helpful
   :custom
   (counsel-describe-function-function #'helpful-callable)
@@ -391,6 +452,443 @@
   ([remap describe-command] . helpful-command)
   ([remap describe-variable] . counsel-describe-variable)
   ([remap describe-key] . helpful-key))
+
+(use-package yasnippet-snippets)
+
+(use-package yasnippet
+  :ensure t
+  :commands yas-minor-mode
+  :hook (go-mode . yas-minor-mode))
+
+(setq-default tab-width 2)
+(setq-default evil-shift-width tab-width)
+
+(setq-default indent-tabs-mode nil)
+
+(use-package smartparens
+  :init (smartparens-global-mode 1)
+  :config
+  (advice-add #'yas-expand :before #'sp-remove-active-pair-overlay))
+
+(show-paren-mode t)
+
+(setq show-paren-style 'expression)
+
+(use-package undo-tree
+  :init (global-undo-tree-mode 1)
+  :config
+  (defhydra hydra-undo-tree (:timeout 4)
+    "undo / redo"
+    ("u" undo-tree-undo "undo")
+    ("r" undo-tree-redo "redo")
+    ("t" undo-tree-visualize "undo-tree visualize" :exit t))
+
+  (nhe/leader-key
+    "u" '(hydra-undo-tree/body :wk "undo/redo")))
+
+(use-package multiple-cursors
+  :config
+  (nhe/leader-key
+    "c n" '(mc/mark-next-line-like-this :wk "mc-mark and next")
+    "c w" '(mc/mark-prev-line-like-this :wk "mc-mark and prev")))
+
+(use-package super-save
+  :ensure t
+  :defer 1
+  :diminish super-save-mode
+  :config
+  (super-save-mode +1)
+  (setq super-save-auto-save-when-idle t)
+  (setq auto-save-default nil))
+
+(use-package evil-nerd-commenter)
+
+(use-package expand-region)
+
+(use-package rainbow-delimiters
+  :hook (prog-mode . rainbow-delimiters-mode))
+
+(use-package rainbow-mode
+  :config
+  (rainbow-mode 1))
+
+(use-package docker
+  :ensure t)
+
+(use-package kubernetes
+  :ensure t
+  :commands (kubernetes-overview))
+
+(use-package kubernetes-evil
+  :ensure t
+  :after kubernetes)
+
+(use-package mu4e
+  :if (eq system-type 'gnu/linux)
+  :ensure nil
+  :config
+  (add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")
+
+  (require 'org-mu4e)
+  (setq mail-user-agent 'mu4e-user-agent)
+
+  ;; Refresh mail with isync every 5 min.
+  (setq mu4e-update-interval (* 5 60))
+  (setq mu4e-get-mail-command "mbsync -c ~/.emacs.d/mu4e/.mbsyncrc -a")
+  (setq mu4e-maildir (expand-file-name "~/.maildir"))
+
+    ;; Email account contexts
+    (setq mu4e-contexts
+        `(,(make-mu4e-context
+              :name "Personal"
+              :match-func (lambda (msg) (when msg
+                                          (string-prefix-p "/Hamsterapps/Personal" (mu4e-message-field msg maildir))))
+              :vars '(
+                      (user-full-name . "Leo Rönnebro")
+                      (user-mail-address . "leo.ronnebro@hamsterapps.net")
+                      (mu4e-sent-folder . "/Hamsterapps/Personal/Sent")
+                      (mu4e-trash-folder . "/Hamsterapps/Personal/Trash")
+                      (mu4e-drafts-folder . "/Hamsterapps/Personal/Drafts")
+                      (mu4e-refile-folder . "/Hamsterapps/Personal/Archive")
+                      (mu4e-sent-messages-behavior . sent)
+                     ))
+            ;; ,(make-mu4e-context
+            ;;   :name "Personal"
+            ;;   :match-func (lambda (msg) (when msg
+            ;;                               (string-prefix-p "/Hamsterapps/Personal" (mu4e-message-field msg maildir))))
+            ;;   :vars '(
+            ;;           (user-full-name . "Leo Rönnebro")
+            ;;           (user-mail-address . "leo.ronnebro@hamsterapps.net")
+            ;;           (mu4e-sent-folder . "/Hamsterapps/Personal/Sent")
+            ;;           (mu4e-trash-folder . "/Hamsterapps/Personal/Trash")
+            ;;           (mu4e-drafts-folder . "/Hamsterapps/Personal/Drafts")
+            ;;           (mu4e-refile-folder . "/Hamsterapps/Personal/Archive")
+            ;;           (mu4e-sent-messages-behavior . sent)
+            ;;          ))
+           ))
+
+    (setq mu4e-context-policy 'pick-first)
+
+    (defun remove-nth-element (nth list)
+      (if (zerop nth) (cdr list)
+        (let ((last (nthcdr (1- nth) list)))
+          (setcdr last (cddr last))
+          list)))
+
+    (setq mu4e-marks (remove-nth-element 5 mu4e-marks))
+    (add-to-list 'mu4e-marks
+         '(trash
+           :char ("d" . "▼")
+           :prompt "dtrash"
+           :dyn-target (lambda (target msg) (mu4e-get-trash-folder msg))
+           :action (lambda (docid msg target) 
+                     (mu4e~proc-move docid
+                        (mu4e~mark-check-target target) "-N"))))
+
+     ;; Mu4e Display options
+    (setq mu4e-view-show-images t
+          mu4e-view-show-addresses 't)
+
+     ;; mu4e prefer html, and change the luminace of the html preview
+    (setq mu4e-view-prefer-html t
+           shr-color-visible-luminance-min 80)
+
+    (defun nhe/mu4e-html2text (msg)
+       "My html2text function; shows short message inline, show
+       long messages in some external browser (see `browse-url-generic-program')."
+      (let ((html (or (mu4e-message-field msg :body-html) "")))
+        (if (> (length html) 20000)
+          (progn
+            (mu4e-action-view-in-browser msg)
+            "[Viewing message in external browser]")
+          (mu4e-shr2text msg))))
+
+    (setq mu4e-html2text-command 'nhe/mu4e-html2text)
+
+
+    (defun nhe/enabled-custom-compose-settings ()
+      "Custom settings for message composition with mu4e"
+      (set-fill-column 72)
+      (flyspell-mode))
+
+    (add-hook 'mu4e-compose-mode-hook 'nhe/enabled-custom-compose-settings)
+
+    (add-hook 'mu4e-view-mode-hook
+      (lambda ()
+        (local-set-key (kbd "<tab>") 'shr-next-link)
+        (local-set-key (kbd "<backtab>") 'shr-previous-link)))
+
+     ;; Use imagemagick if it is aviable
+     (when (fboundp 'imagemagick-register-types)
+       (imagemagick-register-types))
+
+     ;; Composing mail
+     (setq mu4e-compose-dont-reply-to-self t)
+
+     ;; Sending mail
+     (setq message-send-mail-function 'smtpmail-send-it
+           smtpmail-smtp-server "smtp.fastmail.com"
+           smtpmail-smtp-service 465
+           smtpmail-stream-type 'ssl)
+
+     ;; Signing messages with gpg key
+     (setq mml-secure-openpgp-signers '("5721050E1BA6130F98380CE9EDE08F17D532268D"))
+
+     (setq mu4e-maildir-shortcuts
+           '(("/hamsterapps/Personal/INBOX"    . ?i)
+             ("/hamsterapps/Personal/Sent"     . ?s)
+             ("/hamsterapps/Personal/Drafts"   . ?d)
+             ("/hamsterapps/Personal/Trash"    . ?t)
+             ("/hamsterapps/Personal/All Mail" . ?a)))
+
+    (add-to-list 'mu4e-bookmarks
+                 (make-mu4e-bookmark
+                  :name "All Inboxes"
+                  :query "maildir:/Hamsterapps/Personal/INBOX"
+                  :key ?i))
+
+    ;; Kill mu4e buffers on leave
+    (setq message-kill-buffer-on-exit t)
+
+    ;; Set custom attachements download directory
+    (setq mu4e-attachment-dir "~/Documents/Attachments")
+
+    ;; Confirmation when quiting mu4e feels kinda overkill
+    (setq mu4e-confirm-quit nil)
+    (setq nhe/mu4e-inbox-query
+          "(maildir:/Hamsterapps/Personal/Inbox) AND flag:unread")
+
+    (add-to-list 'mu4e-header-info-custom
+      '(:full-mailing-list
+          ( :name "Mailing-list"
+            :shortname "ML"
+            :help "Full name for mailing list"
+            :function (lambda (msg)
+                (or (mu4e-message-field msg :mailing-list) "")))))
+
+    (defun nhe/mu4e-go-to-inbox ()
+      (interactive)
+      (mu4e-headers-search nhe/mu4e-inbox-query))
+
+    (run-at-time "15 sec" nil
+                 (lambda ()
+                   (let ((current-prefix-arg '(4)))
+                     (call-interactively 'mu4e)))))
+
+(nhe/leader-key
+  "m" '(:ignore t :wk "mail")
+  "mm" '(mu4e :wk "launch mail")
+  "mi" '(nhe/mu4e-go-to-inbox :wk "goto inbox")
+  "mu" '(mu4e-update-mail-and-index :wk "index mail"))
+
+(use-package mu4e-alert
+  :ensure t
+  :after mu4e
+  :hook ((after-init . mu4e-alert-enable-mode-line-display)
+         (after-init . mu4e-alert-enable-notifications))
+  :config (mu4e-alert-set-default-style 'libnotify)
+  :init
+  (setq mu4e-alert-interesting-mail-query
+    (concat
+     "flag:unread maildir:/Hamsterapps/Personal/INBOX"
+     ;;"OR"
+     ;;"mail"
+    ))
+  (mu4e-alert-enable-mode-line-display)
+  (defun gjstein-refresh-mu4e-alert-mode-line ()
+    (interactive)
+    (mu4e~proc-kill)
+    (mu4e-alert-enable-mode-line-display))
+  (run-with-timer 0 60 'gjstein-refresh-mu4e-alert-mode-line))
+
+(use-package vterm
+  :commands vterm
+  :config
+  (setq vterm-max-scrollback 10000))
+
+(use-package typescript-mode
+  :mode "\\.ts\\'"
+  :config
+  (setq typescript-indent-level 2)
+  (require 'dap-node)
+  (dap-node-setup))
+
+(use-package js2-mode
+  :mode "\\/.*\\.js\\'"
+  :config
+  (setq js-indent-level 2)
+  :hook (js-mode . yas-minor-mode))
+
+(use-package rjsx-mode
+  :mode "components\\/.*\\.js\\'")
+
+(use-package js-doc
+  :after js2-mode
+  :config
+  (nhe/local-leader-key
+    :keymaps '(js2-mode rsjx-mode)
+    "d" '(:ignore t :which-key "jsdoc")
+    "d f" '(js-doc-insert-function-doc :wk "jsdoc function")))
+
+(use-package js-react-redux-yasnippets
+  :after (yasnippet js2-mode)
+  :config
+  (nhe/local-leader-key
+    :keymaps '(js2-mode-map rsjx-mode)
+    "i s" '(yas-insert-snippet :which-key "insert snippet")))
+
+(use-package prettier
+  :after js2-mode
+  :config
+  (nhe/local-leader-key
+    :keymaps '(js2-mode-map rsjx-mode)
+    "= =" '(prettier-prettify :which-key "format with prettier")))
+
+(use-package web-mode)
+
+(use-package go-mode
+  :mode "\\.go\\'")
+ 
+(defun lsp-go-install-save-hooks ()
+  (add-hook 'before-save-hook #'lsp-format-buffer t t)
+  (add-hook 'before-save-hook #'lsp-organize-imports t t))
+(add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
+
+(use-package csharp-mode
+  :hook
+  (csharp-mode . rainbow-delimiters-mode)
+  (csharp-mode . company-mode)
+  (csharp-mode . flycheck-mode)
+  (csharp-mode . omnisharp-mode)
+)
+
+(use-package omnisharp
+  :after csharp-mode company
+  :commands omnisharp-install-server
+  :config
+  (setq indent-tabs-mode nil
+        c-syntactic-indentation t
+        c-basic-offset 2
+        tab-width 2
+        evil-shift-width 2)
+  (nhe/leader-key
+    "o" '(:ignore o :which-key "omnisharp")
+    "o r" '(omnisharp-run-code-action-refactoring :which-key "omnisharp refactor")
+    "o b" '(recompile :which-key "omnisharp build/recompile")
+    )
+  (add-to-list 'company-backends 'company-omnisharp))
+
+(use-package dockerfile-mode
+  :ensure t
+  :mode "Dockerfile\\'")
+
+(use-package yaml-mode
+  :mode "\\.ya?ml\\'")
+
+(use-package json-mode
+  :mode "\\.json\\'")
+
+(use-package company
+  :after lsp-mode
+  :hook (lsp-mode . company-mode)
+  :bind (:map company-active-map
+          ("<tab>" . company-complete-selection))
+         (:map lsp-mode-map
+          ("<tab>" . company-indent-or-complete-common))
+  :custom
+  (company-minimum-prefix-length 1)
+  (company-idle-delay 0.0)
+  :config
+  (setq company-backends '(company-capf))
+  (setq company-auto-commit t))
+
+(use-package company-prescient
+  :init (company-prescient-mode 1))
+
+(use-package company-box
+  :hook (company-mode . company-box-mode))
+
+(defun he/lsp-mode-setup ()
+  (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
+  (lsp-headerline-breadcrumb-mode))
+
+(use-package lsp-mode
+  :commands (lsp lsp-deferred)
+  :hook ((lsp-mode . he/lsp-mode-setup)
+        (typescript-mode . lsp-deferred)
+        (js2-mode . lsp-deferred)
+        (rsjx-mode . lsp-deferred)
+        (scss-mode . lsp-deferred)
+        (web-mode . lsp-deferred)
+        (go-mode . lsp-deferred)
+        (csharp-mode . lsp-deferred))
+  :config
+  (setq lsp-completion-provider :capf)
+  (lsp-enable-which-key-integration t)
+  (nhe/local-leader-key
+    :keymaps '(js2-mode-map
+               rjsx-mode-map
+               typescript-mode-map
+               csharp-mode
+               lsp-mode-map
+               lsp-ui-mode-map)
+    "g r" '(lsp-ui-peek-find-references :which-key "goto references")
+    "g g" '(lsp-find-definition :which-key "goto definition")
+    "o" '(lsp-ui-imenu :which-key "overview")
+    "r" '(:ignore t :which-key "refactor")
+    "r r" '(lsp-rename :which-key "rename")
+    "=" '(:ignore t :which-key "format")
+    "= l" '(lsp-format-buffer :which-key "format with lsp")))
+
+(use-package lsp-ui
+  :hook (lsp-mode . lsp-ui-mode))
+
+(use-package lsp-treemacs
+  :after lsp)
+
+(use-package lsp-ivy)
+
+(use-package dap-mode)
+
+(use-package flycheck
+  :hook (after-init-hook . global-flycheck-mode)
+  :config
+  (nhe/leader-key
+    "e" '(:ignore t :which-key "errors")
+    "e l" '(flycheck-list-errors :which-key "list errors")
+    )
+  )
+
+(use-package projectile
+  :diminish projectile-mode
+  :config (projectile-mode)
+  :custom ((projectile-completion-system 'ivy))
+  :bind-keymap ("C-c p" . projectile-command-map)
+  :init
+  (when (file-directory-p "~/code")
+    (setq projectile-project-search-path '("~/code")))
+  (setq projectile-switch-project-action #'projectile-dired))
+
+(use-package counsel-projectile
+  :config (counsel-projectile-mode))
+
+(use-package magit
+  :custom
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
+  :config
+  (nhe/leader-key
+    "g" '(:ignore t :wk "git")
+    "g s" '(magit-status :wk "magit status")
+    "g b" '(magit-branch :wk "maigt branch")
+    "g B" '(magit-blame :wk "magit blame")))
+
+(use-package evil-magit
+  :after magit)
+
+;; NOTE: Make sure to configure a GitHub token before using this package!
+;; - https://magit.vc/manual/forge/Token-Creation.html#Token-Creation
+;; - https://magit.vc/manual/ghub/Getting-Started.html#Getting-Started
+(use-package forge)
 
 (defun he/org-font-setup ()
 ;; Replace list hyphen with dot
@@ -585,451 +1083,6 @@
 
 (use-package org-mime)
 
-(setq-default tab-width 2)
-(setq-default evil-shift-width tab-width)
-
-(setq-default indent-tabs-mode nil)
-
-(use-package smartparens
-  :init (smartparens-global-mode 1)
-  :config
-  (advice-add #'yas-expand :before #'sp-remove-active-pair-overlay))
-
-(use-package undo-tree
-  :init (global-undo-tree-mode 1)
-  :config
-  (defhydra hydra-undo-tree (:timeout 4)
-    "undo / redo"
-    ("u" undo-tree-undo "undo")
-    ("r" undo-tree-redo "redo")
-    ("t" undo-tree-visualize "undo-tree visualize" :exit t))
-
-  (nhe/leader-key
-    "u" '(hydra-undo-tree/body :wk "undo/redo")))
-
-(use-package multiple-cursors
-  :config
-  (nhe/leader-key
-    "c n" '(mc/mark-next-line-like-this :wk "mc-mark and next")
-    "c w" '(mc/mark-prev-line-like-this :wk "mc-mark and prev")))
-
-(use-package super-save
-  :ensure t
-  :defer 1
-  :diminish super-save-mode
-  :config
-  (super-save-mode +1)
-  (setq super-save-auto-save-when-idle t)
-  (setq auto-save-default nil))
-
-(use-package company
-  :after lsp-mode
-  :hook (lsp-mode . company-mode)
-  :bind (:map company-active-map
-          ("<tab>" . company-complete-selection))
-         (:map lsp-mode-map
-          ("<tab>" . company-indent-or-complete-common))
-  :custom
-  (company-minimum-prefix-length 1)
-  (company-idle-delay 0.0)
-  :config
-  (setq company-backends '(company-capf))
-  (setq company-auto-commit t))
-
-(use-package company-prescient
-  :init (company-prescient-mode 1))
-
-(use-package company-box
-  :hook (company-mode . company-box-mode))
-
-(use-package typescript-mode
-  :mode "\\.ts\\'"
-  :config
-  (setq typescript-indent-level 2)
-  (require 'dap-node)
-  (dap-node-setup))
-
-(use-package js2-mode
-  :mode "\\/.*\\.js\\'"
-  :config
-  (setq js-indent-level 2)
-  :hook (js-mode . yas-minor-mode))
-
-(use-package rjsx-mode
-  :mode "components\\/.*\\.js\\'")
-
-(use-package js-doc
-  :after js2-mode
-  :config
-  (nhe/local-leader-key
-    :keymaps '(js2-mode rsjx-mode)
-    "d" '(:ignore t :which-key "jsdoc")
-    "d f" '(js-doc-insert-function-doc :wk "jsdoc function")))
-
-(use-package js-react-redux-yasnippets
-  :after (yasnippet js2-mode)
-  :config
-  (nhe/local-leader-key
-    :keymaps '(js2-mode-map rsjx-mode)
-    "i s" '(yas-insert-snippet :which-key "insert snippet")))
-
-(use-package prettier
-  :after js2-mode
-  :config
-  (nhe/local-leader-key
-    :keymaps '(js2-mode-map rsjx-mode)
-    "= =" '(prettier-prettify :which-key "format with prettier")))
-
-(use-package web-mode)
-
-(use-package go-mode
-  :mode "\\.go\\'")
- 
-(defun lsp-go-install-save-hooks ()
-  (add-hook 'before-save-hook #'lsp-format-buffer t t)
-  (add-hook 'before-save-hook #'lsp-organize-imports t t))
-(add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
-
-(use-package csharp-mode
-  :hook
-  (csharp-mode . rainbow-delimiters-mode)
-  (csharp-mode . company-mode)
-  (csharp-mode . flycheck-mode)
-  (csharp-mode . omnisharp-mode)
-)
-
-(use-package omnisharp
-  :after csharp-mode company
-  :commands omnisharp-install-server
-  :config
-  (setq indent-tabs-mode nil
-        c-syntactic-indentation t
-        c-basic-offset 2
-        tab-width 2
-        evil-shift-width 2)
-  (nhe/leader-key
-    "o" '(:ignore o :which-key "omnisharp")
-    "o r" '(omnisharp-run-code-action-refactoring :which-key "omnisharp refactor")
-    "o b" '(recompile :which-key "omnisharp build/recompile")
-    )
-  (add-to-list 'company-backends 'company-omnisharp))
-
-(use-package dockerfile-mode
-  :ensure t
-  :mode "Dockerfile\\'")
-
-(use-package yaml-mode
-  :mode "\\.ya?ml\\'")
-
-(defun he/lsp-mode-setup ()
-  (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
-  (lsp-headerline-breadcrumb-mode))
-
-(use-package lsp-mode
-  :commands (lsp lsp-deferred)
-  :hook ((lsp-mode . he/lsp-mode-setup)
-        (typescript-mode . lsp-deferred)
-        (js2-mode . lsp-deferred)
-        (rsjx-mode . lsp-deferred)
-        (scss-mode . lsp-deferred)
-        (web-mode . lsp-deferred)
-        (go-mode . lsp-deferred)
-        (csharp-mode . lsp-deferred))
-  :config
-  (setq lsp-completion-provider :capf)
-  (lsp-enable-which-key-integration t)
-  (nhe/local-leader-key
-    :keymaps '(js2-mode-map
-               rjsx-mode-map
-               typescript-mode-map
-               csharp-mode
-               lsp-mode-map
-               lsp-ui-mode-map)
-    "g r" '(lsp-ui-peek-find-references :which-key "goto references")
-    "g g" '(lsp-find-definition :which-key "goto definition")
-    "o" '(lsp-ui-imenu :which-key "overview")
-    "r" '(:ignore t :which-key "refactor")
-    "r r" '(lsp-rename :which-key "rename")
-    "=" '(:ignore t :which-key "format")
-    "= l" '(lsp-format-buffer :which-key "format with lsp")))
-
-(use-package lsp-ui
-  :hook (lsp-mode . lsp-ui-mode))
-
-(use-package lsp-treemacs
-  :after lsp)
-
-(use-package lsp-ivy)
-
-(use-package dap-mode)
-
-(use-package flycheck
-  :hook (after-init-hook . global-flycheck-mode)
-  :config
-  (nhe/leader-key
-    "e" '(:ignore t :which-key "errors")
-    "e l" '(flycheck-list-errors :which-key "list errors")
-    )
-  )
-
-(use-package projectile
-  :diminish projectile-mode
-  :config (projectile-mode)
-  :custom ((projectile-completion-system 'ivy))
-  :bind-keymap
-  ("C-c p" . projectile-command-map)
-  :init
-  ;; NOTE: Set this to the folder where you keep your Git repos!
-  (when (file-directory-p "~/code")
-    (setq projectile-project-search-path '("~/code")))
-  (setq projectile-switch-project-action #'projectile-dired))
-
-(use-package counsel-projectile
-  :config (counsel-projectile-mode))
-
-(use-package magit
-  :custom
-  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
-  :config
-  (nhe/leader-key
-    "g" '(:ignore t :wk "git")
-    "g s" '(magit-status :wk "magit status")
-    "g b" '(magit-branch :wk "maigt branch")
-    "g B" '(magit-blame :wk "magit blame")))
-
-(use-package evil-magit
-  :after magit)
-
-;; NOTE: Make sure to configure a GitHub token before using this package!
-;; - https://magit.vc/manual/forge/Token-Creation.html#Token-Creation
-;; - https://magit.vc/manual/ghub/Getting-Started.html#Getting-Started
-(use-package forge)
-
-(use-package docker
-  :ensure t)
-
-(use-package kubernetes
-  :ensure t
-  :commands (kubernetes-overview))
-
-;; If you want to pull in the Evil compatibility package.
-(use-package kubernetes-evil
-  :ensure t
-  :after kubernetes)
-
-(use-package yasnippet-snippets)
-
-(use-package yasnippet
-  :ensure t
-  :commands yas-minor-mode
-  :hook (go-mode . yas-minor-mode))
-
-(use-package evil-nerd-commenter)
-
-(use-package expand-region)
-
-(use-package rainbow-delimiters
-  :hook (prog-mode . rainbow-delimiters-mode))
-
-(use-package rainbow-mode
-  :config
-  (rainbow-mode 1))
-
-(use-package vterm
-  :commands vterm
-  :config
-  (setq vterm-max-scrollback 10000))
-
-(use-package ace-window
-  :config
-  (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
-  (ace-window-display-mode))
-
-(defvar nhe/current-transparency 100 "Current transparency")
-(defun change-transparency (n)
-  "change transparency to a given value"
-  (interactive "nValue: ")
-  (setq nhe/current-transparency n)
-  (set-frame-parameter (selected-frame) 'alpha `(,n . ,n))
-  (add-to-list 'default-frame-alist `(alpha . (,n . ,n))))
-
-(use-package mu4e
-  :if (eq system-type 'gnu/linux)
-  :ensure nil
-  :config
-  (add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")
-
-  (require 'org-mu4e)
-  (setq mail-user-agent 'mu4e-user-agent)
-
-  ;; Refresh mail with isync every 5 min.
-  (setq mu4e-update-interval (* 5 60))
-  (setq mu4e-get-mail-command "mbsync -c ~/.emacs.d/mu4e/.mbsyncrc -a")
-  (setq mu4e-maildir (expand-file-name "~/.maildir"))
-
-  ;; Email account contexts
-  (setq mu4e-contexts
-        `(,(make-mu4e-context
-            :name "Personal"
-            :match-func (lambda (msg) (when msg
-                                        (string-prefix-p "/Hamsterapps/Personal" (mu4e-message-field msg :maildir))))
-            :vars '(
-                    (user-full-name . "Leo Rönnebro")
-                    (user-mail-address . "leo.ronnebro@hamsterapps.net")
-                    (mu4e-sent-folder . "/Hamsterapps/Personal/Sent")
-                    (mu4e-trash-folder . "/Hamsterapps/Personal/Trash")
-                    (mu4e-drafts-folder . "/Hamsterapps/Personal/Drafts")
-                    (mu4e-refile-folder . "/Hamsterapps/Personal/Archive")
-                    (mu4e-sent-messages-behavior . sent)
-                   ))
-          ;; ,(make-mu4e-context
-          ;;   :name "Personal"
-          ;;   :match-func (lambda (msg) (when msg
-          ;;                               (string-prefix-p "/Hamsterapps/Personal" (mu4e-message-field msg :maildir))))
-          ;;   :vars '(
-          ;;           (user-full-name . "Leo Rönnebro")
-          ;;           (user-mail-address . "leo.ronnebro@hamsterapps.net")
-          ;;           (mu4e-sent-folder . "/Hamsterapps/Personal/Sent")
-          ;;           (mu4e-trash-folder . "/Hamsterapps/Personal/Trash")
-          ;;           (mu4e-drafts-folder . "/Hamsterapps/Personal/Drafts")
-          ;;           (mu4e-refile-folder . "/Hamsterapps/Personal/Archive")
-          ;;           (mu4e-sent-messages-behavior . sent)
-          ;;          ))
-         ))
-  (setq mu4e-context-policy 'pick-first)
-
-  (defun remove-nth-element (nth list)
-    (if (zerop nth) (cdr list)
-      (let ((last (nthcdr (1- nth) list)))
-        (setcdr last (cddr last))
-        list)))
-
-  (setq mu4e-marks (remove-nth-element 5 mu4e-marks))
-  (add-to-list 'mu4e-marks
-       '(trash
-         :char ("d" . "▼")
-         :prompt "dtrash"
-         :dyn-target (lambda (target msg) (mu4e-get-trash-folder msg))
-         :action (lambda (docid msg target) 
-                   (mu4e~proc-move docid
-                      (mu4e~mark-check-target target) "-N"))))
-
- ;; Mu4e Display options
- (setq mu4e-view-show-images t
-       mu4e-view-show-addresses 't)
-
- ;; mu4e prefer html, and change the luminace of the html preview
- (setq mu4e-view-prefer-html t
-       shr-color-visible-luminance-min 80)
-
- (defun nhe/mu4e-html2text (msg)
-   "My html2text function; shows short message inline, show
-   long messages in some external browser (see `browse-url-generic-program')."
-  (let ((html (or (mu4e-message-field msg :body-html) "")))
-    (if (> (length html) 20000)
-      (progn
-	      (mu4e-action-view-in-browser msg)
-	      "[Viewing message in external browser]")
-      (mu4e-shr2text msg))))
-
-(setq mu4e-html2text-command 'nhe/mu4e-html2text)
-
-
-(defun nhe/enabled-custom-compose-settings ()
-  "Custom settings for message composition with mu4e"
-  (set-fill-column 72)
-  (flyspell-mode))
-
-(add-hook 'mu4e-compose-mode-hook 'nhe/enabled-custom-compose-settings)
-
-(add-hook 'mu4e-view-mode-hook
-  (lambda ()
-    (local-set-key (kbd "<tab>") 'shr-next-link)
-    (local-set-key (kbd "<backtab>") 'shr-previous-link)))
-
- ;; Use imagemagick if it is aviable
- (when (fboundp 'imagemagick-register-types)
-   (imagemagick-register-types))
-
- ;; Composing mail
- (setq mu4e-compose-dont-reply-to-self t)
-
- ;; Sending mail
- (setq message-send-mail-function 'smtpmail-send-it
-       smtpmail-smtp-server "smtp.fastmail.com"
-       smtpmail-smtp-service 465
-       smtpmail-stream-type 'ssl)
-
- ;; Signing messages with gpg key
- (setq mml-secure-openpgp-signers '("5721050E1BA6130F98380CE9EDE08F17D532268D"))
-
- (setq mu4e-maildir-shortcuts
-       '(("/hamsterapps/Personal/INBOX"    . ?i)
-         ("/hamsterapps/Personal/Sent"     . ?s)
-         ("/hamsterapps/Personal/Drafts"   . ?d)
-         ("/hamsterapps/Personal/Trash"    . ?t)
-         ("/hamsterapps/Personal/All Mail" . ?a)))
-
-(add-to-list 'mu4e-bookmarks
-             (make-mu4e-bookmark
-              :name "All Inboxes"
-              :query "maildir:/Hamsterapps/Personal/INBOX"
-              :key ?i))
-
-;; Kill mu4e buffers on leave
-(setq message-kill-buffer-on-exit t)
-
-;; Set custom attachements download directory
-(setq mu4e-attachment-dir "~/Documents/Attachments")
-
-;; Confirmation when quiting mu4e feels kinda overkill
-(setq mu4e-confirm-quit nil)
-(setq nhe/mu4e-inbox-query
-      "(maildir:/Hamsterapps/Personal/Inbox) AND flag:unread")
-
-(add-to-list 'mu4e-header-info-custom
-  '(:full-mailing-list
-      ( :name "Mailing-list"
-        :shortname "ML"
-        :help "Full name for mailing list"
-        :function (lambda (msg)
-            (or (mu4e-message-field msg :mailing-list) "")))))
-
-(defun nhe/mu4e-go-to-inbox ()
-  (interactive)
-  (mu4e-headers-search nhe/mu4e-inbox-query))
-
-(run-at-time "15 sec" nil
-             (lambda ()
-               (let ((current-prefix-arg '(4)))
-                 (call-interactively 'mu4e)))))
-
-(nhe/leader-key
-  "m" '(:ignore t :wk "mail")
-  "mm" '(mu4e :wk "launch mail")
-  "mi" '(nhe/mu4e-go-to-inbox :wk "goto inbox")
-  "mu" '(mu4e-update-mail-and-index :wk "index mail"))
-
-(use-package mu4e-alert
-  :ensure t
-  :after mu4e
-  :hook ((after-init . mu4e-alert-enable-mode-line-display) ;
-         (after-init . mu4e-alert-enable-notifications))
-  :config (mu4e-alert-set-default-style 'libnotify)
-  :init
-  (setq mu4e-alert-interesting-mail-query
-    (concat
-     "flag:unread maildir:/Hamsterapps/Personal/INBOX"
-     ;;"OR"
-     ;;"mail"
-    ))
-  (mu4e-alert-enable-mode-line-display)
-  (defun gjstein-refresh-mu4e-alert-mode-line ()
-    (interactive)
-    (mu4e~proc-kill)
-    (mu4e-alert-enable-mode-line-display))
-  (run-with-timer 0 60 'gjstein-refresh-mu4e-alert-mode-line))
-
 (use-package elcord
   :config
   (elcord-mode 1))
@@ -1039,3 +1092,41 @@
   :config
   (setq wakatime-api-key nhe/waka-time-token)
   (global-wakatime-mode))
+
+(defvar nhe/current-transparency 100 "Current transparency")
+(defun change-transparency (n)
+  "change transparency to a given value"
+  (interactive "nValue: ")
+  (setq nhe/current-transparency n)
+  (set-frame-parameter (selected-frame) 'alpha `(,n . ,n))
+  (add-to-list 'default-frame-alist `(alpha . (,n . ,n))))
+
+(defun nhe/date-iso ()
+  "Insert the current date, ISO format, eg. 2016-12-09."
+  (interactive)
+  (insert (format-time-string "%F")))
+
+(defun nhe/date-iso-with-time ()
+  "Insert the current date, ISO format with time, eg. 2016-12-09T14:34:54+0100."
+  (interactive)
+  (insert (format-time-string "%FT%T%z")))
+
+(defun nhe/date-long ()
+  "Insert the current date, long format, eg. December 09, 2016."
+  (interactive)
+  (insert (format-time-string "%B %d, %Y")))
+
+(defun nhe/date-long-with-time ()
+  "Insert the current date, long format, eg. December 09, 2016 - 14:34."
+  (interactive)
+  (insert (capitalize (format-time-string "%B %d, %Y - %H:%M"))))
+
+(defun nhe/date-short ()
+  "Insert the current date, short format, eg. 2016.12.09."
+  (interactive)
+  (insert (format-time-string "%Y.%m.%d")))
+
+(defun nhe/date-short-with-time ()
+  "Insert the current date, short format with time, eg. 2016.12.09 14:34"
+  (interactive)
+  (insert (format-time-string "%Y.%m.%d %H:%M")))
