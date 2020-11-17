@@ -243,6 +243,17 @@
     :global-prefix "C-SPC m"
     :non-normal-prefix "C-SPC m"))
 
+(nhe/leader-key-hydra
+  "/"   '(evilnc-comment-or-uncomment-lines :wk "comment/uncomment")
+  ";"   '(counsel-M-x :wk "M-x")
+  "."   '(counsel-find-file :wk "find file")
+  "SPC" '(counsel-projectile-find-file :wk "find file project")
+  "TAB" '(evil-switch-to-windows-last-buffer :wk "switch to previous buffer")
+  "b" '(hydra-buffers/body :wk "buffers...")
+  "d" '(hydra-dates/body :wk "dates...")
+  "o" '(hydra-open/body :wk "open...")
+)
+
 (use-package evil
   :init
   (setq evil-want-integration t)
@@ -266,14 +277,6 @@
   :after evil
   :config
   (evil-collection-init))
-
-(nhe/leader-key-hydra
-  "/"   '(evilnc-comment-or-uncomment-lines :wk "comment/uncomment")
-  ";"   '(counsel-M-x :wk "M-x")
-  "."   '(counsel-find-file :wk "find file")
-  "SPC" '(counsel-projectile-find-file :wk "find file project")
-  "TAB" '(evil-switch-to-windows-last-buffer :wk "switch to previous buffer")
-  "d" '(hydra-dates/body :wk "dates"))
 
 (nhe/leader-key 
   "/"   '(evilnc-comment-or-uncomment-lines :wk "comment/uncomment")
@@ -392,6 +395,22 @@
       (funcall nhe/hydra-super-body)
     (user-error "nhe/hydra-super: nhe/hydra-super-body is not set!")))
 
+(defhydra hydra-buffers (:color blue)
+  (concat "\n " (nhe/hydra-heading "Buffer" "Manage" "Next/Prev")
+          "
+ _q_ quit              _b_ switch            _n_ next        ^^
+ ^^                    _d_ kill              _p_ prev        ^^
+ ^^                    _i_ ibuffer           ^^              ^^
+ ^^                    _s_ save              ^^              ^^
+")
+  ("q" nil)
+  ("b" counsel-switch-buffer)
+  ("d" kill-current-buffer)
+  ("i" ibuffer-list-buffers)
+  ("s" save-buffer)
+  ("n" evil-next-buffer :color red)
+  ("p" evil-prev-buffer :color red))
+
 (defhydra hydra-dates (:color blue)
   (concat "\n " (nhe/hydra-heading "Dates" "Insert" "Insert with Time")
           "
@@ -406,6 +425,20 @@
   ("I" nhe/date-iso-with-time)
   ("l" nhe/date-long)
   ("L" nhe/date-long-with-time))
+
+(defhydra hydra-open (:color blue)
+  (concat "\n " (nhe/hydra-heading "Open" "Management" "Tools")
+          "
+ _q_ quit              _p_ project sidebar   _d_ docker      ^^
+ ^^                    _t_ Terminal          _k_ k8s         ^^
+ ^^                    ^^                    ^^              ^^
+ ^^                    ^^                    ^^              ^^
+")
+  ("q" nil)
+  ("p" treemacs)
+  ("t" vterm)
+  ("d" docker)
+  ("k" kubernetes-overview))
 
 (use-package ivy
   :diminish
@@ -581,7 +614,7 @@
            :char ("d" . "▼")
            :prompt "dtrash"
            :dyn-target (lambda (target msg) (mu4e-get-trash-folder msg))
-           :action (lambda (docid msg target) 
+           :action (lambda (docid msg target)
                      (mu4e~proc-move docid
                         (mu4e~mark-check-target target) "-N"))))
 
@@ -924,7 +957,7 @@
 (use-package org
   :hook (org-mode . he/org-mode-setup)
   :config
-  (setq org-ellipsis " ...")
+  (setq org-ellipsis " ")
 
   (setq org-agenda-start-with-log-mode t)
   (setq org-log-done 'time)

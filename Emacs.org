@@ -23,7 +23,7 @@
   - [[#font][Font]]
 - [[#features][Features]]
   - [[#gui][GUI]]
-  - [[#navigation][Navigation]]
+  - [[#navigation--keybindings][Navigation / Keybindings]]
   - [[#completion][Completion]]
   - [[#editor][Editor]]
   - [[#buffers--windows][Buffers & Windows]]
@@ -50,6 +50,7 @@
   - [[#transparency-mangement][Transparency mangement]]
   - [[#dates][Dates]]
 :END:
+
 
 * Bootstraps
 ** Emacs defaults
@@ -361,7 +362,7 @@ Dashboard for emacs, which I set as default buffer on startup.
   (setq which-key-idle-delay 0.4)
   (setq which-key-sort-order 'which-key-prefix-then-key-order))  
 #+end_src
-** Navigation
+** Navigation / Keybindings
 *** Global keys
 Modify global keys to for own preference.
 #+begin_src emacs-lisp
@@ -396,6 +397,19 @@ Modify global keys to for own preference.
     :global-prefix "C-SPC m"
     :non-normal-prefix "C-SPC m"))
 #+end_src
+
+#+begin_src emacs-lisp
+(nhe/leader-key-hydra
+  "/"   '(evilnc-comment-or-uncomment-lines :wk "comment/uncomment")
+  ";"   '(counsel-M-x :wk "M-x")
+  "."   '(counsel-find-file :wk "find file")
+  "SPC" '(counsel-projectile-find-file :wk "find file project")
+  "TAB" '(evil-switch-to-windows-last-buffer :wk "switch to previous buffer")
+  "b" '(hydra-buffers/body :wk "buffers...")
+  "d" '(hydra-dates/body :wk "dates...")
+  "o" '(hydra-open/body :wk "open...")
+)
+#+end_src
 *** Evil
 | =evil= | https://github.com/emacs-evil/evil |
 | =evil-collection= | https://github.com/emacs-evil/evil-collection |
@@ -428,16 +442,6 @@ Modify global keys to for own preference.
 #+end_src
 *** Global Keybindings
 **** Global mode
-***** Hydra
-#+begin_src emacs-lisp
-(nhe/leader-key-hydra
-  "/"   '(evilnc-comment-or-uncomment-lines :wk "comment/uncomment")
-  ";"   '(counsel-M-x :wk "M-x")
-  "."   '(counsel-find-file :wk "find file")
-  "SPC" '(counsel-projectile-find-file :wk "find file project")
-  "TAB" '(evil-switch-to-windows-last-buffer :wk "switch to previous buffer")
-  "d" '(hydra-dates/body :wk "dates"))
-#+end_src
 ***** General
 #+begin_src emacs-lisp
 (nhe/leader-key 
@@ -586,7 +590,25 @@ A convinent way of shorten keyboard commands.
       (funcall nhe/hydra-super-body)
     (user-error "nhe/hydra-super: nhe/hydra-super-body is not set!")))
 #+end_src
-**** Dates
+*** Buffers / Hydra
+#+begin_src emacs-lisp
+(defhydra hydra-buffers (:color blue)
+  (concat "\n " (nhe/hydra-heading "Buffer" "Manage" "Next/Prev")
+          "
+ _q_ quit              _b_ switch            _n_ next        ^^
+ ^^                    _d_ kill              _p_ prev        ^^
+ ^^                    _i_ ibuffer           ^^              ^^
+ ^^                    _s_ save              ^^              ^^
+")
+  ("q" nil)
+  ("b" counsel-switch-buffer)
+  ("d" kill-current-buffer)
+  ("i" ibuffer-list-buffers)
+  ("s" save-buffer)
+  ("n" evil-next-buffer :color red)
+  ("p" evil-prev-buffer :color red))
+#+end_src
+*** Dates / Hydra
 #+begin_src emacs-lisp
 (defhydra hydra-dates (:color blue)
   (concat "\n " (nhe/hydra-heading "Dates" "Insert" "Insert with Time")
@@ -602,6 +624,23 @@ A convinent way of shorten keyboard commands.
   ("I" nhe/date-iso-with-time)
   ("l" nhe/date-long)
   ("L" nhe/date-long-with-time))
+#+end_src
+
+*** Open / Hydra
+#+begin_src emacs-lisp
+(defhydra hydra-open (:color blue)
+  (concat "\n " (nhe/hydra-heading "Open" "Management" "Tools")
+          "
+ _q_ quit              _p_ project sidebar   _d_ docker      ^^
+ ^^                    _t_ Terminal          _k_ k8s         ^^
+ ^^                    ^^                    ^^              ^^
+ ^^                    ^^                    ^^              ^^
+")
+  ("q" nil)
+  ("p" treemacs)
+  ("t" vterm)
+  ("d" docker)
+  ("k" kubernetes-overview))
 #+end_src
 ** Completion
 *** Ivy
@@ -785,7 +824,7 @@ Use spaces instead of tabs
 #+end_src
 *** Mail =mu4e=
 - Requiered packages
-| =html2text-with-utf8= | 
+| =html2text-with-utf8= |
 | =mu= |
 #+begin_src emacs-lisp
 (use-package mu4e
@@ -846,7 +885,7 @@ Use spaces instead of tabs
            :char ("d" . "▼")
            :prompt "dtrash"
            :dyn-target (lambda (target msg) (mu4e-get-trash-folder msg))
-           :action (lambda (docid msg target) 
+           :action (lambda (docid msg target)
                      (mu4e~proc-move docid
                         (mu4e~mark-check-target target) "-N"))))
 
@@ -1277,7 +1316,7 @@ Use spaces instead of tabs
 (use-package org
   :hook (org-mode . he/org-mode-setup)
   :config
-  (setq org-ellipsis " ...")
+  (setq org-ellipsis " ")
 
   (setq org-agenda-start-with-log-mode t)
   (setq org-log-done 'time)
