@@ -257,9 +257,13 @@
   "TAB" '(evil-switch-to-windows-last-buffer :wk "switch to previous buffer")
   "b" '(hydra-buffers/body :wk "buffers...")
   "d" '(hydra-dates/body :wk "dates...")
+  "f" '(hydra-file/body :wk "file...")
   "g" '(hydra-git/body :wk "git...")
+  "h" '(hydra-help/body :wk "help...")
   "o" '(hydra-open/body :wk "open...")
   "q" '(hydra-quit/body :wk "quit...") 
+  "s" '(hydra-search/body :wk "search...")
+  "w" '(hydra-window/body :wk "window...")
 )
 
 (use-package evil
@@ -286,76 +290,8 @@
   :config
   (evil-collection-init))
 
-(nhe/leader-key 
-  "/"   '(evilnc-comment-or-uncomment-lines :wk "comment/uncomment")
-  ";"   '(counsel-M-x :wk "M-x")
-  "."   '(counsel-find-file :wk "find file")
-  "SPC" '(counsel-projectile-find-file :wk "find file project")
-  "TAB" '(evil-switch-to-windows-last-buffer :wk "switch to previous buffer"))
-
-(nhe/leader-key
-  "b"   '(:ignore t :wk "buffer")
-  "b b" '(counsel-switch-buffer :wk "switch buffer")
-  "b d" '(kill-current-buffer :wk "kill buffer")
-  "b i" '(ibuffer-list-buffers :wk "ibuffer")
-  "b s" '(save-buffer :wk "save buffer")
-  "b p" '(evil-prev-buffer :wk "prev buffer")
-  "b n" '(evil-next-buffer :wk "next buffer"))
-
-(nhe/leader-key
-  "d" '(hydra-dates/body :wk "dates"))
-
-(nhe/leader-key
-  "f" '(:ignore f :wk "file")
-  "f f" '(counsel-find-file :wk "find file")
-  "f s" '(save-buffer :wk "save file")
-  "f r" '(recover-file :wk "recover file"))
-
-(nhe/leader-key
-  "h" '(:ignore t :wk "help")
-  "h f" '(describe-function :wk "describe function")
-  "h k" '(describe-key :wk "describe key")
-  "h m" '(describe-mode :wk "describe mode")
-  "h b" '(describe-bindings :wk "describe bindings")
-  "h v" '(describe-variable :wk "describe variable")
-  "h p" '(describe-package :wk "describe package"))
-
-(nhe/leader-key
-  "m" '(:ignore t :wk "local-leader"))
-
-(nhe/leader-key
-  "o" '(:ignore t :wk "open")
-  "o t" '(vterm :wk "open terminal")
-  "o d" '(docker :wk "open docker")
-  "o p" '(treemacs :wk "open sidebar"))
-
-(nhe/leader-key
-  "q" '(:ignore t :wk "quit")
-  "q q" '(save-buffers-kill-emacs :wk "save and quit")
-  "q Q" '(kill-emacs :wk "quit no-save")
-  "q r" '(restart-emacs :wk "restart emacs"))
-
-(nhe/leader-key
-  "s" '(:ignore t :wk "search")
-  "s s" '(swiper :wk "search buffer")
-  "s p" '(counsel-projectile-rg :wk "search project"))
-
 (nhe/leader-key
   "t" '(:ignore t :wk "toggle"))
-
-(nhe/leader-key
-  "w" '(:ignore t :wk "window")
-  "w w" '(aw-flip-window :wk "other window")
-  "w s" '(ace-window :wk "ace window")
-  "w d" '(evil-window-delete :wk "delete window")
-  "w s" '(ace-swap-window :wk "swap window")
-  "w o" '(delete-other-windows :wk "remove other windows")
-  "w h" '(evil-window-left :wk "window left")
-  "w j" '(evil-window-down :wk "window down")
-  "w k" '(evil-window-up :wk "window up")
-  "w l" '(evil-window-right :wk "window right")
-  "w v" '(evil-window-split :wk "split window horizontally")
-  "w b" '(evil-window-vsplit :wk "split window vertically"))
 
 (nhe/local-leader-key
   :keymaps 'prog-mode
@@ -440,6 +376,18 @@
   ("l" nhe/date-long)
   ("L" nhe/date-long-with-time))
 
+(defhydra hydra-file (:color blue)
+  (concat "\n " (nhe/hydra-heading "File" "Operations")
+          "
+ _q_ quit              _f_ find file             ^^            ^^
+ ^^                    _s_ save file             ^^            ^^
+ ^^                    _r_ recover file          ^^            ^^
+")
+  ("q" nil)
+  ("f" counsel-find-file)
+  ("s" save-buffer)
+  ("r" recover-file))
+
 (defhydra hydra-git (:color blue)
   (concat "\n " (nhe/hydra-heading "Git" "Do")
           "
@@ -457,6 +405,21 @@
   ("p" git-gutter:previous-hunk :color red)
   ("r" git-gutter:revert-hunk)
   ("s" git-gutter:stage-hunk :color red))
+
+(defhydra hydra-help (:color blue)
+  (concat "\n " (nhe/hydra-heading "Help" "Describe" "") 
+          "
+ _q_ quit              _f_ describe function     _k_ describe key         ^^
+ ^^                    _p_ describe package      _b_ describe binding     ^^
+ ^^                    _m_ describe mode         _v_ describe variable    ^^
+")
+  ("q" nil)
+  ("f" describe-function)
+  ("p" describe-package)
+  ("m" describe-mode)
+  ("k" describe-key)
+  ("b" describe-bindings)
+  ("v" describe-variable))
 
 (defhydra hydra-open (:color blue)
   (concat "\n " (nhe/hydra-heading "Open" "Management" "Tools")
@@ -484,6 +447,39 @@
   ("s" save-buffers-kill-emacs)
   ("Q" kill-emacs)
   ("r" restart-emacs))
+
+(defhydra hydra-search (:color blue)
+  (concat "\n " (nhe/hydra-heading "Search" "Buffer" "Project")
+          "
+ _q_ quit        _s_ search buffer      _p_ search project   ^^
+ ^^              ^^                     ^^                   ^^
+ ^^              ^^                     ^^                   ^^
+ ^^              ^^                     ^^                   ^^
+ ^^              ^^                     ^^                   ^^
+")
+  ("q" nil)
+  ("s" swiper)
+  ("p" counsel-projectile-rg))
+
+(defhydra hydra-window (:color blue)
+  (concat "\n " (nhe/hydra-heading "Window" "Movements" "Manage" "Split")
+          "
+ _q_ quit        _h_ window left        _w_ flip windows               _v_ split horizontally
+ ^^              _j_ window down        _s_ swap window                _b_ split vertically
+ ^^              _k_ window up          _d_ delete window              ^^
+ ^^              _l_ window right       _o_ delete other windows       ^^
+")
+  ("q" nil)
+  ("h" evil-window-left :color red)
+  ("j" evil-window-down :color red)
+  ("k" evil-window-up :color red)
+  ("l" evil-window-right :color red)
+  ("w" aw-flip-window)
+  ("s" ace-swap-window)
+  ("d" evil-window-delete)
+  ("o" delete-other-windows)
+  ("v" evil-window-split)
+  ("b" evil-window-vsplit))
 
 (use-package ivy
   :diminish
