@@ -418,6 +418,7 @@ Modify global keys to for own preference.
   "h" '(hydra-help/body :wk "help...")
   "l" '(hydra-lsp/body :wk "lsp...")
   "m" '(nhe/hydra-super :wk "mode...")
+  "M" '(hydra-mail/body :wk "mail...")
   "o" '(hydra-open/body :wk "open...")
   "q" '(hydra-quit/body :wk "quit...") 
   "s" '(hydra-search/body :wk "search...")
@@ -629,6 +630,20 @@ A convinent way of shorten keyboard commands.
   ("R" lsp-workspace-restart)
   ("S" lsp-workspace-shutdown)
   ("t" lsp-find-type-definition))
+#+end_src
+*** Mail / Hydra
+#+begin_src emacs-lisp
+  (defhydra hydra-mail (:color blue)
+    (concat "\n " (nhe/hydra-heading "Mail" "Open" "Operations")
+            "
+   _q_ quit              _m_ mail              _u_ Index/Update            ^^
+   ^^                    _i_ inbox             ^^                          ^^
+   ^^                    ^^                    ^^                          ^^
+  ")
+    ("q" nil)
+    ("m" mu4e)
+    ("i" nhe/mu4e-go-to-inbox)
+    ("u" mu4e-update-mail-and-index))
 #+end_src
 *** Open / Hydra
 #+begin_src emacs-lisp
