@@ -269,15 +269,22 @@ Ligatures is currently only working with Emacs =20.0.50= =Master branch=. Due to
 *** Modeline
 | =Doom-modeline= | https://github.com/seagle0128/doom-modeline |
 #+begin_src emacs-lisp
-(use-package doom-modeline
-  :init (doom-modeline-mode 1)
-  :custom 
-  (doom-modeline-height 15)
-  (doom-themes-visual-bell-config)
-  :config
-  (display-battery-mode t)
-  (display-time-mode t))
+  (use-package doom-modeline
+    :init (doom-modeline-mode 1)
+    :custom 
+    (doom-modeline-height 15)
+    (doom-themes-visual-bell-config)
+    :config
+    (display-battery-mode t)
+    (display-time-mode t))
+#+end_src
 
+#+begin_src emacs-lisp
+(use-package time
+  :config
+  (setq display-time-format "%a %d/%m %H:%M")
+        display-time-day-and-date t
+        display-time-default-load-average nil)
 #+end_src
 
 *** Treemacs
@@ -407,6 +414,7 @@ Modify global keys to for own preference.
   "TAB" '(evil-switch-to-windows-last-buffer :wk "switch to previous buffer")
   "b" '(hydra-buffers/body :wk "buffers...")
   "d" '(hydra-dates/body :wk "dates...")
+  "g" '(hydra-git/body :wk "git...")
   "o" '(hydra-open/body :wk "open...")
 )
 #+end_src
@@ -545,6 +553,14 @@ Modify global keys to for own preference.
   "i" '(:ignore t :wk "insert"))
 #+end_src
 
+*** Keycord
+#+begin_src emacs-lisp
+(use-package key-chord
+  :config
+  (key-chord-define evil-insert-state-map  "jk" 'evil-normal-state)
+  (key-chord-define evil-insert-state-map  "kj" 'evil-normal-state)
+  (key-chord-mode 1))
+#+end_src
 *** Hydra
 | =hydra= | https://github.com/abo-abo/hydra |
 A convinent way of shorten keyboard commands.
@@ -626,6 +642,26 @@ A convinent way of shorten keyboard commands.
   ("L" nhe/date-long-with-time))
 #+end_src
 
+*** Git / hydra
+#+begin_src emacs-lisp
+(defhydra hydra-git (:color blue)
+  (concat "\n " (nhe/hydra-heading "Git" "Do")
+          "
+ _q_ quit              _b_ blame             _p_ previous          ^^
+ ^^                    _c_ clone             _n_ next              ^^
+ ^^                    _g_ status            _r_ revert            ^^
+ ^^                    _i_ init              _s_ stage             ^^
+")
+  ("q" nil)
+  ("b" magit-blame)
+  ("c" magit-clone)
+  ("g" magit-status)
+  ("i" magit-init)
+  ("n" git-gutter:next-hunk :color red)
+  ("p" git-gutter:previous-hunk :color red)
+  ("r" git-gutter:revert-hunk)
+  ("s" git-gutter:stage-hunk :color red))
+#+end_src
 *** Open / Hydra
 #+begin_src emacs-lisp
 (defhydra hydra-open (:color blue)
@@ -1267,6 +1303,37 @@ Use spaces instead of tabs
 (use-package evil-magit
   :after magit)
 #+end_src
+*** Git gutter
+#+begin_src emacs-lisp
+(use-package git-gutter-fringe
+  :preface
+  (defun nhe/git-gutter-enable ()
+    (when-let* ((buffer (buffer-file-name))
+                (backend (vc-backend buffer)))
+      (require 'git-gutter)
+      (require 'git-gutter-fringe)
+      (git-gutter-mode 1)))
+  :hook
+  (after-change-major-mode . nhe/git-gutter-enable)
+  :config
+  (define-fringe-bitmap 'git-gutter-fr:added [192] nil nil '(center t))
+  (define-fringe-bitmap 'git-gutter-fr:deleted [192] nil nil '(center t))
+  (define-fringe-bitmap 'git-gutter-fr:modified [192] nil nil '(center t)))
+#+end_src
+*** Major file modes
+#+begin_src emacs-lisp
+(use-package gitattributes-mode)
+(use-package gitconfig-mode)
+(use-package gitignore-mode)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package git-commit
+  :hook
+  (git-commit-mode . (lambda () (setq-local fill-column 72)))
+  :custom
+  (git-commit-summary-max-length 50))
+#+end_src
 *** TODO Forge
 | =forge= | |
 #+begin_src emacs-lisp
@@ -1275,6 +1342,7 @@ Use spaces instead of tabs
   ;; - https://magit.vc/manual/ghub/Getting-Started.html#Getting-Started
   (use-package forge)
 #+end_src
+
 
 
 * Org Mode
