@@ -262,6 +262,7 @@
   "h" '(hydra-help/body :wk "help...")
   "l" '(hydra-lsp/body :wk "lsp...")
   "m" '(nhe/hydra-super :wk "mode...")
+  "M" '(hydra-mail/body :wk "mail...")
   "o" '(hydra-open/body :wk "open...")
   "q" '(hydra-quit/body :wk "quit...") 
   "s" '(hydra-search/body :wk "search...")
@@ -439,6 +440,18 @@
   ("R" lsp-workspace-restart)
   ("S" lsp-workspace-shutdown)
   ("t" lsp-find-type-definition))
+
+(defhydra hydra-mail (:color blue)
+  (concat "\n " (nhe/hydra-heading "Mail" "Open" "Operations")
+          "
+ _q_ quit              _m_ mail              _u_ Index/Update            ^^
+ ^^                    _i_ inbox             ^^                          ^^
+ ^^                    ^^                    ^^                          ^^
+")
+  ("q" nil)
+  ("m" mu4e)
+  ("i" nhe/mu4e-go-to-inbox)
+  ("u" mu4e-update-mail-and-index))
 
 (defhydra hydra-open (:color blue)
   (concat "\n " (nhe/hydra-heading "Open" "Management" "Tools")
