@@ -235,7 +235,6 @@ Modes without line-numbers: =org-mode=, =vterm-mode=, =shell-mode=, =treemacs-mo
 (set-face-attribute 'fixed-pitch nil :font nhe/font-family :height nhe/font-size-default)
 
 (set-face-attribute 'variable-pitch nil :font nhe/font-family :height nhe/font-size-small :weight 'regular)
-
 #+end_src
 
 *** Ligatures
@@ -417,11 +416,12 @@ Modify global keys to for own preference.
   "f" '(hydra-file/body :wk "file...")
   "g" '(hydra-git/body :wk "git...")
   "h" '(hydra-help/body :wk "help...")
+  "l" '(hydra-lsp/body :wk "lsp...")
+  "m" '(nhe/hydra-super :wk "mode...")
   "o" '(hydra-open/body :wk "open...")
   "q" '(hydra-quit/body :wk "quit...") 
   "s" '(hydra-search/body :wk "search...")
-  "w" '(hydra-window/body :wk "window...")
-)
+  "w" '(hydra-window/body :wk "window..."))
 #+end_src
 *** Evil
 | =evil= | https://github.com/emacs-evil/evil |
@@ -573,7 +573,7 @@ A convinent way of shorten keyboard commands.
   ("s" save-buffer)
   ("r" recover-file))
 #+end_src
-*** Git / HydraH
+*** Git / Hydra
 #+begin_src emacs-lisp
 (defhydra hydra-git (:color blue)
   (concat "\n " (nhe/hydra-heading "Git" "Do")
@@ -607,8 +607,28 @@ A convinent way of shorten keyboard commands.
   ("p" describe-package)
   ("m" describe-mode)
   ("k" describe-key)
-  ("b" describe-bindings)
+  ("b" counsel-descbinds)
   ("v" describe-variable))
+#+end_src
+*** LSP / Hydra
+#+begin_src emacs-lisp
+(defhydra hydra-lsp (:color blue)
+  (concat "\n " (nhe/hydra-heading "LSP" "Do" "Find" "Server")
+          "
+ _q_ quit              _i_ imenu             _f_ definition        _d_ describe
+ ^^                    _F_ format            _r_ references        _R_ restart
+ ^^                    ^^                    _t_ types             _S_ shutdown
+ ^^                    ^^                    ^^                    ^^
+")
+  ("q" nil)
+  ("d" lsp-describe-session)
+  ("f" lsp-find-definition)
+  ("F" lsp-format-buffer)
+  ("i" lsp-ui-imenu)
+  ("r" lsp-find-references)
+  ("R" lsp-workspace-restart)
+  ("S" lsp-workspace-shutdown)
+  ("t" lsp-find-type-definition))
 #+end_src
 *** Open / Hydra
 #+begin_src emacs-lisp
@@ -677,6 +697,29 @@ A convinent way of shorten keyboard commands.
   ("o" delete-other-windows)
   ("v" evil-window-split)
   ("b" evil-window-vsplit))
+#+end_src
+*** Hydra super
+**** Org
+#+begin_src emacs-lisp
+(defhydra hydra-org (:color pink)
+  (concat "\n " (nhe/hydra-heading "Org" "Links" "Outline")
+          "
+ _q_ quit              _i_ insert            _<_ previous          ^^
+ ^^                    _n_ next              _>_ next              ^^
+ ^^                    _p_ previous          _a_ all               ^^
+ ^^                    _s_ store             _g_ go                ^^
+ ^^                    ^^                    _v_ overview          ^^
+")
+  ("q" nil)
+  ("<" org-backward-element)
+  (">" org-forward-element)
+  ("a" outline-show-all :color blue)
+  ("g" counsel-org-goto :color blue)
+  ("i" org-insert-link :color blue)
+  ("n" org-next-link)
+  ("p" org-previous-link)
+  ("s" org-store-link)
+  ("v" org-overview :color blue))
 #+end_src
 ** Completion
 *** Ivy
@@ -1290,13 +1333,7 @@ Use spaces instead of tabs
 #+begin_src emacs-lisp
   (use-package magit
     :custom
-    (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
-    :config
-    (nhe/leader-key
-      "g" '(:ignore t :wk "git")
-      "g s" '(magit-status :wk "magit status")
-      "g b" '(magit-branch :wk "maigt branch")
-      "g B" '(magit-blame :wk "magit blame")))
+    (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 #+end_src
 
 #+begin_src emacs-lisp
@@ -1382,7 +1419,9 @@ Use spaces instead of tabs
   (visual-line-mode 1))
 
 (use-package org
-  :hook (org-mode . he/org-mode-setup)
+  :hook 
+  (org-mode . he/org-mode-setup)
+  (org-mode . nhe/hydra-set-super)
   :config
   (setq org-ellipsis " ")
 
