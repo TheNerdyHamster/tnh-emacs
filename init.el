@@ -259,6 +259,7 @@
   "d" '(hydra-dates/body :wk "dates...")
   "g" '(hydra-git/body :wk "git...")
   "o" '(hydra-open/body :wk "open...")
+  "q" '(hydra-quit/body :wk "quit...") 
 )
 
 (use-package evil
@@ -470,6 +471,19 @@
   ("t" vterm)
   ("d" docker)
   ("k" kubernetes-overview))
+
+(defhydra hydra-quit (:color blue)
+  (concat "\n " (nhe/hydra-heading "Quit" "Emacs") 
+          "
+ _q_ quit              _s_ save and quit     ^^              ^^
+ ^^                    _Q_ quit no-save      ^^              ^^
+ ^^                    _r_ restart emacs     ^^              ^^
+ ^^                    ^^                    ^^              ^^
+")
+  ("q" nil)
+  ("s" save-buffers-kill-emacs)
+  ("Q" kill-emacs)
+  ("r" restart-emacs))
 
 (use-package ivy
   :diminish
@@ -1171,6 +1185,8 @@
   :hook (org-mode . org-make-toc-mode))
 
 (use-package org-mime)
+
+(use-package restart-emacs)
 
 (use-package elcord
   :config

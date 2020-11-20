@@ -416,6 +416,7 @@ Modify global keys to for own preference.
   "d" '(hydra-dates/body :wk "dates...")
   "g" '(hydra-git/body :wk "git...")
   "o" '(hydra-open/body :wk "open...")
+  "q" '(hydra-quit/body :wk "quit...") 
 )
 #+end_src
 *** Evil
@@ -677,6 +678,21 @@ A convinent way of shorten keyboard commands.
   ("t" vterm)
   ("d" docker)
   ("k" kubernetes-overview))
+#+end_src
+*** Quit / Hydra
+#+begin_src emacs-lisp
+(defhydra hydra-quit (:color blue)
+  (concat "\n " (nhe/hydra-heading "Quit" "Emacs") 
+          "
+ _q_ quit              _s_ save and quit     ^^              ^^
+ ^^                    _Q_ quit no-save      ^^              ^^
+ ^^                    _r_ restart emacs     ^^              ^^
+ ^^                    ^^                    ^^              ^^
+")
+  ("q" nil)
+  ("s" save-buffers-kill-emacs)
+  ("Q" kill-emacs)
+  ("r" restart-emacs))
 #+end_src
 ** Completion
 *** Ivy
@@ -1562,6 +1578,10 @@ Use spaces instead of tabs
 * Applications
 ** Emacs
 *** Dired
+*** Restart emacs
+#+begin_src emacs-lisp
+(use-package restart-emacs)
+#+end_src
 ** General
 *** Elcord
 | =elcord= | |
