@@ -153,6 +153,12 @@
   (display-battery-mode t)
   (display-time-mode t))
 
+(use-package time
+  :config
+  (setq display-time-format "%a %d/%m %H:%M")
+        display-time-day-and-date t
+        display-time-default-load-average nil)
+
 (use-package treemacs
   :config
   (treemacs-git-mode 'deferred))
@@ -251,6 +257,7 @@
   "TAB" '(evil-switch-to-windows-last-buffer :wk "switch to previous buffer")
   "b" '(hydra-buffers/body :wk "buffers...")
   "d" '(hydra-dates/body :wk "dates...")
+  "g" '(hydra-git/body :wk "git...")
   "o" '(hydra-open/body :wk "open...")
 )
 
@@ -356,6 +363,12 @@
   "g" '(:ignore t :wk "goto")
   "i" '(:ignore t :wk "insert"))
 
+(use-package key-chord
+  :config
+  (key-chord-define evil-insert-state-map  "jk" 'evil-normal-state)
+  (key-chord-define evil-insert-state-map  "kj" 'evil-normal-state)
+  (key-chord-mode 1))
+
 (use-package hydra
   :custom 
   (hydra-default-hint nil)
@@ -425,6 +438,24 @@
   ("I" nhe/date-iso-with-time)
   ("l" nhe/date-long)
   ("L" nhe/date-long-with-time))
+
+(defhydra hydra-git (:color blue)
+  (concat "\n " (nhe/hydra-heading "Git" "Do")
+          "
+ _q_ quit              _b_ blame             _p_ previous          ^^
+ ^^                    _c_ clone             _n_ next              ^^
+ ^^                    _g_ status            _r_ revert            ^^
+ ^^                    _i_ init              _s_ stage             ^^
+")
+  ("q" nil)
+  ("b" magit-blame)
+  ("c" magit-clone)
+  ("g" magit-status)
+  ("i" magit-init)
+  ("n" git-gutter:next-hunk :color red)
+  ("p" git-gutter:previous-hunk :color red)
+  ("r" git-gutter:revert-hunk)
+  ("s" git-gutter:stage-hunk :color red))
 
 (defhydra hydra-open (:color blue)
   (concat "\n " (nhe/hydra-heading "Open" "Management" "Tools")
@@ -917,6 +948,31 @@
 
 (use-package evil-magit
   :after magit)
+
+(use-package git-gutter-fringe
+  :preface
+  (defun nhe/git-gutter-enable ()
+    (when-let* ((buffer (buffer-file-name))
+                (backend (vc-backend buffer)))
+      (require 'git-gutter)
+      (require 'git-gutter-fringe)
+      (git-gutter-mode 1)))
+  :hook
+  (after-change-major-mode . nhe/git-gutter-enable)
+  :config
+  (define-fringe-bitmap 'git-gutter-fr:added [192] nil nil '(center t))
+  (define-fringe-bitmap 'git-gutter-fr:deleted [192] nil nil '(center t))
+  (define-fringe-bitmap 'git-gutter-fr:modified [192] nil nil '(center t)))
+
+(use-package gitattributes-mode)
+(use-package gitconfig-mode)
+(use-package gitignore-mode)
+
+(use-package git-commit
+  :hook
+  (git-commit-mode . (lambda () (setq-local fill-column 72)))
+  :custom
+  (git-commit-summary-max-length 50))
 
 ;; NOTE: Make sure to configure a GitHub token before using this package!
 ;; - https://magit.vc/manual/forge/Token-Creation.html#Token-Creation
