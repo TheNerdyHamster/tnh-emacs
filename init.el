@@ -299,6 +299,7 @@
   "i" '(:ignore t :wk "insert"))
 
 (use-package key-chord
+  :defer t
   :config
   (key-chord-define evil-insert-state-map  "jk" 'evil-normal-state)
   (key-chord-define evil-insert-state-map  "kj" 'evil-normal-state)
@@ -439,13 +440,14 @@
           "
  _q_ quit              _i_ imenu             _f_ definition        _d_ describe
  ^^                    _F_ format            _r_ references        _R_ restart
- ^^                    ^^                    _t_ types             _S_ shutdown
+ ^^                    _r_ rename            _t_ types             _S_ shutdown
  ^^                    ^^                    ^^                    ^^
 ")
   ("q" nil)
   ("d" lsp-describe-session)
   ("f" lsp-find-definition)
   ("F" lsp-format-buffer)
+  ("r" lsp-rename)
   ("i" lsp-ui-imenu)
   ("r" lsp-find-references)
   ("R" lsp-workspace-restart)
@@ -580,6 +582,16 @@
   ("p" org-previous-link)
   ("s" org-store-link)
   ("v" org-overview :color blue))
+
+(defhydra hydra-rjsx (:color blue)
+  (concat "\n " (nhe/hydra-heading "RJSX" "JSDoc")
+          "
+ _q_ quit              _f_ function          ^^                    ^^
+ ^^                    _F_ file              ^^                    ^^
+")
+  ("q" nil)
+  ("f" js-doc-insert-function-doc-snippet)
+  ("F" js-doc-insert-file-doc))
 
 (use-package ivy
   :diminish
@@ -894,6 +906,7 @@
   :hook (js-mode . yas-minor-mode))
 
 (use-package rjsx-mode
+  :hook (rjsx-mode . nhe/hydra-set-super)
   :mode "components\\/.*\\.js\\'")
 
 (use-package js-doc
@@ -920,13 +933,13 @@
 
 (use-package web-mode)
 
-(use-package go-mode
-  :mode "\\.go\\'")
- 
 (defun lsp-go-install-save-hooks ()
   (add-hook 'before-save-hook #'lsp-format-buffer t t)
   (add-hook 'before-save-hook #'lsp-organize-imports t t))
-(add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
+
+(use-package go-mode
+  :hook (go-mode . lsp-go-install-save-hooks)
+  :mode "\\.go\\'")
 
 (use-package csharp-mode
   :hook
@@ -998,21 +1011,7 @@
         (csharp-mode . lsp-deferred))
   :config
   (setq lsp-completion-provider :capf)
-  (lsp-enable-which-key-integration t)
-  (nhe/local-leader-key
-    :keymaps '(js2-mode-map
-               rjsx-mode-map
-               typescript-mode-map
-               csharp-mode
-               lsp-mode-map
-               lsp-ui-mode-map)
-    "g r" '(lsp-ui-peek-find-references :which-key "goto references")
-    "g g" '(lsp-find-definition :which-key "goto definition")
-    "o" '(lsp-ui-imenu :which-key "overview")
-    "r" '(:ignore t :which-key "refactor")
-    "r r" '(lsp-rename :which-key "rename")
-    "=" '(:ignore t :which-key "format")
-    "= l" '(lsp-format-buffer :which-key "format with lsp")))
+  (lsp-enable-which-key-integration t))
 
 (use-package lsp-ui
   :hook (lsp-mode . lsp-ui-mode))
@@ -1025,19 +1024,12 @@
 (use-package dap-mode)
 
 (use-package flycheck
-  :hook (after-init-hook . global-flycheck-mode)
-  :config
-  (nhe/leader-key
-    "e" '(:ignore t :which-key "errors")
-    "e l" '(flycheck-list-errors :which-key "list errors")
-    )
-  )
+  :hook (after-init-hook . global-flycheck-mode))
 
 (use-package projectile
   :diminish projectile-mode
   :config (projectile-mode)
   :custom ((projectile-completion-system 'ivy))
-  :bind-keymap ("C-c p" . projectile-command-map)
   :init
   (when (file-directory-p "~/code")
     (setq projectile-project-search-path '("~/code")))
