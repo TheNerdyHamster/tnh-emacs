@@ -161,33 +161,24 @@
 
 (use-package treemacs
   :config
+  (progn
+    (setq 
+      treemacs-position 'right))
   (treemacs-git-mode 'deferred))
 
 (use-package treemacs-evil
-  :after evil)
+  :after treemacs evil)
 
 (use-package treemacs-projectile
-  :after treemacs)
+  :after treemacs projectile)
   
 (use-package treemacs-magit
-  :after treemacs)
+  :after treemacs magit)
 
 (use-package treemacs-all-the-icons
   :after treemacs
   :config
   (treemacs-load-theme "all-the-icons"))
-
-(use-package centaur-tabs
-  :config
-  (setq centaur-tabs-height 32)
-  (setq centaur-tabs-bar-height 35)
-  (setq centaur-tabs-set-bar 'under)
-  (setq centaur-tabs-set-icons t)
-  (setq centaur-tabs-set-greyout-icons t)
-  (setq centaur-tabs-icon-scale-factor 0.75)
-  ;; (setq centaur-tabs-icon-v-adjust -0.1)
-  (setq x-underline-at-descent-line t)
-  (centaur-tabs-mode 1))
 
 (use-package dashboard
   :ensure t
@@ -264,8 +255,10 @@
   "m" '(nhe/hydra-super :wk "mode...")
   "M" '(hydra-mail/body :wk "mail...")
   "o" '(hydra-open/body :wk "open...")
+  "p" '(hydra-projectile/body :wk "projectile...")
   "q" '(hydra-quit/body :wk "quit...") 
   "s" '(hydra-search/body :wk "search...")
+  "t" '(hydra-toggle/body :wk "toggle...")
   "w" '(hydra-window/body :wk "window..."))
 
 (use-package evil
@@ -274,6 +267,9 @@
   (setq evil-want-keybinding nil)
   (setq evil-want-C-u-scroll t)
   (setq evil-want-C-i-jump nil)
+  :bind 
+  (:map evil-motion-state-map
+   ("q" . nil))
   :config
   (evil-mode 1)
   ;;(evil-define-key 'normal 'insert 'visual (kbd "C-c") 'hydra-master/body)
@@ -382,13 +378,28 @@
   (concat "\n " (nhe/hydra-heading "File" "Operations")
           "
  _q_ quit              _f_ find file             ^^            ^^
- ^^                    _s_ save file             ^^            ^^
+ _o_ open...           _s_ save file             ^^            ^^
  ^^                    _r_ recover file          ^^            ^^
 ")
   ("q" nil)
+  ("o" hydra-find-file/body)
   ("f" counsel-find-file)
   ("s" save-buffer)
   ("r" recover-file))
+
+(defhydra hydra-find-file (:color blue)
+  (concat "\n " (nhe/hydra-heading "Find Files" "Dotfiles" "Notes")
+          "
+ _q_ quit              _e_ emacs             _n_ notes        ^^
+ ^^                    _d_ desktop           ^^               ^^
+ ^^                    _c_ configs           ^^               ^^
+ ^^                    ^^                    ^^               ^^
+")
+  ("q" nil)
+  ("e" (lambda () (interactive) (find-file "~/.emacs.d/Emacs.org")))
+  ("d" (lambda () (interactive) (find-file "~/Desktop.org")))
+  ("c" (lambda () (interactive) (find-file "~/README.org")))
+  ("n" (lambda () (interactive) (counsel-find-file "~/Documents/Org/"))))
 
 (defhydra hydra-git (:color blue)
   (concat "\n " (nhe/hydra-heading "Git" "Do")
@@ -467,6 +478,29 @@
   ("d" docker)
   ("k" kubernetes-overview))
 
+(defhydra hydra-projectile (:color blue)
+  (concat "\n " (nhe/hydra-heading "Projectile" "Do" "Find" "Search")
+          "
+ _q_ quit              _K_ kill buffers      _b_ buffer            _r_ replace
+ ^^                    _i_ reset cache       _d_ directory         _R_ regexp replace
+ ^^                    _n_ new               _D_ root              _s_ rg
+ ^^                    _S_ save buffers      _f_ file              ^^
+ ^^                    ^^                    _p_ project           ^^
+")
+  ("q" nil)
+  ("b" counsel-projectile-switch-to-buffer)
+  ("d" counsel-projectile-find-dir)
+  ("D" projectile-dired)
+  ("f" counsel-projectile-find-file)
+  ("i" projectile-invalidate-cache :color red)
+  ("K" projectile-kill-buffers)
+  ("n" projectile-add-known-project)
+  ("p" counsel-projectile-switch-project)
+  ("r" projectile-replace)
+  ("R" projectile-replace-regexp)
+  ("s" counsel-projectile-rg)
+  ("S" projectile-save-project-buffers))
+
 (defhydra hydra-quit (:color blue)
   (concat "\n " (nhe/hydra-heading "Quit" "Emacs") 
           "
@@ -492,6 +526,20 @@
   ("q" nil)
   ("s" swiper)
   ("p" counsel-projectile-rg))
+
+(defhydra hydra-toggle (:color blue)
+  (concat "\n " (nhe/hydra-heading "Toggle" "UI" "Line numbers")
+          "
+ _q_ quit        _m_ maximize           _n_ mode: %s`display-line-numbers                                        ^^
+ ^^              ^^                     _N_ absolute: %s`display-line-numbers-current-absolute                   ^^
+ ^^              ^^                     ^^                                                                       ^^
+ ^^              ^^                     ^^                                                                       ^^
+ ^^              ^^                     ^^                                                                       ^^
+")
+  ("q" nil)
+  ("m" toggle-frame-maximized :color blue)
+  ("n" nhe/display-line-numbers-toggle-type)
+  ("N" nhe/display-line-numbers-toggle-absolute))
 
 (defhydra hydra-window (:color blue)
   (concat "\n " (nhe/hydra-heading "Window" "Movements" "Manage" "Split")
@@ -1241,6 +1289,29 @@
   :config
   (setq wakatime-api-key nhe/waka-time-token)
   (global-wakatime-mode))
+
+(add-hook 'conf-mode-hook #'display-line-numbers-mode)
+(add-hook 'prog-mode-hook #'display-line-numbers-mode)
+(add-hook 'text-mode-hook #'display-line-numbers-mode)
+(setq-default
+ display-line-numbers-current-absolute nil        ; Current line is 0
+ display-line-numbers-type 'relative              ; Prefer relative numbers
+ display-line-numbers-width 2)                    ; Enforce width to reduce computation
+
+(defun nhe/display-line-numbers-toggle-absolute ()
+  "Toggle the value of `display-line-numbers-current-absolute'."
+  (interactive)
+  (let ((value display-line-numbers-current-absolute))
+    (setq-local display-line-numbers-current-absolute (not value))))
+
+(defun nhe/display-line-numbers-toggle-type ()
+  "Cycle through the possible values of `display-line-numbers'.
+Cycle between nil, t and 'relative."
+  (interactive)
+  (let* ((range '(nil t relative))
+         (position (1+ (cl-position display-line-numbers range)))
+         (position (if (= position (length range)) 0 position)))
+    (setq-local display-line-numbers (nth position range))))
 
 (defvar nhe/current-transparency 100 "Current transparency")
 (defun change-transparency (n)
