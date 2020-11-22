@@ -40,3 +40,10 @@ M-x (all-the-icons-install-font)
 #+end_src
 
 
+* Inspiration
+[[https://github.com/emacs-tw/awesome-emacs][Awesome Emacs]] provides a good list of useful packages.
+
+Other emacs/dotfiles repos for inspiration
+- [[https://github.com/daviwil/dotfiles][Daviwil's dotfiles]]
+- [[https://github.com/daviwil/emacs-from-scratch][Daviwil's emacs from scratch repo]]
+- [[https://github.com/angrybacon/dotemacs][Angrybacon's dotemacs]]
