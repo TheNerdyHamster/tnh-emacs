@@ -226,21 +226,21 @@
     :states '(normal insert visual emacs treemacs)
     :keymap 'override
     :prefix "SPC"
-    :global-prefix "C-M-SPC")
+    :global-prefix "C-SPC")
 
   (general-create-definer nhe/leader-key
     :states '(normal insert visual emacs treemacs)
     :keymap 'override
-    :prefix "C-SPC"
-    :global-prefix "C-SPC"
-    :non-normal-prefix "C-SPC")
+    :prefix "C-M-SPC"
+    :global-prefix "C-M-SPC"
+    :non-normal-prefix "C-M-SPC")
 
   (general-create-definer nhe/local-leader-key
     :states '(normal insert visual emacs treemacs)
     :keymap 'override
-    :prefix "C-SPC m"
-    :global-prefix "C-SPC m"
-    :non-normal-prefix "C-SPC m"))
+    :prefix "C-M-SPC m"
+    :global-prefix "C-M-SPC m"
+    :non-normal-prefix "C-M-SPC m"))
 
 (nhe/leader-key-hydra
   "/"   '(evilnc-comment-or-uncomment-lines :wk "comment/uncomment")
@@ -430,7 +430,7 @@
   (concat "\n " (nhe/hydra-heading "Find Files" "Dotfiles" "Notes")
           "
  _q_ quit              _e_ emacs             _n_ notes        ^^
- ^^                    _d_ desktop           ^^               ^^
+ ^^                    _d_ desktop           _b_ blog               ^^
  ^^                    _c_ configs           ^^               ^^
  ^^                    ^^                    ^^               ^^
 ")
@@ -438,7 +438,8 @@
   ("e" (lambda () (interactive) (find-file "~/.emacs.d/Emacs.org")))
   ("d" (lambda () (interactive) (find-file "~/Desktop.org")))
   ("c" (lambda () (interactive) (find-file "~/README.org")))
-  ("n" (lambda () (interactive) (counsel-find-file "~/Documents/Org/"))))
+  ("n" (lambda () (interactive) (counsel-find-file "~/Documents/Org/")))
+  ("b" (lambda () (interactive) (counsel-find-file "~/Documents/Blog/"))))
 
 (defhydra hydra-git (:color blue)
   (concat "\n " (nhe/hydra-heading "Git" "Do")
