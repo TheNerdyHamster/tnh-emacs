@@ -49,6 +49,8 @@
 
 (add-hook 'focus-out-hook #'garbage-collect)
 
+(defvar nhe/spotify-secret     nil               "Spotify Secret")
+(defvar nhe/spotify-client     nil               "Spotify client id")
 (defvar nhe/waka-time-token    nil               "The Waka time API token to use.")
 (defvar nhe/font-family        "Fira Code NF"    "Default font family to use")
 (defvar nhe/font-size-default  100               "The font size to use for default text.")
@@ -246,6 +248,7 @@
   "."   '(counsel-find-file :wk "find file")
   "SPC" '(counsel-projectile-find-file :wk "find file project")
   "TAB" '(evil-switch-to-windows-last-buffer :wk "switch to previous buffer")
+  "a" '(hydra-applications/body :wk "applications...")
   "b" '(hydra-buffers/body :wk "buffers...")
   "d" '(hydra-dates/body :wk "dates...")
   "f" '(hydra-file/body :wk "file...")
@@ -343,6 +346,41 @@
   (if nhe/hydra-super-body
       (funcall nhe/hydra-super-body)
     (user-error "nhe/hydra-super: nhe/hydra-super-body is not set!")))
+
+(defhydra hydra-applications (:color blue)
+  (concat "\n " (nhe/hydra-heading "Applications" "Misc")
+          "
+ _q_ quit              _s_ spotify            ^^        ^^
+ ^^                    ^^                     ^^        ^^
+ ^^                    ^^                     ^^        ^^
+ ^^                    ^^                     ^^        ^^
+")
+  ("q" nil)
+  ("s" hydra-spotify/body))
+
+(defhydra hydra-spotify (:color blue)
+  (concat "\n " (nhe/hydra-heading "Spotify" "Search" "Control" "Manage")
+          "
+ _q_ quit              _t_ track             _SPC_ play/pause      _+_ volume up
+ ^^                    _m_ my playlists      _n_ next track        _-_ volume down
+ ^^                    _f_ feat playlists    _p_ prev track        _x_ mute
+ ^^                    _u_ user playlists    _r_ repeat            _d_ device
+ ^^                    ^^                    _s_ shuffle           ^^
+")
+  ("q" nil)
+  ("t" spotify-track-search)
+  ("m" spotify-my-playlists)
+  ("f" spotify-featured-playlists)
+  ("u" spotify-user-playlists)
+  ("SPC" spotify-toggle-play :color red)
+  ("n" spotify-next-track :color red)
+  ("p" spotify-previous-track :color red)
+  ("r" spotify-toggle-repeat)
+  ("s" spotify-toggle-shuffle)
+  ("+" spotify-volume-up :color red)
+  ("-" spotify-volume-down :color red)
+  ("x" spotify-volume-mute-unmute :color red)
+  ("d" spotify-select-device :color red))
 
 (defhydra hydra-buffers (:color blue)
   (concat "\n " (nhe/hydra-heading "Buffer" "Manage" "Next/Prev")
@@ -1275,6 +1313,19 @@
 (use-package org-mime)
 
 (use-package restart-emacs)
+
+(use-package simple-httpd
+  :config
+  (httpd-start))
+
+(use-package oauth2)
+
+(use-package spotify
+  :load-path "~/.emacs.d/github/spotify.el"
+  :config
+  (setq spotify-oauth2-client-secret nhe/spotify-secret
+        spotify-oauth2-client-id nhe/spotify-client
+        spotify-transport 'connect))
 
 (use-package elcord
   :config
