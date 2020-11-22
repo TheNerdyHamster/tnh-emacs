@@ -1,0 +1,6 @@
+[submodule "github/ligature"]
+	path = github/ligature
+	url = https://github.com/mickeynp/ligature.el
+[submodule "github/spotify.el"]
+	path = github/spotify.el
+	url = https://github.com/danielfm/spotify.el
