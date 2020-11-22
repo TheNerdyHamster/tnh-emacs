@@ -1314,9 +1314,7 @@
 
 (use-package restart-emacs)
 
-(use-package simple-httpd
-  :config
-  (httpd-start))
+(use-package simple-httpd)
 
 (use-package oauth2)
 

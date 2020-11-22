@@ -1717,9 +1717,7 @@ Use spaces instead of tabs
 *** Spotify
 Dependecies
 #+begin_src emacs-lisp
-(use-package simple-httpd
-  :config
-  (httpd-start))
+(use-package simple-httpd)
 
 (use-package oauth2)
 #+end_src
