@@ -30,7 +30,7 @@
  x-stretch-cursor t)                              ; Stretch cursor to the glyph width
 (cd "~/")                                         ; Move to the user directory
 (delete-selection-mode 1)                         ; Replace region when inserting text
-(fringe-mode '(2 . 0))                            ; Initialize thinner vertical fringes
+(fringe-mode '(3 . 0))                            ; Initialize thinner vertical fringes
 (fset 'yes-or-no-p 'y-or-n-p)                     ; Replace yes/no prompts with y/n
 (global-subword-mode 1)                           ; Iterate through CamelCase words
 (menu-bar-mode 0)                                 ; Disable the menu bar
@@ -40,8 +40,8 @@
 (set-default-coding-systems 'utf-8)               ; Default to utf-8 encoding
 (column-number-mode)                              ; Toggle column number mode for mode lines.
 (global-display-line-numbers-mode t)              ; Toggle line numbers within buffer
-;; (setq confirm-kill-processes nil)                      ; No need to confirm to kill a process....
-;; (setq confirm-kill-emacs t)                            ; Confirm to quit emacs
+(setq confirm-kill-processes nil)                 ; No need to confirm to kill a process....
+(setq confirm-kill-emacs nil)                       ; Confirm to quit emacs
 
 (if (eq window-system 'ns)
     (set-frame-parameter nil 'fullscreen 'maximized)
@@ -651,6 +651,10 @@
 
 (setq-default indent-tabs-mode nil)
 
+(use-package ws-butler
+  :hook ((text-mode . ws-butler-mode)
+         (prog-mode . ws-butler-mode)))
+
 (use-package smartparens
   :init (smartparens-global-mode 1)
   :config
@@ -1247,11 +1251,11 @@
 (org-babel-do-load-languages
   'org-babel-load-languages
   '((emacs-lisp . t)
+    (shell . t)
     (python . t)))
 
 (push '("conf-unix" . conf-unix) org-src-lang-modes)
 
-;; This is needed as of Org 9.2
 (require 'org-tempo)
 
 (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
