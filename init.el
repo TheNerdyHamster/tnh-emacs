@@ -52,6 +52,10 @@
 (defvar nhe/spotify-secret     nil               "Spotify Secret")
 (defvar nhe/spotify-client     nil               "Spotify client id")
 (defvar nhe/waka-time-token    nil               "The Waka time API token to use.")
+(defvar nhe/erc-server         nil               "IRC server address")
+(defvar nhe/erc-port           nil               "IRC server port")
+(defvar nhe/erc-nick           nil               "IRC nick")
+(defvar nhe/erc-password       nil               "IRC server password")
 (defvar nhe/font-family        "Fira Code NF"    "Default font family to use")
 (defvar nhe/font-size-default  100               "The font size to use for default text.")
 (defvar nhe/font-size-large    1.2               "The font size to use for larger text.")
@@ -1315,6 +1319,36 @@
 
 (use-package restart-emacs)
 
+(use-package erc
+  :ensure nil
+  :hook (erc-mode . (lambda () (setq-local scroll-margin 0)))
+  :custom
+  (erc-autojoin-channels-alist '(("freenode.net" "#emacs")))
+  (erc-fill-function 'erc-fill-static)
+  (erc-fill-static-center 20)
+  (erc-header-line-format nil)
+  (erc-insert-timestamp-function 'erc-insert-timestamp-left)
+  (erc-lurker-hide-list '("JOIN" "PART" "QUIT"))
+  (erc-prompt (format "%19s" ">"))
+  (erc-timestamp-format nil)
+  :config
+  (erc-scrolltobottom-enable))
+
+(defun nhe/erc ()
+  "Connect to `nhe/erc-server' on `nhe/erc-port' as `nhe/erc-nick' with `nhe/erc-password'."
+  (interactive)
+  (erc :server nhe/erc-server
+       :port nhe/erc-port
+       :nick nhe/erc-nick
+       :password nhe/erc-password))
+
+(defun nhe/erc-bol-shifted ()
+  "See `erc-bol'. Support shift."
+  (interactive "^")
+  (erc-bol))
+
+(use-package erc-hl-nicks)
+
 (use-package simple-httpd)
 
 (use-package oauth2)
@@ -1396,3 +1430,16 @@ Cycle between nil, t and 'relative."
   "Insert the current date, short format with time, eg. 2016.12.09 14:34"
   (interactive)
   (insert (format-time-string "%Y.%m.%d %H:%M")))
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   '(erc-hl-nicks yasnippet-snippets yaml-mode ws-butler which-key web-mode wakatime-mode vterm visual-fill-column use-package undo-tree typescript-mode treemacs-projectile treemacs-magit treemacs-evil treemacs-all-the-icons super-save smex smartparens simple-httpd rjsx-mode restart-emacs rainbow-mode rainbow-delimiters prettier org-mime org-make-toc org-bullets omnisharp oauth2 multiple-cursors mu4e-alert modus-vivendi-theme lsp-ui lsp-ivy kubernetes-evil key-chord js-react-redux-yasnippets js-doc ivy-rich helpful go-mode gitignore-mode gitconfig-mode gitattributes-mode git-gutter-fringe general forge expand-region evil-nerd-commenter evil-magit evil-collection elcord doom-modeline dockerfile-mode docker dashboard dap-mode counsel-projectile company-prescient company-box centaur-tabs)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
