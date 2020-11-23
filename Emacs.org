@@ -121,16 +121,20 @@ Garbage collection when =focus-out-hook= is called
 ** Load private config =.config.el=
 =~/.emacs.d/.config.el= contains both sensible information and configuration options, and values that shoudlent be shared with the public. Such as =tokens=, =email=, =passwords=, and =usernames=.
 #+begin_src emacs-lisp
-(defvar nhe/spotify-secret     nil               "Spotify Secret")
-(defvar nhe/spotify-client     nil               "Spotify client id")
-(defvar nhe/waka-time-token    nil               "The Waka time API token to use.")
-(defvar nhe/font-family        "Fira Code NF"    "Default font family to use")
-(defvar nhe/font-size-default  100               "The font size to use for default text.")
-(defvar nhe/font-size-large    1.2               "The font size to use for larger text.")
-(defvar nhe/font-size-small    .9                "The font size to use for smaller text.")
+  (defvar nhe/spotify-secret     nil               "Spotify Secret")
+  (defvar nhe/spotify-client     nil               "Spotify client id")
+  (defvar nhe/waka-time-token    nil               "The Waka time API token to use.")
+  (defvar nhe/erc-server         nil               "IRC server address")
+  (defvar nhe/erc-port           nil               "IRC server port")
+  (defvar nhe/erc-nick           nil               "IRC nick")
+  (defvar nhe/erc-password       nil               "IRC server password")
+  (defvar nhe/font-family        "Fira Code NF"    "Default font family to use")
+  (defvar nhe/font-size-default  100               "The font size to use for default text.")
+  (defvar nhe/font-size-large    1.2               "The font size to use for larger text.")
+  (defvar nhe/font-size-small    .9                "The font size to use for smaller text.")
 
-(let ((config.el (expand-file-name ".config.el" user-emacs-directory)))
-  (load config.el t))
+  (let ((config.el (expand-file-name ".config.el" user-emacs-directory)))
+    (load config.el t))
 #+end_src
 
 ** Keep =.emacs.d= clean
@@ -1715,6 +1719,40 @@ Use spaces instead of tabs
 (use-package restart-emacs)
 #+end_src
 ** General
+*** IRC
+#+begin_src emacs-lisp
+  (use-package erc
+    :ensure nil
+    :hook (erc-mode . (lambda () (setq-local scroll-margin 0)))
+    :custom
+    (erc-autojoin-channels-alist '(("freenode.net" "#emacs")))
+    (erc-fill-function 'erc-fill-static)
+    (erc-fill-static-center 20)
+    (erc-header-line-format nil)
+    (erc-insert-timestamp-function 'erc-insert-timestamp-left)
+    (erc-lurker-hide-list '("JOIN" "PART" "QUIT"))
+    (erc-prompt (format "%19s" ">"))
+    (erc-timestamp-format nil)
+    :config
+    (erc-scrolltobottom-enable))
+#+end_src
+#+begin_src emacs-lisp
+  (defun nhe/erc ()
+    "Connect to `nhe/erc-server' on `nhe/erc-port' as `nhe/erc-nick' with `nhe/erc-password'."
+    (interactive)
+    (erc :server nhe/erc-server
+         :port nhe/erc-port
+         :nick nhe/erc-nick
+         :password nhe/erc-password))
+
+  (defun nhe/erc-bol-shifted ()
+    "See `erc-bol'. Support shift."
+    (interactive "^")
+    (erc-bol))
+#+end_src
+#+begin_src emacs-lisp
+(use-package erc-hl-nicks)
+#+end_src
 *** Spotify
 Dependecies
 #+begin_src emacs-lisp
