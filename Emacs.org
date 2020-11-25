@@ -47,6 +47,7 @@
   - [[#emacs][Emacs]]
   - [[#general][General]]
 - [[#custom--helpers][Custom / Helpers]]
+  - [[#gpg][GPG]]
   - [[#line-numbers][Line numbers]]
   - [[#transparency-mangement][Transparency mangement]]
   - [[#dates][Dates]]
@@ -148,9 +149,9 @@ Due to files for both =backups=, and =packages= are stored within =.emacs.d= by 
 #+end_src
 
 ** Package configuration system
-|use-package| https://github.com/jwiegley/use-package | 
+|use-package| https://github.com/jwiegley/use-package |
 #+begin_quote
-The =use-package= macro allows you to isolate package configuration in your =.emacs= file in a way that is both performance-oriented and, well, tidy. I created it because I have over 80 packages that I use in Emacs, and things were getting difficult to manage. Yet with this utility my total load time is around 2 seconds, with no loss of functionality! 
+The =use-package= macro allows you to isolate package configuration in your =.emacs= file in a way that is both performance-oriented and, well, tidy. I created it because I have over 80 packages that I use in Emacs, and things were getting difficult to manage. Yet with this utility my total load time is around 2 seconds, with no loss of functionality!
 
 - From [[https://github.com/jwiegley/use-package#use-package][use-package documentation]]
 #+end_quote
@@ -172,7 +173,7 @@ The =use-package= macro allows you to isolate package configuration in your =.em
 
 (require 'use-package)
 (setq use-package-always-ensure t)
-(setq use-package-compute-statistics t) 
+(setq use-package-compute-statistics t)
 #+end_src
 
 ** Server mode
@@ -617,20 +618,21 @@ A convinent way of shorten keyboard commands.
 #+end_src
 
 #+begin_src emacs-lisp
-(defhydra hydra-find-file (:color blue)
-  (concat "\n " (nhe/hydra-heading "Find Files" "Dotfiles" "Notes")
-          "
- _q_ quit              _e_ emacs             _n_ notes        ^^
- ^^                    _d_ desktop           _b_ blog               ^^
- ^^                    _c_ configs           ^^               ^^
- ^^                    ^^                    ^^               ^^
-")
-  ("q" nil)
-  ("e" (lambda () (interactive) (find-file "~/.emacs.d/Emacs.org")))
-  ("d" (lambda () (interactive) (find-file "~/Desktop.org")))
-  ("c" (lambda () (interactive) (find-file "~/README.org")))
-  ("n" (lambda () (interactive) (counsel-find-file "~/Documents/Org/")))
-  ("b" (lambda () (interactive) (counsel-find-file "~/Documents/Blog/"))))
+  (defhydra hydra-find-file (:color blue)
+    (concat "\n " (nhe/hydra-heading "Find Files" "Dotfiles" "Notes")
+            "
+   _q_ quit              _e_ emacs             _n_ notes        ^^
+   ^^                    _d_ desktop           _b_ blog         ^^
+   ^^                    _c_ configs           _s_ self study   ^^
+   ^^                    ^^                    ^^               ^^
+  ")
+    ("q" nil)
+    ("e" (lambda () (interactive) (find-file "~/.emacs.d/Emacs.org")))
+    ("d" (lambda () (interactive) (find-file "~/Desktop.org")))
+    ("c" (lambda () (interactive) (find-file "~/README.org")))
+    ("n" (lambda () (interactive) (counsel-find-file "~/Documents/Org/")))
+    ("b" (lambda () (interactive) (counsel-find-file "~/Documents/Blog/")))
+    ("s" (lambda () (interactive) (counsel-find-file "~/Documents/Org/Study"))))
 #+end_src
 *** Git / Hydra
 #+begin_src emacs-lisp
@@ -1221,6 +1223,16 @@ Use spaces instead of tabs
     (mu4e-alert-enable-mode-line-display))
   (run-with-timer 0 60 'gjstein-refresh-mu4e-alert-mode-line))
 #+end_src
+*** PDF Tools
+#+begin_src emacs-lisp
+(use-package pdf-tools
+ :pin manual ;; manually update
+ :config
+ (pdf-tools-install)
+ (setq-default pdf-view-display-size 'fit-page)
+ (setq pdf-annot-activate-created-annotations t)
+ (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward))
+#+end_src
 ** vterm
 #+begin_src emacs-lisp
 (use-package vterm
@@ -1801,6 +1813,14 @@ Dependecies
 
 
 * Custom / Helpers
+** GPG
+#+begin_src emacs-lisp
+  (defun nhe/irc-auth-server-pass (server)
+    (if-let ((secret (plist-get (car (auth-source-search :machine server)) :secret)))
+        (if (functionp secret)
+            (funcall secret) secret)
+      (error "Could not fetch password for host %s" server)))
+#+end_src
 ** Line numbers
 #+begin_src emacs-lisp
 (add-hook 'conf-mode-hook #'display-line-numbers-mode)

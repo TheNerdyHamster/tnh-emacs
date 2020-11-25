@@ -434,8 +434,8 @@
   (concat "\n " (nhe/hydra-heading "Find Files" "Dotfiles" "Notes")
           "
  _q_ quit              _e_ emacs             _n_ notes        ^^
- ^^                    _d_ desktop           _b_ blog               ^^
- ^^                    _c_ configs           ^^               ^^
+ ^^                    _d_ desktop           _b_ blog         ^^
+ ^^                    _c_ configs           _s_ self study   ^^
  ^^                    ^^                    ^^               ^^
 ")
   ("q" nil)
@@ -443,7 +443,8 @@
   ("d" (lambda () (interactive) (find-file "~/Desktop.org")))
   ("c" (lambda () (interactive) (find-file "~/README.org")))
   ("n" (lambda () (interactive) (counsel-find-file "~/Documents/Org/")))
-  ("b" (lambda () (interactive) (counsel-find-file "~/Documents/Blog/"))))
+  ("b" (lambda () (interactive) (counsel-find-file "~/Documents/Blog/")))
+  ("s" (lambda () (interactive) (counsel-find-file "~/Documents/Org/Study"))))
 
 (defhydra hydra-git (:color blue)
   (concat "\n " (nhe/hydra-heading "Git" "Do")
@@ -934,6 +935,14 @@
     (mu4e-alert-enable-mode-line-display))
   (run-with-timer 0 60 'gjstein-refresh-mu4e-alert-mode-line))
 
+(use-package pdf-tools
+ :pin manual ;; manually update
+ :config
+ (pdf-tools-install)
+ (setq-default pdf-view-display-size 'fit-page)
+ (setq pdf-annot-activate-created-annotations t)
+ (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward))
+
 (use-package vterm
   :commands vterm
   :config
@@ -1380,6 +1389,12 @@
   (setq wakatime-api-key nhe/waka-time-token)
   (global-wakatime-mode))
 
+(defun nhe/irc-auth-server-pass (server)
+  (if-let ((secret (plist-get (car (auth-source-search :machine server)) :secret)))
+      (if (functionp secret)
+          (funcall secret) secret)
+    (error "Could not fetch password for host %s" server)))
+
 (add-hook 'conf-mode-hook #'display-line-numbers-mode)
 (add-hook 'prog-mode-hook #'display-line-numbers-mode)
 (add-hook 'text-mode-hook #'display-line-numbers-mode)
@@ -1440,16 +1455,3 @@ Cycle between nil, t and 'relative."
   "Insert the current date, short format with time, eg. 2016.12.09 14:34"
   (interactive)
   (insert (format-time-string "%Y.%m.%d %H:%M")))
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   '(erc-hl-nicks yasnippet-snippets yaml-mode ws-butler which-key web-mode wakatime-mode vterm visual-fill-column use-package undo-tree typescript-mode treemacs-projectile treemacs-magit treemacs-evil treemacs-all-the-icons super-save smex smartparens simple-httpd rjsx-mode restart-emacs rainbow-mode rainbow-delimiters prettier org-mime org-make-toc org-bullets omnisharp oauth2 multiple-cursors mu4e-alert modus-vivendi-theme lsp-ui lsp-ivy kubernetes-evil key-chord js-react-redux-yasnippets js-doc ivy-rich helpful go-mode gitignore-mode gitconfig-mode gitattributes-mode git-gutter-fringe general forge expand-region evil-nerd-commenter evil-magit evil-collection elcord doom-modeline dockerfile-mode docker dashboard dap-mode counsel-projectile company-prescient company-box centaur-tabs)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
