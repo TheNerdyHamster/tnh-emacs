@@ -995,7 +995,10 @@
 
 (use-package go-mode
   :hook (go-mode . lsp-go-install-save-hooks)
-  :mode "\\.go\\'")
+  :mode "\\.go\\'"
+  :config
+  (require 'dap-go)
+  (dap-go-setup))
 
 (use-package csharp-mode
   :hook

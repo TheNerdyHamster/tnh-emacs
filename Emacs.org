@@ -1301,13 +1301,16 @@ Use spaces instead of tabs
 #+end_src
 *** Golang
 #+begin_src emacs-lisp
-(defun lsp-go-install-save-hooks ()
-  (add-hook 'before-save-hook #'lsp-format-buffer t t)
-  (add-hook 'before-save-hook #'lsp-organize-imports t t))
+  (defun lsp-go-install-save-hooks ()
+    (add-hook 'before-save-hook #'lsp-format-buffer t t)
+    (add-hook 'before-save-hook #'lsp-organize-imports t t))
 
-(use-package go-mode
-  :hook (go-mode . lsp-go-install-save-hooks)
-  :mode "\\.go\\'")
+  (use-package go-mode
+    :hook (go-mode . lsp-go-install-save-hooks)
+    :mode "\\.go\\'"
+    :config
+    (require 'dap-go)
+    (dap-go-setup))
 #+end_src
 *** C#
 #+begin_src emacs-lisp
@@ -1810,8 +1813,6 @@ Dependecies
   (global-wakatime-mode))
 #+end_src
  
-
-
 * Custom / Helpers
 ** GPG
 #+begin_src emacs-lisp
