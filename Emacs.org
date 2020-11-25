@@ -1329,6 +1329,17 @@ Use spaces instead of tabs
   :ensure t
   :mode "Dockerfile\\'")  
 #+end_src
+*** MSSQL
+#+begin_src emacs-lisp
+  (use-package lsp-mssql
+    :load-path "~/.emacs.d/github/lsp-mssql"
+    :config
+    (setq lsp-mssql-connections
+          [(:server "localhost"
+                    :database ""
+                    :user "SA"
+                    :password "Strong1Password")]))
+#+end_src
 *** YAML
 #+begin_src emacs-lisp
 (use-package yaml-mode
@@ -1377,23 +1388,24 @@ Use spaces instead of tabs
 | =lsp-treemacs= |
 | =lsp-ivy= |
 #+begin_src emacs-lisp
-(defun he/lsp-mode-setup ()
-  (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
-  (lsp-headerline-breadcrumb-mode))
+  (defun he/lsp-mode-setup ()
+    (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
+    (lsp-headerline-breadcrumb-mode))
 
-(use-package lsp-mode
-  :commands (lsp lsp-deferred)
-  :hook ((lsp-mode . he/lsp-mode-setup)
-        (typescript-mode . lsp-deferred)
-        (js2-mode . lsp-deferred)
-        (rsjx-mode . lsp-deferred)
-        (scss-mode . lsp-deferred)
-        (web-mode . lsp-deferred)
-        (go-mode . lsp-deferred)
-        (csharp-mode . lsp-deferred))
-  :config
-  (setq lsp-completion-provider :capf)
-  (lsp-enable-which-key-integration t))
+  (use-package lsp-mode
+    :commands (lsp lsp-deferred)
+    :hook ((lsp-mode . he/lsp-mode-setup)
+          (typescript-mode . lsp-deferred)
+          (js2-mode . lsp-deferred)
+          (rsjx-mode . lsp-deferred)
+          (scss-mode . lsp-deferred)
+          (web-mode . lsp-deferred)
+          (go-mode . lsp-deferred)
+          (sql-mode . lsp-deferred)
+          (csharp-mode . lsp-deferred))
+    :config
+    (setq lsp-completion-provider :capf)
+    (lsp-enable-which-key-integration t))
 #+end_src
 
 #+begin_src emacs-lisp
