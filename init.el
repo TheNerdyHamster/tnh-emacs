@@ -1016,6 +1016,15 @@
   :ensure t
   :mode "Dockerfile\\'")
 
+(use-package lsp-mssql
+  :load-path "~/.emacs.d/github/lsp-mssql"
+  :config
+  (setq lsp-mssql-connections
+        [(:server "localhost"
+                  :database ""
+                  :user "SA"
+                  :password "Strong1Password")]))
+
 (use-package yaml-mode
   :mode "\\.ya?ml\\'")
 
@@ -1055,6 +1064,7 @@
         (scss-mode . lsp-deferred)
         (web-mode . lsp-deferred)
         (go-mode . lsp-deferred)
+        (sql-mode . lsp-deferred)
         (csharp-mode . lsp-deferred))
   :config
   (setq lsp-completion-provider :capf)

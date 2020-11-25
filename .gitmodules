@@ -4,3 +4,6 @@
 [submodule "github/spotify.el"]
 	path = github/spotify.el
 	url = https://github.com/danielfm/spotify.el
+[submodule "github/lsp-mssql"]
+	path = github/lsp-mssql
+	url = https://github.com/emacs-lsp/lsp-mssql
