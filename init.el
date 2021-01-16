@@ -49,13 +49,7 @@
 
 (add-hook 'focus-out-hook #'garbage-collect)
 
-(defvar nhe/spotify-secret     nil               "Spotify Secret")
-(defvar nhe/spotify-client     nil               "Spotify client id")
 (defvar nhe/waka-time-token    nil               "The Waka time API token to use.")
-(defvar nhe/erc-server         nil               "IRC server address")
-(defvar nhe/erc-port           nil               "IRC server port")
-(defvar nhe/erc-nick           nil               "IRC nick")
-(defvar nhe/erc-password       nil               "IRC server password")
 (defvar nhe/font-family        "Fira Code NF"    "Default font family to use")
 (defvar nhe/font-size-default  100               "The font size to use for default text.")
 (defvar nhe/font-size-large    1.2               "The font size to use for larger text.")
@@ -70,21 +64,20 @@
       auto-save-list-file-prefix (expand-file-name "auto-save-list/.saves-" user-emacs-directory)
       projectile-known-projects-file (expand-file-name "projectile-bookmarks.eld" user-emacs-directory))
 
-(require 'package)
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
 
-(setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                         ("org" . "https://orgmode.org/elpa/")
-                         ("elpa" . "https://elpa.gnu.org/packages/")))
-
-(package-initialize)
-(unless package-archive-contents
-  (package-refresh-contents))
-
-  ;; Initialize use-package on non-Linux platforms
-(unless (package-installed-p 'use-package)
-  (package-install 'use-package))
-
-(require 'use-package)
+(straight-use-package 'use-package)
 (setq use-package-always-ensure t)
 (setq use-package-compute-statistics t)
 
@@ -96,21 +89,14 @@
 (when nhe/exwm-enabled
   (load-file "~/.emacs.d/exwm.el"))
 
-(use-package modus-vivendi-theme
-  :config
-  (load-theme 'modus-vivendi t)
-  :custom
-  (modus-vivendi-theme-bold-constructs nil)
-  (modus-vivendi-theme-slanted-constructs t)
-  (modus-vivendi-theme-syntax 'alt-syntax)
-  (modus-vivendi-theme-no-mixed-fonts t)
-  (modus-vivendi-theme-org-blocks 'greyscale)
-  (modus-vivendi-theme-headings '((t . rainbow)))
-  (modus-vivendi-theme-scale-headings t)
-  :config
-  (set-face-attribute 'default nil :family "FiraCode NF" :height 110))
+(use-package gruvbox-theme
+    :straight t
+    :config
+    (load-theme 'gruvbox t)
+    (set-face-attribute 'default nil :family "FiraCode NF" :height 110))
 
 (use-package all-the-icons
+  :straight t
   :if (display-graphic-p)
   :commands all-the-icons-install-fonts
   :init
@@ -131,6 +117,7 @@
 (set-face-attribute 'variable-pitch nil :font nhe/font-family :height nhe/font-size-small :weight 'regular)
 
 (use-package ligature
+  :disabled
   :load-path "~/.emacs.d/github/ligature"
   :config
   ;; Enable the www ligature in every possible major mode
@@ -151,6 +138,7 @@
   (global-ligature-mode 't))
 
 (use-package doom-modeline
+  :straight t
   :init (doom-modeline-mode 1)
   :custom 
   (doom-modeline-height 15)
@@ -166,6 +154,7 @@
         display-time-default-load-average nil)
 
 (use-package treemacs
+  :straight t
   :config
   (progn
     (setq 
@@ -173,25 +162,30 @@
   (treemacs-git-mode 'deferred))
 
 (use-package treemacs-evil
+  :straight t
   :after treemacs evil)
 
 (use-package treemacs-projectile
+  :straight t
   :after treemacs projectile)
-  
+
 (use-package treemacs-magit
+  :straight t
   :after treemacs magit)
 
 (use-package treemacs-all-the-icons
+  :straight t
   :after treemacs
   :config
   (treemacs-load-theme "all-the-icons"))
 
 (use-package dashboard
+  :straight t
   :ensure t
   :init
   (progn
     (setq dashboard-items '((recents . 10)
-			    (projects . 10)))
+                (projects . 10)))
     (setq dashboard-show-shortcuts nil
           dashboard-banner-logo-title "Welcome to The Nerdy Hamster Emacs"
           dashboard-set-file-icons t
@@ -201,18 +195,19 @@
           dashboard-navigator-buttons
     `(((,(all-the-icons-octicon "mark-github" :height 1.1 :v-adjust 0.0)
               "Github"
-	      "Browse homepage"
+          "Browse homepage"
               (lambda (&rest _) (browse-url "https://github.com/TheNerdyHamster/The-Nerdy-Hamster-Emacs")))
             (,(all-the-icons-faicon "linkedin" :height 1.1 :v-adjust 0.0)
               "Linkedin"
               "My Linkedin"
               (lambda (&rest _) (browse-url "https://www.linkedin.com/in/leo-ronnebro/" error)))
-	  ))))
+      ))))
   :config
   (setq dashboard-center-content t)
   (dashboard-setup-startup-hook))
 
 (use-package which-key
+  :straight t
   :init (which-key-mode)
   :diminish which-key-mode
   :config
@@ -222,6 +217,7 @@
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
 (use-package general
+  :straight t
   :config
   (general-auto-unbind-keys)
   (general-override-mode +1)
@@ -252,7 +248,6 @@
   "."   '(counsel-find-file :wk "find file")
   "SPC" '(counsel-projectile-find-file :wk "find file project")
   "TAB" '(evil-switch-to-windows-last-buffer :wk "switch to previous buffer")
-  "a" '(hydra-applications/body :wk "applications...")
   "b" '(hydra-buffers/body :wk "buffers...")
   "d" '(hydra-dates/body :wk "dates...")
   "f" '(hydra-file/body :wk "file...")
@@ -260,7 +255,6 @@
   "h" '(hydra-help/body :wk "help...")
   "l" '(hydra-lsp/body :wk "lsp...")
   "m" '(nhe/hydra-super :wk "mode...")
-  "M" '(hydra-mail/body :wk "mail...")
   "o" '(hydra-open/body :wk "open...")
   "p" '(hydra-projectile/body :wk "projectile...")
   "q" '(hydra-quit/body :wk "quit...") 
@@ -269,6 +263,7 @@
   "w" '(hydra-window/body :wk "window..."))
 
 (use-package evil
+  :straight t
   :init
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
@@ -291,6 +286,7 @@
   (evil-set-initial-state 'dashboard-mode 'normal))
 
 (use-package evil-collection
+  :straight t
   :after evil
   :config
   (evil-collection-init))
@@ -306,6 +302,7 @@
   "i" '(:ignore t :wk "insert"))
 
 (use-package key-chord
+  :straight t
   :defer t
   :config
   (key-chord-define evil-insert-state-map  "jk" 'evil-normal-state)
@@ -313,6 +310,7 @@
   (key-chord-mode 1))
 
 (use-package hydra
+  :straight t
   :custom 
   (hydra-default-hint nil)
   :config
@@ -321,7 +319,7 @@
     ("j" (text-scale-adjust 0.1) "in")
     ("k" (text-scale-adjust -0.1) "out")
     ("f" nil "finished" :exit t))
-    
+
   (nhe/leader-key
     "t s" '(hydra-text-scale/body :wk "scale text")))
 
@@ -333,7 +331,7 @@
                (propertize (format "%-20s" it) 'face 'shadow))
              headings
              nil))
-             
+
 (defun nhe/hydra-set-super ()
   (when-let* ((suffix "-mode")
               (position (- (length suffix)))
@@ -350,41 +348,6 @@
   (if nhe/hydra-super-body
       (funcall nhe/hydra-super-body)
     (user-error "nhe/hydra-super: nhe/hydra-super-body is not set!")))
-
-(defhydra hydra-applications (:color blue)
-  (concat "\n " (nhe/hydra-heading "Applications" "Misc")
-          "
- _q_ quit              _s_ spotify            ^^        ^^
- ^^                    ^^                     ^^        ^^
- ^^                    ^^                     ^^        ^^
- ^^                    ^^                     ^^        ^^
-")
-  ("q" nil)
-  ("s" hydra-spotify/body))
-
-(defhydra hydra-spotify (:color blue)
-  (concat "\n " (nhe/hydra-heading "Spotify" "Search" "Control" "Manage")
-          "
- _q_ quit              _t_ track             _SPC_ play/pause      _+_ volume up
- ^^                    _m_ my playlists      _n_ next track        _-_ volume down
- ^^                    _f_ feat playlists    _p_ prev track        _x_ mute
- ^^                    _u_ user playlists    _r_ repeat            _d_ device
- ^^                    ^^                    _s_ shuffle           ^^
-")
-  ("q" nil)
-  ("t" spotify-track-search)
-  ("m" spotify-my-playlists)
-  ("f" spotify-featured-playlists)
-  ("u" spotify-user-playlists)
-  ("SPC" spotify-toggle-play :color red)
-  ("n" spotify-next-track :color red)
-  ("p" spotify-previous-track :color red)
-  ("r" spotify-toggle-repeat)
-  ("s" spotify-toggle-shuffle)
-  ("+" spotify-volume-up :color red)
-  ("-" spotify-volume-down :color red)
-  ("x" spotify-volume-mute-unmute :color red)
-  ("d" spotify-select-device :color red))
 
 (defhydra hydra-buffers (:color blue)
   (concat "\n " (nhe/hydra-heading "Buffer" "Manage" "Next/Prev")
@@ -498,23 +461,11 @@
   ("S" lsp-workspace-shutdown)
   ("t" lsp-find-type-definition))
 
-(defhydra hydra-mail (:color blue)
-  (concat "\n " (nhe/hydra-heading "Mail" "Open" "Operations")
-          "
- _q_ quit              _m_ mail              _u_ Index/Update            ^^
- ^^                    _i_ inbox             ^^                          ^^
- ^^                    ^^                    ^^                          ^^
-")
-  ("q" nil)
-  ("m" mu4e)
-  ("i" nhe/mu4e-go-to-inbox)
-  ("u" mu4e-update-mail-and-index))
-
 (defhydra hydra-open (:color blue)
-  (concat "\n " (nhe/hydra-heading "Open" "Management" "Tools")
+  (concat "\n " (nhe/hydra-heading "Open" "Management" "Tools" "Utils")
           "
- _q_ quit              _p_ project sidebar   _d_ docker      ^^
- ^^                    _t_ Terminal          _k_ k8s         ^^
+ _q_ quit              _p_ project sidebar   _d_ docker      _w_ world clock
+ ^^                    _t_ Terminal          ^^              ^^
  ^^                    ^^                    ^^              ^^
  ^^                    ^^                    ^^              ^^
 ")
@@ -522,7 +473,7 @@
   ("p" treemacs)
   ("t" vterm)
   ("d" docker)
-  ("k" kubernetes-overview))
+  ("w" display-time-world))
 
 (defhydra hydra-projectile (:color blue)
   (concat "\n " (nhe/hydra-heading "Projectile" "Do" "Find" "Search")
@@ -638,6 +589,7 @@
   ("F" js-doc-insert-file-doc))
 
 (use-package ivy
+  :straight t
   :diminish
   :bind (("C-s" . swiper)
          :map ivy-minibuffer-map
@@ -656,10 +608,13 @@
   (ivy-mode 1))
 
 (use-package ivy-rich
+  :straight t
+  :after counsel
   :init
   (ivy-rich-mode 1))
 
 (use-package counsel
+  :straight t
   :bind (("C-M-j" . 'counsel-switch-buffer)
          ("M-x" . counsel-M-x)
          ("C-x C-f" . counsel-find-file)
@@ -670,10 +625,12 @@
   (counsel-mode 1)) 
 
 (use-package smex 
+  :straight t
   :defer 1
   :after counsel)
 
 (use-package helpful
+  :straight t
   :custom
   (counsel-describe-function-function #'helpful-callable)
   (counsel-describe-variable-function #'helpful-variable)
@@ -683,9 +640,11 @@
   ([remap describe-variable] . counsel-describe-variable)
   ([remap describe-key] . helpful-key))
 
-(use-package yasnippet-snippets)
+(use-package yasnippet-snippets
+  :straight t)
 
 (use-package yasnippet
+  :straight t
   :ensure t
   :commands yas-minor-mode
   :hook (go-mode . yas-minor-mode))
@@ -696,10 +655,12 @@
 (setq-default indent-tabs-mode nil)
 
 (use-package ws-butler
+  :straight t
   :hook ((text-mode . ws-butler-mode)
          (prog-mode . ws-butler-mode)))
 
 (use-package smartparens
+  :straight t
   :init (smartparens-global-mode 1)
   :config
   (advice-add #'yas-expand :before #'sp-remove-active-pair-overlay))
@@ -709,6 +670,7 @@
 (setq show-paren-style 'expression)
 
 (use-package undo-tree
+  :straight t
   :init (global-undo-tree-mode 1)
   :config
   (defhydra hydra-undo-tree (:timeout 4)
@@ -721,12 +683,14 @@
     "u" '(hydra-undo-tree/body :wk "undo/redo")))
 
 (use-package multiple-cursors
+  :straight t
   :config
   (nhe/leader-key
     "c n" '(mc/mark-next-line-like-this :wk "mc-mark and next")
     "c w" '(mc/mark-prev-line-like-this :wk "mc-mark and prev")))
 
 (use-package super-save
+  :straight t
   :ensure t
   :defer 1
   :diminish super-save-mode
@@ -735,220 +699,43 @@
   (setq super-save-auto-save-when-idle t)
   (setq auto-save-default nil))
 
-(use-package evil-nerd-commenter)
+(use-package evil-nerd-commenter
+  :straight t)
 
-(use-package expand-region)
+(use-package expand-region
+  :straight t)
 
 (use-package rainbow-delimiters
+  :straight t
   :hook (prog-mode . rainbow-delimiters-mode))
 
 (use-package rainbow-mode
+  :straight t
   :config
   (rainbow-mode 1))
 
 (use-package docker
+  :straight t
   :ensure t)
 
-(use-package kubernetes
-  :ensure t
-  :commands (kubernetes-overview))
-
-(use-package kubernetes-evil
-  :ensure t
-  :after kubernetes)
-
-(use-package mu4e
-  :if (eq system-type 'gnu/linux)
-  :ensure nil
-  :config
-  (add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")
-
-  (require 'org-mu4e)
-  (setq mail-user-agent 'mu4e-user-agent)
-
-  ;; Refresh mail with isync every 5 min.
-  (setq mu4e-update-interval (* 5 60))
-  (setq mu4e-get-mail-command "mbsync -c ~/.emacs.d/mu4e/.mbsyncrc -a")
-  (setq mu4e-maildir (expand-file-name "~/.maildir"))
-
-    ;; Email account contexts
-    (setq mu4e-contexts
-        `(,(make-mu4e-context
-              :name "Personal"
-              :match-func (lambda (msg) (when msg
-                                          (string-prefix-p "/Hamsterapps/Personal" (mu4e-message-field msg maildir))))
-              :vars '(
-                      (user-full-name . "Leo Rönnebro")
-                      (user-mail-address . "leo.ronnebro@hamsterapps.net")
-                      (mu4e-sent-folder . "/Hamsterapps/Personal/Sent")
-                      (mu4e-trash-folder . "/Hamsterapps/Personal/Trash")
-                      (mu4e-drafts-folder . "/Hamsterapps/Personal/Drafts")
-                      (mu4e-refile-folder . "/Hamsterapps/Personal/Archive")
-                      (mu4e-sent-messages-behavior . sent)
-                     ))
-            ;; ,(make-mu4e-context
-            ;;   :name "Personal"
-            ;;   :match-func (lambda (msg) (when msg
-            ;;                               (string-prefix-p "/Hamsterapps/Personal" (mu4e-message-field msg maildir))))
-            ;;   :vars '(
-            ;;           (user-full-name . "Leo Rönnebro")
-            ;;           (user-mail-address . "leo.ronnebro@hamsterapps.net")
-            ;;           (mu4e-sent-folder . "/Hamsterapps/Personal/Sent")
-            ;;           (mu4e-trash-folder . "/Hamsterapps/Personal/Trash")
-            ;;           (mu4e-drafts-folder . "/Hamsterapps/Personal/Drafts")
-            ;;           (mu4e-refile-folder . "/Hamsterapps/Personal/Archive")
-            ;;           (mu4e-sent-messages-behavior . sent)
-            ;;          ))
-           ))
-
-    (setq mu4e-context-policy 'pick-first)
-
-    (defun remove-nth-element (nth list)
-      (if (zerop nth) (cdr list)
-        (let ((last (nthcdr (1- nth) list)))
-          (setcdr last (cddr last))
-          list)))
-
-    (setq mu4e-marks (remove-nth-element 5 mu4e-marks))
-    (add-to-list 'mu4e-marks
-         '(trash
-           :char ("d" . "▼")
-           :prompt "dtrash"
-           :dyn-target (lambda (target msg) (mu4e-get-trash-folder msg))
-           :action (lambda (docid msg target)
-                     (mu4e~proc-move docid
-                        (mu4e~mark-check-target target) "-N"))))
-
-     ;; Mu4e Display options
-    (setq mu4e-view-show-images t
-          mu4e-view-show-addresses 't)
-
-     ;; mu4e prefer html, and change the luminace of the html preview
-    (setq mu4e-view-prefer-html t
-           shr-color-visible-luminance-min 80)
-
-    (defun nhe/mu4e-html2text (msg)
-       "My html2text function; shows short message inline, show
-       long messages in some external browser (see `browse-url-generic-program')."
-      (let ((html (or (mu4e-message-field msg :body-html) "")))
-        (if (> (length html) 20000)
-          (progn
-            (mu4e-action-view-in-browser msg)
-            "[Viewing message in external browser]")
-          (mu4e-shr2text msg))))
-
-    (setq mu4e-html2text-command 'nhe/mu4e-html2text)
-
-
-    (defun nhe/enabled-custom-compose-settings ()
-      "Custom settings for message composition with mu4e"
-      (set-fill-column 72)
-      (flyspell-mode))
-
-    (add-hook 'mu4e-compose-mode-hook 'nhe/enabled-custom-compose-settings)
-
-    (add-hook 'mu4e-view-mode-hook
-      (lambda ()
-        (local-set-key (kbd "<tab>") 'shr-next-link)
-        (local-set-key (kbd "<backtab>") 'shr-previous-link)))
-
-     ;; Use imagemagick if it is aviable
-     (when (fboundp 'imagemagick-register-types)
-       (imagemagick-register-types))
-
-     ;; Composing mail
-     (setq mu4e-compose-dont-reply-to-self t)
-
-     ;; Sending mail
-     (setq message-send-mail-function 'smtpmail-send-it
-           smtpmail-smtp-server "smtp.fastmail.com"
-           smtpmail-smtp-service 465
-           smtpmail-stream-type 'ssl)
-
-     ;; Signing messages with gpg key
-     (setq mml-secure-openpgp-signers '("5721050E1BA6130F98380CE9EDE08F17D532268D"))
-
-     (setq mu4e-maildir-shortcuts
-           '(("/hamsterapps/Personal/INBOX"    . ?i)
-             ("/hamsterapps/Personal/Sent"     . ?s)
-             ("/hamsterapps/Personal/Drafts"   . ?d)
-             ("/hamsterapps/Personal/Trash"    . ?t)
-             ("/hamsterapps/Personal/All Mail" . ?a)))
-
-    (add-to-list 'mu4e-bookmarks
-                 (make-mu4e-bookmark
-                  :name "All Inboxes"
-                  :query "maildir:/Hamsterapps/Personal/INBOX"
-                  :key ?i))
-
-    ;; Kill mu4e buffers on leave
-    (setq message-kill-buffer-on-exit t)
-
-    ;; Set custom attachements download directory
-    (setq mu4e-attachment-dir "~/Documents/Attachments")
-
-    ;; Confirmation when quiting mu4e feels kinda overkill
-    (setq mu4e-confirm-quit nil)
-    (setq nhe/mu4e-inbox-query
-          "(maildir:/Hamsterapps/Personal/Inbox) AND flag:unread")
-
-    (add-to-list 'mu4e-header-info-custom
-      '(:full-mailing-list
-          ( :name "Mailing-list"
-            :shortname "ML"
-            :help "Full name for mailing list"
-            :function (lambda (msg)
-                (or (mu4e-message-field msg :mailing-list) "")))))
-
-    (defun nhe/mu4e-go-to-inbox ()
-      (interactive)
-      (mu4e-headers-search nhe/mu4e-inbox-query))
-
-    (run-at-time "15 sec" nil
-                 (lambda ()
-                   (let ((current-prefix-arg '(4)))
-                     (call-interactively 'mu4e)))))
-
-(nhe/leader-key
-  "m" '(:ignore t :wk "mail")
-  "mm" '(mu4e :wk "launch mail")
-  "mi" '(nhe/mu4e-go-to-inbox :wk "goto inbox")
-  "mu" '(mu4e-update-mail-and-index :wk "index mail"))
-
-(use-package mu4e-alert
-  :ensure t
-  :after mu4e
-  :hook ((after-init . mu4e-alert-enable-mode-line-display)
-         (after-init . mu4e-alert-enable-notifications))
-  :config (mu4e-alert-set-default-style 'libnotify)
-  :init
-  (setq mu4e-alert-interesting-mail-query
-    (concat
-     "flag:unread maildir:/Hamsterapps/Personal/INBOX"
-     ;;"OR"
-     ;;"mail"
-    ))
-  (mu4e-alert-enable-mode-line-display)
-  (defun gjstein-refresh-mu4e-alert-mode-line ()
-    (interactive)
-    (mu4e~proc-kill)
-    (mu4e-alert-enable-mode-line-display))
-  (run-with-timer 0 60 'gjstein-refresh-mu4e-alert-mode-line))
-
 (use-package pdf-tools
- :pin manual ;; manually update
- :config
- (pdf-tools-install)
- (setq-default pdf-view-display-size 'fit-page)
- (setq pdf-annot-activate-created-annotations t)
- (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward))
+  :straight t
+  :pin manual ;; manually update
+  :config
+  (pdf-tools-install)
+  (setq-default pdf-view-display-size 'fit-page)
+  (setq pdf-annot-activate-created-annotations t)
+  (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward))
 
 (use-package vterm
+  :straight t
   :commands vterm
   :config
   (setq vterm-max-scrollback 10000))
 
 (use-package typescript-mode
+  :straight t
+  :after dap-mode
   :mode "\\.ts\\'"
   :config
   (setq typescript-indent-level 2)
@@ -956,16 +743,19 @@
   (dap-node-setup))
 
 (use-package js2-mode
+  :straight t
   :mode "\\/.*\\.js\\'"
   :config
   (setq js-indent-level 2)
   :hook (js-mode . yas-minor-mode))
 
 (use-package rjsx-mode
+  :straight t
   :hook (rjsx-mode . nhe/hydra-set-super)
   :mode "components\\/.*\\.js\\'")
 
 (use-package js-doc
+  :straight t
   :after js2-mode
   :config
   (nhe/local-leader-key
@@ -974,6 +764,7 @@
     "d f" '(js-doc-insert-function-doc :wk "jsdoc function")))
 
 (use-package js-react-redux-yasnippets
+  :straight t
   :after (yasnippet js2-mode)
   :config
   (nhe/local-leader-key
@@ -981,69 +772,44 @@
     "i s" '(yas-insert-snippet :which-key "insert snippet")))
 
 (use-package prettier
+  :straight t
   :after js2-mode
   :config
   (nhe/local-leader-key
     :keymaps '(js2-mode-map rsjx-mode)
     "= =" '(prettier-prettify :which-key "format with prettier")))
 
-(use-package web-mode)
+(use-package web-mode
+  :straight t)
 
 (defun lsp-go-install-save-hooks ()
   (add-hook 'before-save-hook #'lsp-format-buffer t t)
   (add-hook 'before-save-hook #'lsp-organize-imports t t))
 
 (use-package go-mode
+  :straight t
+  :after dap-mode
   :hook (go-mode . lsp-go-install-save-hooks)
   :mode "\\.go\\'"
   :config
   (require 'dap-go)
   (dap-go-setup))
 
-(use-package csharp-mode
-  :hook
-  (csharp-mode . rainbow-delimiters-mode)
-  (csharp-mode . company-mode)
-  (csharp-mode . flycheck-mode)
-  (csharp-mode . omnisharp-mode)
-)
-
-(use-package omnisharp
-  :after csharp-mode company
-  :commands omnisharp-install-server
-  :config
-  (setq indent-tabs-mode nil
-        c-syntactic-indentation t
-        c-basic-offset 2
-        tab-width 2
-        evil-shift-width 2)
-  (nhe/leader-key
-    "o" '(:ignore o :which-key "omnisharp")
-    "o r" '(omnisharp-run-code-action-refactoring :which-key "omnisharp refactor")
-    "o b" '(recompile :which-key "omnisharp build/recompile")
-    )
-  (add-to-list 'company-backends 'company-omnisharp))
-
 (use-package dockerfile-mode
+  :straight t
   :ensure t
   :mode "Dockerfile\\'")
 
-(use-package lsp-mssql
-  :load-path "~/.emacs.d/github/lsp-mssql"
-  :config
-  (setq lsp-mssql-connections
-        [(:server "localhost"
-                  :database ""
-                  :user "SA"
-                  :password "Strong1Password")]))
-
 (use-package yaml-mode
+  :straight t
   :mode "\\.ya?ml\\'")
 
 (use-package json-mode
+  :straight t
   :mode "\\.json\\'")
 
 (use-package company
+  :straight t
   :after lsp-mode
   :hook (lsp-mode . company-mode)
   :bind (:map company-active-map
@@ -1058,9 +824,11 @@
   (setq company-auto-commit t))
 
 (use-package company-prescient
+  :straight t
   :init (company-prescient-mode 1))
 
 (use-package company-box
+  :straight t
   :hook (company-mode . company-box-mode))
 
 (defun he/lsp-mode-setup ()
@@ -1068,6 +836,7 @@
   (lsp-headerline-breadcrumb-mode))
 
 (use-package lsp-mode
+  :straight t
   :commands (lsp lsp-deferred)
   :hook ((lsp-mode . he/lsp-mode-setup)
         (typescript-mode . lsp-deferred)
@@ -1075,46 +844,55 @@
         (rsjx-mode . lsp-deferred)
         (scss-mode . lsp-deferred)
         (web-mode . lsp-deferred)
-        (go-mode . lsp-deferred)
-        (sql-mode . lsp-deferred)
-        (csharp-mode . lsp-deferred))
+        (go-mode . lsp-deferred))
   :config
   (setq lsp-completion-provider :capf)
   (lsp-enable-which-key-integration t))
 
 (use-package lsp-ui
+  :straight t
   :hook (lsp-mode . lsp-ui-mode))
 
 (use-package lsp-treemacs
+  :straight t
   :after lsp)
 
-(use-package lsp-ivy)
+(use-package lsp-ivy
+  :straight t)
 
-(use-package dap-mode)
+(use-package dap-mode
+  :straight t)
 
 (use-package flycheck
+  :straight t
   :hook (after-init-hook . global-flycheck-mode))
 
 (use-package projectile
+  :straight t
   :diminish projectile-mode
   :config (projectile-mode)
   :custom ((projectile-completion-system 'ivy))
   :init
-  (when (file-directory-p "~/code")
-    (setq projectile-project-search-path '("~/code")))
+  (when (file-directory-p "~/Rrojects")
+    (setq projectile-project-search-path '("~/Projects")))
   (setq projectile-switch-project-action #'projectile-dired))
 
 (use-package counsel-projectile
+  :straight t
   :config (counsel-projectile-mode))
 
 (use-package magit
+  :straight t
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
 (use-package evil-magit
+  :disabled t
+  :straight t
   :after magit)
 
 (use-package git-gutter-fringe
+  :straight t
   :preface
   (defun nhe/git-gutter-enable ()
     (when-let* ((buffer (buffer-file-name))
@@ -1129,11 +907,15 @@
   (define-fringe-bitmap 'git-gutter-fr:deleted [192] nil nil '(center t))
   (define-fringe-bitmap 'git-gutter-fr:modified [192] nil nil '(center t)))
 
-(use-package gitattributes-mode)
-(use-package gitconfig-mode)
-(use-package gitignore-mode)
+(use-package gitattributes-mode
+  :straight t)
+(use-package gitconfig-mode
+  :straight t)
+(use-package gitignore-mode
+  :straight t)
 
 (use-package git-commit
+  :straight t
   :hook
   (git-commit-mode . (lambda () (setq-local fill-column 72)))
   :custom
@@ -1142,7 +924,8 @@
 ;; NOTE: Make sure to configure a GitHub token before using this package!
 ;; - https://magit.vc/manual/forge/Token-Creation.html#Token-Creation
 ;; - https://magit.vc/manual/ghub/Getting-Started.html#Getting-Started
-(use-package forge)
+(use-package forge
+  :straight t)
 
 (defun he/org-font-setup ()
 ;; Replace list hyphen with dot
@@ -1300,6 +1083,7 @@
   (he/org-font-setup))
 
 (use-package org-bullets
+  :straight t
   :after org
   :hook (org-mode . org-bullets-mode)
   :custom
@@ -1311,6 +1095,7 @@
   (visual-fill-column-mode 1))
 
 (use-package visual-fill-column
+  :straight t
   :hook (org-mode . he/org-mode-visual-fill))
 
 (org-babel-do-load-languages
@@ -1335,68 +1120,34 @@
                                               'run-at-end 'only-in-org-mode)))
 
 (use-package org-make-toc
+  :straight t
   :hook (org-mode . org-make-toc-mode))
 
-(use-package org-mime)
+(use-package org-mime
+  :straight t)
 
-(use-package restart-emacs)
+(use-package restart-emacs
+  :straight t)
 
-(use-package erc
-  :ensure nil
-  :hook (erc-mode . (lambda () (setq-local scroll-margin 0)))
-  :custom
-  (erc-autojoin-channels-alist '(("freenode.net" "#emacs")))
-  (erc-fill-function 'erc-fill-static)
-  (erc-fill-static-center 20)
-  (erc-header-line-format nil)
-  (erc-insert-timestamp-function 'erc-insert-timestamp-left)
-  (erc-lurker-hide-list '("JOIN" "PART" "QUIT"))
-  (erc-prompt (format "%19s" ">"))
-  (erc-timestamp-format nil)
-  :config
-  (erc-scrolltobottom-enable))
-
-(defun nhe/erc ()
-  "Connect to `nhe/erc-server' on `nhe/erc-port' as `nhe/erc-nick' with `nhe/erc-password'."
-  (interactive)
-  (erc :server nhe/erc-server
-       :port nhe/erc-port
-       :nick nhe/erc-nick
-       :password nhe/erc-password))
-
-(defun nhe/erc-bol-shifted ()
-  "See `erc-bol'. Support shift."
-  (interactive "^")
-  (erc-bol))
-
-(use-package erc-hl-nicks)
-
-(use-package simple-httpd)
-
-(use-package oauth2)
-
-(use-package spotify
-  :load-path "~/.emacs.d/github/spotify.el"
-  :config
-  (setq spotify-oauth2-client-secret nhe/spotify-secret
-        spotify-oauth2-client-id nhe/spotify-client
-        spotify-transport 'connect))
+(setq display-time-world-list
+  '(("America/Los_Angeles" "Seattle")
+    ("America/New_York" "New York")
+    ("Europe/Stockholm" "Stockholm")
+    ("Pacific/Auckland" "Auckland")
+    ("Asia/Shanghai" "Shanghai")))
+(setq display-time-world-time-format "%a, %d %b %I:%M %p %Z")
 
 (use-package elcord
+  :straight t
   :config
   (elcord-mode 1))
 
 (use-package wakatime-mode 
+  :straight t
   :defer 2
   :config
   (setq wakatime-api-key nhe/waka-time-token)
   (global-wakatime-mode))
-
-(defun nhe/irc-auth-server-pass (server)
-  (if-let ((secret (plist-get (car (auth-source-search :machine server)) :secret)))
-      (if (functionp secret)
-          (funcall secret) secret)
-    (error "Could not fetch password for host %s" server)))
 
 (add-hook 'conf-mode-hook #'display-line-numbers-mode)
 (add-hook 'prog-mode-hook #'display-line-numbers-mode)
