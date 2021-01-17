@@ -15,7 +15,6 @@
   - [[#keep-emacsd-clean][Keep .emacs.d clean]]
   - [[#package-configuration-system][Package configuration system]]
   - [[#server-mode][Server mode]]
-  - [[#desktop-enviorment---exwm][Desktop enviorment - EXWM]]
 - [[#gui][GUI]]
   - [[#theme][Theme]]
   - [[#icons][Icons]]
@@ -26,11 +25,8 @@
   - [[#navigation--keybindings][Navigation / Keybindings]]
   - [[#completion][Completion]]
   - [[#editor][Editor]]
-  - [[#buffers--windows][Buffers & Windows]]
   - [[#integrations][Integrations]]
-  - [[#vterm][vterm]]
 - [[#development][Development]]
-  - [[#languages][Languages]]
   - [[#features][Features]]
   - [[#version-control][Version control]]
 - [[#org-mode][Org Mode]]
@@ -173,17 +169,6 @@ The =use-package= macro allows you to isolate package configuration in your =.em
 It is possible to use emacs with server mode, which gives you some powerful features such as information for =Polybar= 
 #+begin_src emacs-lisp
   (server-start)
-#+end_src
-
-** Desktop enviorment - =EXWM=
-It is possible to use =Emacs= as a Window manager with =EXWM=.
-To start =EXWM= you will need to get =~/.emacs.d/exwm.el= and then run =emacs --use-exwm=
-#+begin_src emacs-lisp
-  (setq nhe/exwm-enabled (and (eq window-system 'x)
-                             (seq-contains command-line-args "--use-exwm")))
-
-  (when nhe/exwm-enabled
-    (load-file "~/.emacs.d/exwm.el"))
 #+end_src
 
 
@@ -629,41 +614,18 @@ A convinent way of shorten keyboard commands.
     ("b" counsel-descbinds)
     ("v" describe-variable))
 #+end_src
-*** LSP / Hydra
-#+begin_src emacs-lisp
-  (defhydra hydra-lsp (:color blue)
-    (concat "\n " (nhe/hydra-heading "LSP" "Do" "Find" "Server")
-            "
-   _q_ quit              _i_ imenu             _f_ definition        _d_ describe
-   ^^                    _F_ format            _r_ references        _R_ restart
-   ^^                    _r_ rename            _t_ types             _S_ shutdown
-   ^^                    ^^                    ^^                    ^^
-  ")
-    ("q" nil)
-    ("d" lsp-describe-session)
-    ("f" lsp-find-definition)
-    ("F" lsp-format-buffer)
-    ("r" lsp-rename)
-    ("i" lsp-ui-imenu)
-    ("r" lsp-find-references)
-    ("R" lsp-workspace-restart)
-    ("S" lsp-workspace-shutdown)
-    ("t" lsp-find-type-definition))
-#+end_src
 *** Open / Hydra
 #+begin_src emacs-lisp
   (defhydra hydra-open (:color blue)
-    (concat "\n " (nhe/hydra-heading "Open" "Management" "Tools" "Utils")
+    (concat "\n " (nhe/hydra-heading "Open" "Management" "Tools")
             "
-   _q_ quit              _p_ project sidebar   _d_ docker      _w_ world clock
-   ^^                    _t_ Terminal          ^^              ^^
+   _q_ quit              _p_ project sidebar   _w_ world clock ^^
+   ^^                    ^^                    ^^              ^^
    ^^                    ^^                    ^^              ^^
    ^^                    ^^                    ^^              ^^
   ")
     ("q" nil)
     ("p" treemacs)
-    ("t" vterm)
-    ("d" docker)
     ("w" display-time-world))
 #+end_src
 *** Projectile / Hydra
@@ -712,14 +674,16 @@ A convinent way of shorten keyboard commands.
     (concat "\n " (nhe/hydra-heading "Search" "Buffer" "Project")
             "
    _q_ quit        _s_ search buffer      _p_ search project   ^^
-   ^^              ^^                     ^^                   ^^
+   ^^              _r_ replace buffer     _R_ replace project  ^^
    ^^              ^^                     ^^                   ^^
    ^^              ^^                     ^^                   ^^
    ^^              ^^                     ^^                   ^^
   ")
     ("q" nil)
     ("s" swiper)
-    ("p" counsel-projectile-rg))
+    ("p" counsel-projectile-rg)
+    ("r" query-replace)
+    ("R" projectile-replace-regexp))
 #+end_src
 *** Toggle / Hydra
 #+begin_src emacs-lisp
@@ -781,18 +745,6 @@ A convinent way of shorten keyboard commands.
     ("p" org-previous-link)
     ("s" org-store-link)
     ("v" org-overview :color blue))
-#+end_src
-**** RJSX
-#+begin_src emacs-lisp
-  (defhydra hydra-rjsx (:color blue)
-    (concat "\n " (nhe/hydra-heading "RJSX" "JSDoc")
-            "
-   _q_ quit              _f_ function          ^^                    ^^
-   ^^                    _F_ file              ^^                    ^^
-  ")
-    ("q" nil)
-    ("f" js-doc-insert-function-doc-snippet)
-    ("F" js-doc-insert-file-doc))
 #+end_src
 ** Completion
 *** Ivy
@@ -895,7 +847,6 @@ Use spaces instead of tabs
     :hook ((text-mode . ws-butler-mode)
            (prog-mode . ws-butler-mode)))
 #+end_src
-*** Styling
 *** Smart parens
 #+begin_src emacs-lisp
   (use-package smartparens
@@ -924,15 +875,6 @@ Use spaces instead of tabs
 
     (nhe/leader-key
       "u" '(hydra-undo-tree/body :wk "undo/redo")))
-#+end_src
-*** Multiple cursors
-#+begin_src emacs-lisp
-  (use-package multiple-cursors
-    :straight t
-    :config
-    (nhe/leader-key
-      "c n" '(mc/mark-next-line-like-this :wk "mc-mark and next")
-      "c w" '(mc/mark-prev-line-like-this :wk "mc-mark and prev")))
 #+end_src
 *** Super auto save
 #+begin_src emacs-lisp
@@ -973,19 +915,7 @@ Use spaces instead of tabs
     :config
     (rainbow-mode 1))
 #+end_src
-** Buffers & Windows
-*** Windows
-*** Buffers
-*** Navigation
-
 ** Integrations
-*** Docker
-| =docker= ||
-#+begin_src emacs-lisp
-  (use-package docker
-    :straight t
-    :ensure t)
-#+end_src
 *** PDF Tools
 #+begin_src emacs-lisp
   (use-package pdf-tools
@@ -997,117 +927,9 @@ Use spaces instead of tabs
     (setq pdf-annot-activate-created-annotations t)
     (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward))
 #+end_src
-** vterm
-#+begin_src emacs-lisp
-  (use-package vterm
-    :straight t
-    :commands vterm
-    :config
-    (setq vterm-max-scrollback 10000))
-#+end_src
 
 
 * Development
-** Languages
-*** Typescript
-#+begin_src emacs-lisp
-  (use-package typescript-mode
-    :straight t
-    :after dap-mode
-    :mode "\\.ts\\'"
-    :config
-    (setq typescript-indent-level 2)
-    (require 'dap-node)
-    (dap-node-setup))
-#+end_src
-*** Javascript
-#+begin_src emacs-lisp
-  (use-package js2-mode
-    :straight t
-    :mode "\\/.*\\.js\\'"
-    :config
-    (setq js-indent-level 2)
-    :hook (js-mode . yas-minor-mode))
-#+end_src
-**** JSX
-#+begin_src emacs-lisp
-  (use-package rjsx-mode
-    :straight t
-    :hook (rjsx-mode . nhe/hydra-set-super)
-    :mode "components\\/.*\\.js\\'")
-#+end_src
-**** Documentation
-#+begin_src emacs-lisp
-  (use-package js-doc
-    :straight t
-    :after js2-mode
-    :config
-    (nhe/local-leader-key
-      :keymaps '(js2-mode rsjx-mode)
-      "d" '(:ignore t :which-key "jsdoc")
-      "d f" '(js-doc-insert-function-doc :wk "jsdoc function")))
-#+end_src
-**** Snippets
-#+begin_src emacs-lisp
-  (use-package js-react-redux-yasnippets
-    :straight t
-    :after (yasnippet js2-mode)
-    :config
-    (nhe/local-leader-key
-      :keymaps '(js2-mode-map rsjx-mode)
-      "i s" '(yas-insert-snippet :which-key "insert snippet")))
-#+end_src
-**** Prettier
-#+begin_src emacs-lisp
-  (use-package prettier
-    :straight t
-    :after js2-mode
-    :config
-    (nhe/local-leader-key
-      :keymaps '(js2-mode-map rsjx-mode)
-      "= =" '(prettier-prettify :which-key "format with prettier")))
-#+end_src
-*** Web
-#+begin_src emacs-lisp
-  (use-package web-mode
-    :straight t)
-#+end_src
-*** Golang
-#+begin_src emacs-lisp
-  (defun lsp-go-install-save-hooks ()
-    (add-hook 'before-save-hook #'lsp-format-buffer t t)
-    (add-hook 'before-save-hook #'lsp-organize-imports t t))
-
-  (use-package go-mode
-    :straight t
-    :after dap-mode
-    :hook (go-mode . lsp-go-install-save-hooks)
-    :mode "\\.go\\'"
-    :config
-    (require 'dap-go)
-    (dap-go-setup))
-#+end_src
-*** Dockerfile
-#+begin_src emacs-lisp
-  (use-package dockerfile-mode
-    :straight t
-    :ensure t
-    :mode "Dockerfile\\'")  
-#+end_src
-*** YAML
-#+begin_src emacs-lisp
-  (use-package yaml-mode
-    :straight t
-    :mode "\\.ya?ml\\'")
-#+end_src
-*** JSON
-| =json-mode= | |
-#+begin_src emacs-lisp
-  (use-package json-mode
-    :straight t
-    :mode "\\.json\\'")
-#+end_src
-
 ** Features
 *** Company Mode
 | =company= |
@@ -1140,53 +962,6 @@ Use spaces instead of tabs
   (use-package company-box
     :straight t
     :hook (company-mode . company-box-mode))
-#+end_src
-*** LSP
-| =lsp-mode= |
-| =lsp-ui= |
-| =lsp-treemacs= |
-| =lsp-ivy= |
-#+begin_src emacs-lisp
-  (defun he/lsp-mode-setup ()
-    (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
-    (lsp-headerline-breadcrumb-mode))
-
-  (use-package lsp-mode
-    :straight t
-    :commands (lsp lsp-deferred)
-    :hook ((lsp-mode . he/lsp-mode-setup)
-          (typescript-mode . lsp-deferred)
-          (js2-mode . lsp-deferred)
-          (rsjx-mode . lsp-deferred)
-          (scss-mode . lsp-deferred)
-          (web-mode . lsp-deferred)
-          (go-mode . lsp-deferred))
-    :config
-    (setq lsp-completion-provider :capf)
-    (lsp-enable-which-key-integration t))
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package lsp-ui
-    :straight t
-    :hook (lsp-mode . lsp-ui-mode))
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package lsp-treemacs
-    :straight t
-    :after lsp)
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package lsp-ivy
-    :straight t)
-#+end_src
-*** Debugging =dap=
-| =dap-mode= |
-#+begin_src emacs-lisp
-  (use-package dap-mode
-    :straight t)
 #+end_src
 *** Flycheck
 | =flycheck= |
@@ -1269,16 +1044,6 @@ Use spaces instead of tabs
     :custom
     (git-commit-summary-max-length 50))
 #+end_src
-*** TODO Forge
-| =forge= | |
-#+begin_src emacs-lisp
-  ;; NOTE: Make sure to configure a GitHub token before using this package!
-  ;; - https://magit.vc/manual/forge/Token-Creation.html#Token-Creation
-  ;; - https://magit.vc/manual/ghub/Getting-Started.html#Getting-Started
-  (use-package forge
-    :straight t)
-#+end_src
-
 
 
 * Org Mode
@@ -1503,7 +1268,6 @@ Use spaces instead of tabs
 
 * Applications
 ** Emacs
-*** Dired
 *** Restart emacs
 #+begin_src emacs-lisp
   (use-package restart-emacs
