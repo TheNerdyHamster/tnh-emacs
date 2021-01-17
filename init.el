@@ -83,12 +83,6 @@
 
 (server-start)
 
-(setq nhe/exwm-enabled (and (eq window-system 'x)
-                           (seq-contains command-line-args "--use-exwm")))
-
-(when nhe/exwm-enabled
-  (load-file "~/.emacs.d/exwm.el"))
-
 (use-package gruvbox-theme
     :straight t
     :config
@@ -442,37 +436,16 @@
   ("b" counsel-descbinds)
   ("v" describe-variable))
 
-(defhydra hydra-lsp (:color blue)
-  (concat "\n " (nhe/hydra-heading "LSP" "Do" "Find" "Server")
-          "
- _q_ quit              _i_ imenu             _f_ definition        _d_ describe
- ^^                    _F_ format            _r_ references        _R_ restart
- ^^                    _r_ rename            _t_ types             _S_ shutdown
- ^^                    ^^                    ^^                    ^^
-")
-  ("q" nil)
-  ("d" lsp-describe-session)
-  ("f" lsp-find-definition)
-  ("F" lsp-format-buffer)
-  ("r" lsp-rename)
-  ("i" lsp-ui-imenu)
-  ("r" lsp-find-references)
-  ("R" lsp-workspace-restart)
-  ("S" lsp-workspace-shutdown)
-  ("t" lsp-find-type-definition))
-
 (defhydra hydra-open (:color blue)
-  (concat "\n " (nhe/hydra-heading "Open" "Management" "Tools" "Utils")
+  (concat "\n " (nhe/hydra-heading "Open" "Management" "Tools")
           "
- _q_ quit              _p_ project sidebar   _d_ docker      _w_ world clock
- ^^                    _t_ Terminal          ^^              ^^
+ _q_ quit              _p_ project sidebar   _w_ world clock ^^
+ ^^                    ^^                    ^^              ^^
  ^^                    ^^                    ^^              ^^
  ^^                    ^^                    ^^              ^^
 ")
   ("q" nil)
   ("p" treemacs)
-  ("t" vterm)
-  ("d" docker)
   ("w" display-time-world))
 
 (defhydra hydra-projectile (:color blue)
@@ -515,14 +488,16 @@
   (concat "\n " (nhe/hydra-heading "Search" "Buffer" "Project")
           "
  _q_ quit        _s_ search buffer      _p_ search project   ^^
- ^^              ^^                     ^^                   ^^
+ ^^              _r_ replace buffer     _R_ replace project  ^^
  ^^              ^^                     ^^                   ^^
  ^^              ^^                     ^^                   ^^
  ^^              ^^                     ^^                   ^^
 ")
   ("q" nil)
   ("s" swiper)
-  ("p" counsel-projectile-rg))
+  ("p" counsel-projectile-rg)
+  ("r" query-replace)
+  ("R" projectile-replace-regexp))
 
 (defhydra hydra-toggle (:color blue)
   (concat "\n " (nhe/hydra-heading "Toggle" "UI" "Line numbers")
@@ -577,16 +552,6 @@
   ("p" org-previous-link)
   ("s" org-store-link)
   ("v" org-overview :color blue))
-
-(defhydra hydra-rjsx (:color blue)
-  (concat "\n " (nhe/hydra-heading "RJSX" "JSDoc")
-          "
- _q_ quit              _f_ function          ^^                    ^^
- ^^                    _F_ file              ^^                    ^^
-")
-  ("q" nil)
-  ("f" js-doc-insert-function-doc-snippet)
-  ("F" js-doc-insert-file-doc))
 
 (use-package ivy
   :straight t
@@ -682,13 +647,6 @@
   (nhe/leader-key
     "u" '(hydra-undo-tree/body :wk "undo/redo")))
 
-(use-package multiple-cursors
-  :straight t
-  :config
-  (nhe/leader-key
-    "c n" '(mc/mark-next-line-like-this :wk "mc-mark and next")
-    "c w" '(mc/mark-prev-line-like-this :wk "mc-mark and prev")))
-
 (use-package super-save
   :straight t
   :ensure t
@@ -714,10 +672,6 @@
   :config
   (rainbow-mode 1))
 
-(use-package docker
-  :straight t
-  :ensure t)
-
 (use-package pdf-tools
   :straight t
   :pin manual ;; manually update
@@ -726,87 +680,6 @@
   (setq-default pdf-view-display-size 'fit-page)
   (setq pdf-annot-activate-created-annotations t)
   (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward))
-
-(use-package vterm
-  :straight t
-  :commands vterm
-  :config
-  (setq vterm-max-scrollback 10000))
-
-(use-package typescript-mode
-  :straight t
-  :after dap-mode
-  :mode "\\.ts\\'"
-  :config
-  (setq typescript-indent-level 2)
-  (require 'dap-node)
-  (dap-node-setup))
-
-(use-package js2-mode
-  :straight t
-  :mode "\\/.*\\.js\\'"
-  :config
-  (setq js-indent-level 2)
-  :hook (js-mode . yas-minor-mode))
-
-(use-package rjsx-mode
-  :straight t
-  :hook (rjsx-mode . nhe/hydra-set-super)
-  :mode "components\\/.*\\.js\\'")
-
-(use-package js-doc
-  :straight t
-  :after js2-mode
-  :config
-  (nhe/local-leader-key
-    :keymaps '(js2-mode rsjx-mode)
-    "d" '(:ignore t :which-key "jsdoc")
-    "d f" '(js-doc-insert-function-doc :wk "jsdoc function")))
-
-(use-package js-react-redux-yasnippets
-  :straight t
-  :after (yasnippet js2-mode)
-  :config
-  (nhe/local-leader-key
-    :keymaps '(js2-mode-map rsjx-mode)
-    "i s" '(yas-insert-snippet :which-key "insert snippet")))
-
-(use-package prettier
-  :straight t
-  :after js2-mode
-  :config
-  (nhe/local-leader-key
-    :keymaps '(js2-mode-map rsjx-mode)
-    "= =" '(prettier-prettify :which-key "format with prettier")))
-
-(use-package web-mode
-  :straight t)
-
-(defun lsp-go-install-save-hooks ()
-  (add-hook 'before-save-hook #'lsp-format-buffer t t)
-  (add-hook 'before-save-hook #'lsp-organize-imports t t))
-
-(use-package go-mode
-  :straight t
-  :after dap-mode
-  :hook (go-mode . lsp-go-install-save-hooks)
-  :mode "\\.go\\'"
-  :config
-  (require 'dap-go)
-  (dap-go-setup))
-
-(use-package dockerfile-mode
-  :straight t
-  :ensure t
-  :mode "Dockerfile\\'")
-
-(use-package yaml-mode
-  :straight t
-  :mode "\\.ya?ml\\'")
-
-(use-package json-mode
-  :straight t
-  :mode "\\.json\\'")
 
 (use-package company
   :straight t
@@ -830,38 +703,6 @@
 (use-package company-box
   :straight t
   :hook (company-mode . company-box-mode))
-
-(defun he/lsp-mode-setup ()
-  (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
-  (lsp-headerline-breadcrumb-mode))
-
-(use-package lsp-mode
-  :straight t
-  :commands (lsp lsp-deferred)
-  :hook ((lsp-mode . he/lsp-mode-setup)
-        (typescript-mode . lsp-deferred)
-        (js2-mode . lsp-deferred)
-        (rsjx-mode . lsp-deferred)
-        (scss-mode . lsp-deferred)
-        (web-mode . lsp-deferred)
-        (go-mode . lsp-deferred))
-  :config
-  (setq lsp-completion-provider :capf)
-  (lsp-enable-which-key-integration t))
-
-(use-package lsp-ui
-  :straight t
-  :hook (lsp-mode . lsp-ui-mode))
-
-(use-package lsp-treemacs
-  :straight t
-  :after lsp)
-
-(use-package lsp-ivy
-  :straight t)
-
-(use-package dap-mode
-  :straight t)
 
 (use-package flycheck
   :straight t
@@ -920,12 +761,6 @@
   (git-commit-mode . (lambda () (setq-local fill-column 72)))
   :custom
   (git-commit-summary-max-length 50))
-
-;; NOTE: Make sure to configure a GitHub token before using this package!
-;; - https://magit.vc/manual/forge/Token-Creation.html#Token-Creation
-;; - https://magit.vc/manual/ghub/Getting-Started.html#Getting-Started
-(use-package forge
-  :straight t)
 
 (defun he/org-font-setup ()
 ;; Replace list hyphen with dot
