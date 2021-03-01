@@ -34,23 +34,24 @@ This is my personal emacs configuration named *TNH-Emacs*, everything is written
 ** Basic setup
 Emacs builtin package manager dosen't make it easy to automaticly install packages on new systems. =use-package= is one of many good package managers that can help you to automate the instalation and configuration of everything we use in this configuration.
 #+begin_src emacs-lisp
-;; Initialize package sources
-(require 'package)
+  ;; Initialize package sources
+  (require 'package)
 
-(setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                         ("org" . "https://orgmode.org/elpa/")
-                         ("elpa" . "https://elpa.gnu.org/packages/")))
+  (setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                           ("org" . "https://orgmode.org/elpa/")
+                           ("elpa" . "https://elpa.gnu.org/packages/")))
 
-(package-initialize)
-(unless package-archive-contents
-  (package-refresh-contents))
+  (package-initialize)
+  (unless package-archive-contents
+    (package-refresh-contents))
 
-  ;; Initialize use-package on non-Linux platforms
-(unless (package-installed-p 'use-package)
-  (package-install 'use-package))
+    ;; Initialize use-package on non-Linux platforms
+  (unless (package-installed-p 'use-package)
+    (package-install 'use-package))
 
-(require 'use-package)
-(setq use-package-always-ensure t)
+  (require 'use-package)
+  (setq use-package-always-ensure t)
+  (setq use-package-verbose t)
 #+end_src
 ** Automatic updates
 #+begin_src emacs-lisp
@@ -112,6 +113,29 @@ To achive a minimal look we need to remove undeeded GUI elements. If you want to
   (set-face-attribute 'fixed-pitch nil :font "FiraCode Nerd Font" :height tnh/default-font-size)
 #+end_src
 
+** Ligatures
+#+begin_src emacs-lisp
+  (use-package ligature
+    :load-path "~/.emacs.d/github/ligature"
+    :config
+    ;; Enable the www ligature in every possible major mode
+    (ligature-set-ligatures 't '("www"))
+
+    ;; Enable ligatures in programming modes                                                           
+    (ligature-set-ligatures 'prog-mode '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\" "{-" "::"
+    ":::" ":=" "!!" "!=" "!==" "-}" "----" "-->" "->" "->>"
+    "-<" "-<<" "-~" "#{" "#[" "##" "###" "####" "#(" "#?" "#_"
+    "#_(" ".-" ".=" ".." "..<" "..." "?=" "??" ";;" "/*" "/**"
+    "/=" "/==" "/>" "//" "///" "&&" "||" "||=" "|=" "|>" "^=" "$>"
+    "++" "+++" "+>" "=:=" "==" "===" "==>" "=>" "=>>" "<="
+    "=<<" "=/=" ">-" ">=" ">=>" ">>" ">>-" ">>=" ">>>" "<*"
+    "<*>" "<|" "<|>" "<$" "<$>" "<!--" "<-" "<--" "<->" "<+"
+    "<+>" "<=" "<==" "<=>" "<=<" "<>" "<<" "<<-" "<<=" "<<<"
+    "<~" "<~~" "</" "</>" "~@" "~-" "~>" "~~" "~~>" "%%"))
+
+    (global-ligature-mode 't))
+#+end_src
+
 * Keybinds
 I am using =evil-mode= to get a VI editing experience. To configure more modes with a VI editing experience I am using =evil-collection=. =general= is used to speed up and make it easier to configure custom keybindings that integrates well with =which-key=
 #+begin_src emacs-lisp
@@ -132,7 +156,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
     (tnh/leader-key
      "t" '(:ignore :wk "toggle")
      "tt" '(counsel-load-theme :wk "change theme")
-     "fde" '(lambda () (interactivbe) (find-file (expand-file-name "~/.emacs.d/Emacs.org")))))
+     "fde" '(lambda () (interactive) (find-file (expand-file-name "~/.emacs.d/Emacs.org")))))
 
   (use-package evil
     :init
@@ -164,6 +188,17 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
     :after evil
     :config
     (evil-collection-init))
+#+end_src
+
+** Key chord
+
+#+begin_src emacs-lisp
+  (use-package key-chord
+    :defer t
+    :config
+    (key-chord-define evil-insert-state-map  "jk" 'evil-normal-state)
+    (key-chord-define evil-insert-state-map  "kj" 'evil-normal-state)
+    (key-chord-mode 1))
 #+end_src
 
 * UI configuration
@@ -284,6 +319,37 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
     "ts" '(hydra-text-scale/body :wk "scale text"))
 #+end_src
 
+** Dashboard
+#+begin_src emacs-lisp
+  (use-package page-break-lines
+    :init (page-break-lines-mode t))
+
+  (use-package dashboard
+    :ensure t
+    :init
+    (progn
+      (setq dashboard-items '((recents . 10)
+                              (projects . 10)))
+      (setq dashboard-show-shortcuts nil
+            dashboard-banner-logo-title "Welcome to The Nerdy Hamster Emacs"
+            dashboard-set-file-icons t
+            dashboard-set-heading-icons t
+            dashboard-startup-banner 'logo
+            dashboard-set-navigator t
+            dashboard-navigator-buttons
+      `(((,(all-the-icons-octicon "mark-github" :height 1.1 :v-adjust 0.0)
+                "Github"
+                "Browse homepage"
+                (lambda (&rest _) (browse-url "https://github.com/TheNerdyHamster/The-Nerdy-Hamster-Emacs")))
+              (,(all-the-icons-faicon "linkedin" :height 1.1 :v-adjust 0.0)
+                "Linkedin"
+                "My Linkedin"
+                (lambda (&rest _) (browse-url "https://www.linkedin.com/in/leo-ronnebro/" error)))
+            ))))
+    :config
+    (setq dashboard-center-content t)
+    (dashboard-setup-startup-hook))
+#+end_src
 * Org mode
 ** Font faces
 #+begin_src emacs-lisp
@@ -386,6 +452,184 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
         (org-babel-tangle))))
 
   (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'tnh/org-babel-tangle-config)))
+#+end_src
+
+* Development
+** Languages
+
+**** lsp-mode
+
+#+begin_src emacs-lisp
+  (defun tnh/lsp-mode-setup ()
+    (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
+    (lsp-headerline-breadcrumb-mode))
+
+  (use-package lsp-mode
+    :commands (lsp lsp-deferred)
+    :hook (lsp-mode . tnh/lsp-mode-setup)
+    :init
+    (setq lsp-keymap-prefix "C-c l")  ;; Or 'C-l', 's-l'
+    :config
+    (setq lsp-completion-provider :capf)
+    (lsp-enable-which-key-integration t))
+#+end_src
+
+**** lsp-ui
+
+#+begin_src emacs-lisp
+  (use-package lsp-ui
+    :hook (lsp-mode . lsp-ui-mode)
+    :custom
+    (lsp-ui-doc-position 'bottom))
+#+end_src
+
+**** lsp-ivy
+
+#+begin_src emacs-lisp
+  (use-package lsp-ivy
+    :after lsp)
+#+end_src
+
+***  Golang
+
+#+begin_src emacs-lisp
+  (defun tnh/lsp-go-save-hooks ()
+    (add-hook 'before-save-hook #'lsp-format-buffer t t)
+    (add-hook 'before-save-hook #'lsp-organize-imports t t))
+
+  (use-package go-mode
+    :hook ((go-mode . lsp-go-install-save-hooks)
+           (go-mode . lsp-deferred))
+    :mode "\\.go\\'"
+    :config
+    (setq tab-width 2
+          evil-shift-width 2))
+#+end_src
+
+*** C#
+#+begin_src emacs-lisp
+  (use-package csharp-mode
+    :hook
+    (csharp-mode . rainbow-delimiters-mode)
+    (csharp-mode . company-mode)
+    (csharp-mode . lsp-deferred)
+    ;(csharp-mode . flycheck-mode)
+    (csharp-mode . omnisharp-mode))
+
+  (use-package omnisharp
+    :after csharp-mode company
+    :commands omnisharp-install-server
+    :config
+    (setq indent-tabs-mode nil
+          c-syntactic-indentation t
+          c-basic-offset 2
+          tab-width 2
+          evil-shift-width 2)
+    (tnh/leader-key
+      "o" '(:ignore o :which-key "omnisharp")
+      "o r" '(omnisharp-run-code-action-refactoring :which-key "omnisharp refactor")
+      "o b" '(recompile :which-key "omnisharp build/recompile")
+      )
+    (add-to-list 'company-backends 'company-omnisharp))
+#+end_src
+
+** Company mode
+
+#+begin_src emacs-lisp
+  (use-package company
+    :after lsp-mode
+    :hook (lsp-mode . company-mode)
+    :bind (:map company-active-map
+           ("<tab>" . company-complete-selection))
+          (:map lsp-mode-map
+           ("<tab>" . company-indent-or-complete-common))
+    :custom
+    (company-minimum-prefix-length 1)
+    (company-idle-delay 0.0)
+    :config
+    (setq company-backends '(company-capf))
+    (setq company-auto-commit t))
+
+  (use-package company-box
+    :hook (company-mode . company-box-mode))
+#+end_src
+
+** Commenting
+
+#+begin_src emacs-lisp
+  (use-package evil-nerd-commenter
+    :bind ("M-/" . evilnc-comment-or-uncomment-lines))
+#+end_src
+
+** Rainbow delimiters
+
+#+begin_src emacs-lisp
+  (use-package rainbow-delimiters
+    :hook (prog-mode . rainbow-delimiters-mode))
+#+end_src
+
+** Projectile
+#+begin_src emacs-lisp
+  (use-package projectile
+    :diminish projectile-mode
+    :config (projectile-mode)
+    :custom ((projectile-completion-system 'ivy))
+    :bind-keymap
+    ("C-c p" . projectile-command-map)
+    :init
+    ;; NOTE: Set this to the folder where you keep your Git repos!
+    (when (file-directory-p "~/Projects")
+      (setq projectile-project-search-path '("~/Projects")))
+    (setq projectile-switch-project-action #'projectile-dired))
+
+  (use-package counsel-projectile
+    :after projectile
+    :config (counsel-projectile-mode))
+#+end_src
+
+** Git
+*** Magit
+#+begin_src emacs-lisp
+  (use-package magit
+    :commands magit-status
+    :custom
+    (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+#+end_src
+*** Git gutter
+#+begin_src emacs-lisp
+  (use-package git-gutter-fringe
+    :preface
+    (defun tnh/git-gutter-enable ()
+      (when-let* ((buffer (buffer-file-name))
+                  (backend (vc-backend buffer)))
+        (require 'git-gutter)
+        (require 'git-gutter-fringe)
+        (git-gutter-mode 1)))
+    :hook
+    (after-change-major-mode . tnh/git-gutter-enable)
+    :config
+    (define-fringe-bitmap 'git-gutter-fr:added [192] nil nil '(center t))
+    (define-fringe-bitmap 'git-gutter-fr:deleted [192] nil nil '(center t))
+    (define-fringe-bitmap 'git-gutter-fr:modified [192] nil nil '(center t)))
+#+end_src
+
+* Terminal
+** Vterm
+#+begin_src emacs-lisp
+  (use-package vterm
+    :commands vterm
+    :config
+    (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")  ;; Set this to match your custom shell prompt
+    ;;(setq vterm-shell "zsh")                       ;; Set this to customize the shell to launch
+    (setq vterm-max-scrollback 10000))
+#+end_src
+* Misc
+** Discord precense
+
+#+begin_src emacs-lisp
+  (use-package elcord
+    :config
+    (elcord-mode 1))
 #+end_src
 
 * Runtime performance
