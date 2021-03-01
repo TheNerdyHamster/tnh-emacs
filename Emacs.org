@@ -51,7 +51,7 @@ Emacs builtin package manager dosen't make it easy to automaticly install packag
 
   (require 'use-package)
   (setq use-package-always-ensure t)
-  (setq use-package-verbose t)
+  ;(setq use-package-verbose t)
 #+end_src
 ** Automatic updates
 #+begin_src emacs-lisp
@@ -102,6 +102,7 @@ To achive a minimal look we need to remove undeeded GUI elements. If you want to
                   term-mode-hook
                   shell-mode-hook
                   treemacs-mode-hook
+		   vterm-mode-hook
                   eshell-mode-hook))
     (add-hook mode (lambda () (display-line-numbers-mode 0))))
 #+end_src

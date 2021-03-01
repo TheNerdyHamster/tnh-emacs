@@ -32,7 +32,7 @@
 
 (require 'use-package)
 (setq use-package-always-ensure t)
-(setq use-package-verbose t)
+;(setq use-package-verbose t)
 
 (use-package auto-package-update
   :custom
@@ -73,6 +73,7 @@
                 term-mode-hook
                 shell-mode-hook
                 treemacs-mode-hook
+		 vterm-mode-hook
                 eshell-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
