@@ -7,8 +7,6 @@ This is my personal emacs configuration named *TNH-Emacs*, everything is written
 
 *IMPORTANT*: If you run into any issue or questions while trying out the configuration please create a issue, to help me solve it faster. 
 
-#+begin_src emacs-lisp
-#+end_src
 * Variables
 #+begin_src emacs-lisp
   (defvar tnh/default-font-size 100)
@@ -28,6 +26,11 @@ This is my personal emacs configuration named *TNH-Emacs*, everything is written
              gcs-done))
 
   (add-hook 'emacs-startup-hook #'tnh/display-startup-time)
+#+end_src
+
+* GCC
+#+begin_src emacs-lisp
+ (setq package-native-compile t)
 #+end_src
 
 * Package system
@@ -369,7 +372,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
                     (org-level-6 . 1.1)
                     (org-level-7 . 1.1)
                     (org-level-8 . 1.1)))
-      (set-face-attribute (car face) nil :font "Cantarell" :weight 'regular :height (cdr face)))
+      (set-face-attribute (car face) nil :font "Overpass Nerd Font" :weight 'regular :height (cdr face)))
 
     ;; Ensure that anything that should be fixed-pitch in Org files appears that way
     (set-face-attribute 'org-block nil    :foreground nil :inherit 'fixed-pitch)
