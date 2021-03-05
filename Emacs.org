@@ -28,6 +28,11 @@ This is my personal emacs configuration named *TNH-Emacs*, everything is written
   (add-hook 'emacs-startup-hook #'tnh/display-startup-time)
 #+end_src
 
+* Server
+#+begin_src emacs-lisp
+  (server-start)
+#+end_src
+
 * GCC
 #+begin_src emacs-lisp
  (setq package-native-compile t)
