@@ -13,6 +13,8 @@
 
 (add-hook 'emacs-startup-hook #'tnh/display-startup-time)
 
+(server-start)
+
 (setq package-native-compile t)
 
 ;; Initialize package sources
