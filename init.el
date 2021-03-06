@@ -2,6 +2,13 @@
 
 (defvar tnh/frame-transparency '(90 . 90))
 
+;; Secrets
+
+(defvar tnh/wk-token  nil "Wakatime API token")
+
+(let ((secrets (expand-file-name ".secrets.el" user-emacs-directory)))
+  (load secrets t))
+
 (setq gc-cons-threshold (* 50 1000 1000))
 
 (defun tnh/display-startup-time ()
@@ -150,12 +157,14 @@
   :config
   (evil-collection-init))
 
+(use-package disable-mouse)
+
 (use-package key-chord
   :defer t
   :config
   (key-chord-define evil-insert-state-map  "jk" 'evil-normal-state)
   (key-chord-define evil-insert-state-map  "kj" 'evil-normal-state)
-  (key-chord-mode 1))
+  (key-chord-mode))
 
 (use-package doom-themes)
 
@@ -167,8 +176,8 @@
 (defun tnh/apply-theme ()
   "Apply selected theme, and make the frame transparent."
   (interactive)
-  (load-theme 'doom-nord t)
-  (transparency 90))
+  (load-theme 'doom-molokai t)
+  (transparency 95))
 
 (tnh/apply-theme)
 
@@ -506,11 +515,39 @@
   :commands vterm
   :config
   (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")  ;; Set this to match your custom shell prompt
-  ;;(setq vterm-shell "zsh")                       ;; Set this to customize the shell to launch
   (setq vterm-max-scrollback 10000))
+
+(use-package dired
+  :ensure nil
+  :commands (dired dired-jump)
+  :bind (("C-x C-j" . dired-jump))
+  :custom ((dired-listing-switches "-agho --group-directories-first"))
+  :config
+  (evil-collection-define-key 'normal 'dired-mode-map
+    "h" 'dired-single-up-directory
+    "l" 'dired-single-buffer))
+
+(use-package dired-single)
+
+(use-package all-the-icons-dired
+  :hook (dired-mode . all-the-icons-dired-mode))
+
+(use-package dired-hide-dotfiles
+  :hook (dired-mode . dired-hide-dotfiles-mode)
+  :config
+  (evil-collection-define-key 'normal 'dired-mode-map
+    "H" 'dired-hide-dotfiles-mode))
+
+(use-package restart-emacs)
 
 (use-package elcord
   :config
   (elcord-mode 1))
+
+(use-package wakatime-mode 
+  :defer 2
+  :config
+  (setq wakatime-api-key tnh/wk-token)
+  (global-wakatime-mode))
 
 (setq gc-cons-threshold (* 2 1000 1000))

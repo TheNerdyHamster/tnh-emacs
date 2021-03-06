@@ -205,6 +205,11 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
     (evil-collection-init))
 #+end_src
 
+** Mouse
+#+begin_src emacs-lisp
+  (use-package disable-mouse)
+#+end_src
+
 ** Key chord
 
 #+begin_src emacs-lisp
@@ -213,7 +218,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
     :config
     (key-chord-define evil-insert-state-map  "jk" 'evil-normal-state)
     (key-chord-define evil-insert-state-map  "kj" 'evil-normal-state)
-    (key-chord-mode 1))
+    (key-chord-mode))
 #+end_src
 
 * UI configuration
@@ -229,8 +234,8 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
   (defun tnh/apply-theme ()
     "Apply selected theme, and make the frame transparent."
     (interactive)
-    (load-theme 'doom-nord t)
-    (transparency 90))
+    (load-theme 'doom-molokai t)
+    (transparency 95))
 
   (tnh/apply-theme)
 #+end_src
@@ -654,10 +659,41 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
     :commands vterm
     :config
     (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")  ;; Set this to match your custom shell prompt
-    ;;(setq vterm-shell "zsh")                       ;; Set this to customize the shell to launch
     (setq vterm-max-scrollback 10000))
 #+end_src
+* File management 
+** Dired
+#+begin_src emacs-lisp
+  (use-package dired
+    :ensure nil
+    :commands (dired dired-jump)
+    :bind (("C-x C-j" . dired-jump))
+    :custom ((dired-listing-switches "-agho --group-directories-first"))
+    :config
+    (evil-collection-define-key 'normal 'dired-mode-map
+      "h" 'dired-single-up-directory
+      "l" 'dired-single-buffer))
+
+  (use-package dired-single)
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package all-the-icons-dired
+    :hook (dired-mode . all-the-icons-dired-mode))
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package dired-hide-dotfiles
+    :hook (dired-mode . dired-hide-dotfiles-mode)
+    :config
+    (evil-collection-define-key 'normal 'dired-mode-map
+      "H" 'dired-hide-dotfiles-mode))
+#+end_src
 * Misc
+** Restart Emacs
+#+begin_src emacs-lisp
+  (use-package restart-emacs)
+#+end_src
 ** Discord precense
 
 #+begin_src emacs-lisp
