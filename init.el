@@ -64,9 +64,6 @@
 (column-number-mode)
 (global-display-line-numbers-mode t)
 
-;; Set frame transparency
-(set-frame-parameter (selected-frame) 'alpha tnh/frame-transparency)
-(add-to-list 'default-frame-alist `(alpha . ,tnh/frame-transparency))
 (set-frame-parameter (selected-frame) 'fullscreen 'maximized)
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 
@@ -160,8 +157,20 @@
   (key-chord-define evil-insert-state-map  "kj" 'evil-normal-state)
   (key-chord-mode 1))
 
-(use-package doom-themes
-  :init (load-theme 'doom-nord t))
+(use-package doom-themes)
+
+(defun transparency (value)
+  "Sets the transparency of the frame window. 0=transparent/100=opaque."
+  (interactive "nTransparency Value 0 - 100 opaque:")
+  (set-frame-parameter (selected-frame) 'alpha value))
+
+(defun tnh/apply-theme ()
+  "Apply selected theme, and make the frame transparent."
+  (interactive)
+  (load-theme 'doom-nord t)
+  (transparency 90))
+
+(tnh/apply-theme)
 
 (use-package all-the-icons
   :if (display-graphic-p)
