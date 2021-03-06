@@ -12,6 +12,15 @@ This is my personal emacs configuration named *TNH-Emacs*, everything is written
   (defvar tnh/default-font-size 100)
 
   (defvar tnh/frame-transparency '(90 . 90))
+
+  ;; Secrets
+
+  (defvar tnh/wk-token  nil "Wakatime API token")
+#+end_src
+
+#+begin_src emacs-lisp
+  (let ((secrets (expand-file-name ".secrets.el" user-emacs-directory)))
+    (load secrets t))
 #+end_src
 
 * Startup
@@ -655,6 +664,14 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
   (use-package elcord
     :config
     (elcord-mode 1))
+#+end_src
+** Wakatime
+#+begin_src emacs-lisp
+  (use-package wakatime-mode 
+    :defer 2
+    :config
+    (setq wakatime-api-key tnh/wk-token)
+    (global-wakatime-mode))
 #+end_src
 
 * Runtime performance
