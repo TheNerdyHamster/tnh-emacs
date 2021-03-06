@@ -22,6 +22,9 @@
 
 (server-start)
 
+(use-package exwm)
+(exwm-enable)
+
 (setq package-native-compile t)
 
 ;; Initialize package sources
