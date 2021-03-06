@@ -7,16 +7,16 @@ The Nerdy Hamster Emacs, is my personal emacs configuration. That I am customizi
 
 ** Platforms supported
 
-| Linux | Yes |
-| Windows | No |
-| MacOS | No|
+| Linux   | Yes |
+| Windows | No  |
+| MacOS   | No  |
 
 This Emacs configuration is currently only tested on =Arch Linux=.
 
 ** Emacs
-#+BEGIN_QUOTE
+#+begin_quote
 I am currently running Emacs =28.0.50= =Master= Branch, the repo is *only* tested on Version =28.0.50=.
-#+END_QUOTE
+#+end_quote
 
 *** Arch-linux
 *Recomended* Install Emacs =28.0.50= or above.
