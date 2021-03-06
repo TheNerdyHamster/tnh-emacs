@@ -368,6 +368,13 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
     (setq dashboard-center-content t)
     (dashboard-setup-startup-hook))
 #+end_src
+* Window 
+** Perpective.el
+#+begin_src emacs-lisp
+  (use-package perspective
+    :config
+    (persp-mode))
+#+end_src
 * Org mode
 ** Font faces
 #+begin_src emacs-lisp

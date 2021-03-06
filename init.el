@@ -297,6 +297,10 @@
   (setq dashboard-center-content t)
   (dashboard-setup-startup-hook))
 
+(use-package perspective
+  :config
+  (persp-mode))
+
 (defun tnh/org-font-setup ()
   ;; Replace list hyphen with dot
   (font-lock-add-keywords 'org-mode
