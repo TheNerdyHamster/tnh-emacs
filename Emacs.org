@@ -42,6 +42,12 @@ This is my personal emacs configuration named *TNH-Emacs*, everything is written
   (server-start)
 #+end_src
 
+* Desktop
+#+begin_src emacs-lisp
+  (use-package exwm)
+  (exwm-enable)
+#+end_src
+
 * GCC
 #+begin_src emacs-lisp
  (setq package-native-compile t)
