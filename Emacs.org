@@ -117,6 +117,9 @@ To achive a minimal look we need to remove undeeded GUI elements. If you want to
   (column-number-mode)
   (global-display-line-numbers-mode t)
 
+
+  (set-frame-parameter (selected-frame) 'alpha tnh/frame-transparency)
+  (add-to-list 'default-frame-alist `(alpha . ,tnh/frame-transparency))
   (set-frame-parameter (selected-frame) 'fullscreen 'maximized)
   (add-to-list 'default-frame-alist '(fullscreen . maximized))
 
@@ -125,7 +128,7 @@ To achive a minimal look we need to remove undeeded GUI elements. If you want to
                   term-mode-hook
                   shell-mode-hook
                   treemacs-mode-hook
-		   vterm-mode-hook
+                   vterm-mode-hook
                   eshell-mode-hook))
     (add-hook mode (lambda () (display-line-numbers-mode 0))))
 #+end_src
@@ -233,20 +236,14 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 * UI configuration
 ** Color theme
 #+begin_src emacs-lisp
-  (use-package doom-themes)
+    (use-package doom-themes)
 
-  (defun transparency (value)
-    "Sets the transparency of the frame window. 0=transparent/100=opaque."
-    (interactive "nTransparency Value 0 - 100 opaque:")
-    (set-frame-parameter (selected-frame) 'alpha value))
+    (defun tnh/apply-theme ()
+      "Apply selected theme, and make the frame transparent."
+      (interactive)
+      (load-theme 'doom-molokai t))
 
-  (defun tnh/apply-theme ()
-    "Apply selected theme, and make the frame transparent."
-    (interactive)
-    (load-theme 'doom-molokai t)
-    (transparency 95))
-
-  (tnh/apply-theme)
+    (tnh/apply-theme)
 #+end_src
 
 ** Modeline
