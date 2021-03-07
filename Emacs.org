@@ -44,8 +44,11 @@ This is my personal emacs configuration named *TNH-Emacs*, everything is written
 
 * Desktop
 #+begin_src emacs-lisp
-  (use-package exwm)
-  (exwm-enable)
+  (setq tnh/exwm-enabled (and (eq window-system 'x)
+                             (seq-contains command-line-args "--use-exwm")))
+
+  (when tnh/exwm-enabled
+    (load-file "~/.emacs.d/exwm.el"))
 #+end_src
 
 * GCC

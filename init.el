@@ -22,8 +22,11 @@
 
 (server-start)
 
-(use-package exwm)
-(exwm-enable)
+(setq tnh/exwm-enabled (and (eq window-system 'x)
+                           (seq-contains command-line-args "--use-exwm")))
+
+(when tnh/exwm-enabled
+  (load-file "~/.emacs.d/exwm.el"))
 
 (setq package-native-compile t)
 
