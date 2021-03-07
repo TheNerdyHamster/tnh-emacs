@@ -4,5 +4,4 @@
 
 xset -b
 
-exec dbus-launch --exit-with-session emacs -mm --debug-init
-#--use-exwm
+exec dbus-launch --exit-with-session emacs -mm --debug-init --use-exwm
