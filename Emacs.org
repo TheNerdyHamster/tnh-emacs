@@ -131,6 +131,9 @@ To achive a minimal look we need to remove undeeded GUI elements. If you want to
                    vterm-mode-hook
                   eshell-mode-hook))
     (add-hook mode (lambda () (display-line-numbers-mode 0))))
+
+  ;; Default buffer
+  (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
 #+end_src
 
 * Font configuration

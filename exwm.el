@@ -25,7 +25,8 @@
   (interactive)
   (pcase exwm-class-name
     ("Firefox" (exwm-workspace-move-window 2))
-    ("discord" (exwm-workspace-move-window 4))
+    ("discord" (exwm-workspace-move-window 4)
+               (exwm-layout-toggle-mode-line))
     ("mpv" (exwm-floating-toggle-floating)
            (exwm-layout-toggle-mode-line))))
 
@@ -68,10 +69,10 @@
         `(
           ([?\s-r] . exwm-reset)
 
-          ([?\s-h] . windowmove-left)
-          ([?\s-l] . windowmove-right)
-          ([?\s-k] . windowmove-up)
-          ([?\s-j] . windowmove-down)
+          ([?\s-h] . windmove-left)
+          ([?\s-l] . windmove-right)
+          ([?\s-k] . windmove-up)
+          ([?\s-j] . windmove-down)
 
           ([?\s-&] . (lambda (command)
                        (interactive (list (read-shell-command "$ ")))
