@@ -31,7 +31,8 @@
     (interactive)
     (pcase exwm-class-name
       ("Firefox" (exwm-workspace-move-window 2))
-      ("discord" (exwm-workspace-move-window 4))
+      ("discord" (exwm-workspace-move-window 4)
+                 (exwm-layout-toggle-mode-line))
       ("mpv" (exwm-floating-toggle-floating)
              (exwm-layout-toggle-mode-line))))
 #+end_src
@@ -76,10 +77,10 @@
           `(
             ([?\s-r] . exwm-reset)
 
-            ([?\s-h] . windowmove-left)
-            ([?\s-l] . windowmove-right)
-            ([?\s-k] . windowmove-up)
-            ([?\s-j] . windowmove-down)
+            ([?\s-h] . windmove-left)
+            ([?\s-l] . windmove-right)
+            ([?\s-k] . windmove-up)
+            ([?\s-j] . windmove-down)
 
             ([?\s-&] . (lambda (command)
                          (interactive (list (read-shell-command "$ ")))
@@ -113,3 +114,26 @@
     (desktop-enviorment-brightness-normal-increment "5%+")
     (desktop-enviorment-brightness-normal-decrement "5%-"))
  #+end_src
+
+#+begin_src sh :tangle ~/.xinitrc
+  #!/bin/sh
+
+  # enable compositer
+  picom &
+
+  # Setup lock screen
+  xss-lock -- slock &
+
+  xset -b
+
+  # Start EXWM
+  exec dbus-launch --exit-with-session emacs -mm --debug-init --use-exwm
+#+end_src
+
+#+begin_src shell :tangle ./exwm/Xmodmap
+  clear lock
+  clear control
+  keycode 66 = Control_L
+  add control = Control_L
+  add Lock = Control_R
+#+end_src

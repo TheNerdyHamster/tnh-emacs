@@ -92,6 +92,9 @@
                 eshell-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
+;; Default buffer
+(setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+
 (set-face-attribute 'default nil :font "FiraCode Nerd Font" :height tnh/default-font-size)
 
 (set-face-attribute 'fixed-pitch nil :font "FiraCode Nerd Font" :height tnh/default-font-size)
