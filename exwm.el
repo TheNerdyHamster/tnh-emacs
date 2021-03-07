@@ -2,6 +2,11 @@
   (let ((command-parts (split-string command "[ ]+")))
     (apply #'call-process `(,(car command-parts) nil 0 nil ,@(cdr command-parts)))))
 
+(defun tnh/set-wallpaper ()
+  (interactive)
+  (start-process-shell-command
+   "feh" nil "feh --bg-scale ~/Pictures/wallpapers/001.jpg"))
+
 (defun tnh/exwm-init-hook ()
   (exwm-workspace-switch-create 1)
 
@@ -9,20 +14,30 @@
 
   (tnh/run-in-background "nm-applet"))
 
-
-(defun tnh/set-wallpaper ()
-  (interactive)
-  (start-process-shell-command
-   "feh" nil "feh --bg-scale ~/Pictures/wallpapers/001.jpg"))
-
 (defun tnh/exwm-update-class ()
   (exwm-workspace-rename-buffer exwm-class-name))
+
+(defun tnh/exwm-update-title ()
+  (pcase exwm-class-name
+    ("Firefox" (exwm-workspace-rename-buffer (format "Firefox: %s" exwm-title)))))
+
+(defun tnh/exwm-configure-window-by-class ()
+  (interactive)
+  (pcase exwm-class-name
+    ("Firefox" (exwm-workspace-move-window 2))
+    ("discord" (exwm-workspace-move-window 4))
+    ("mpv" (exwm-floating-toggle-floating)
+           (exwm-layout-toggle-mode-line))))
 
 (use-package exwm
   :config
   (setq exwm-workspace-number 5)
 
   (add-hook 'exwm-update-class-hook #'tnh/exwm-update-class)
+
+  (add-hook 'exwm-update-title-hook #'tnh/exwm-update-title)
+
+  (add-hook 'exwm-manage-finish-hook #'tnh/exwm-configure-window-by-class)
 
   (add-hook 'exwm-init-hook #'tnh/exwm-init-hook)
 
@@ -76,6 +91,7 @@
 
   (exwm-input-set-key (kbd "s-SPC") 'counsel-linux-app)
   (exwm-input-set-key (kbd "s-f") 'exwm-layout-toggle-fullscreen)
+  (exwm-input-set-key (kbd "s-t") 'exwm-floating-toggle-floating)
   (exwm-enable))
 
 (use-package desktop-environment
