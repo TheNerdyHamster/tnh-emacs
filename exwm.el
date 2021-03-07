@@ -1,9 +1,40 @@
+(defun tnh/run-in-background (command)
+  (let ((command-parts (split-string command "[ ]+")))
+    (apply #'call-process `(,(car command-parts) nil 0 nil ,@(cdr command-parts)))))
+
+(defun tnh/exwm-init-hook ()
+  (exwm-workspace-switch-create 1)
+
+  (vterm)
+
+  (tnh/run-in-background "nm-applet"))
+
+
+(defun tnh/set-wallpaper ()
+  (interactive)
+  (start-process-shell-command
+   "feh" nil "feh --bg-scale ~/Pictures/wallpapers/001.jpg"))
+
 (defun tnh/exwm-update-class ()
   (exwm-workspace-rename-buffer exwm-class-name))
 
 (use-package exwm
   :config
   (setq exwm-workspace-number 5)
+
+  (add-hook 'exwm-update-class-hook #'tnh/exwm-update-class)
+
+  (add-hook 'exwm-init-hook #'tnh/exwm-init-hook)
+
+  (start-process-shell-command "xmodmap" nil "xmodmap ~/.emacs.d/exwm/Xmodmap")
+
+  (require 'exwm-randr)
+  (exwm-randr-enable)
+
+  (tnh/set-wallpaper)
+
+  (require 'exwm-systemtray)
+  (exwm-systemtray-enable)
 
   (setq exwm-input-prefix-keys
         '(?\C-x
@@ -13,7 +44,7 @@
           ?\M-`
           ?\M-&
           ?\M-:
-          ?\C-\M-j ;; Buffer list
+          ?\C-\M-j 
           ?\C-\ )) ;; C+[SPC]
 
   (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
@@ -32,6 +63,9 @@
                        (start-process-shell-command command nil command)))
 
           ([?\s-w] . exwm-workspace-switch)
+          ([?\s-`] . (lambda ()
+                       (interactive)
+                       (exwm-workspace-switch-create 0)))
 
           ,@(mapcar (lambda (i)
                       `(,(kbd (format "s-%d" i)) .
@@ -39,4 +73,16 @@
                           (interactive)
                           (exwm-workspace-switch-create ,i))))
                     (number-sequence 0 9))))
+
+  (exwm-input-set-key (kbd "s-SPC") 'counsel-linux-app)
+  (exwm-input-set-key (kbd "s-f") 'exwm-layout-toggle-fullscreen)
   (exwm-enable))
+
+(use-package desktop-environment
+  :after exwm
+  :config (desktop-environment-mode)
+  :custom
+  (desktop-enviorment-brightness-small-increment "2%+")
+  (desktop-enviorment-brightness-small-decrement "2%-")
+  (desktop-enviorment-brightness-normal-increment "5%+")
+  (desktop-enviorment-brightness-normal-decrement "5%-"))

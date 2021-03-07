@@ -77,6 +77,9 @@
 (column-number-mode)
 (global-display-line-numbers-mode t)
 
+
+(set-frame-parameter (selected-frame) 'alpha tnh/frame-transparency)
+(add-to-list 'default-frame-alist `(alpha . ,tnh/frame-transparency))
 (set-frame-parameter (selected-frame) 'fullscreen 'maximized)
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 
@@ -85,7 +88,7 @@
                 term-mode-hook
                 shell-mode-hook
                 treemacs-mode-hook
-		 vterm-mode-hook
+                 vterm-mode-hook
                 eshell-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
@@ -174,16 +177,10 @@
 
 (use-package doom-themes)
 
-(defun transparency (value)
-  "Sets the transparency of the frame window. 0=transparent/100=opaque."
-  (interactive "nTransparency Value 0 - 100 opaque:")
-  (set-frame-parameter (selected-frame) 'alpha value))
-
 (defun tnh/apply-theme ()
   "Apply selected theme, and make the frame transparent."
   (interactive)
-  (load-theme 'doom-molokai t)
-  (transparency 95))
+  (load-theme 'doom-molokai t))
 
 (tnh/apply-theme)
 
