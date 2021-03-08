@@ -1,44 +1,47 @@
 (defun tnh/run-in-background (command)
-  (let ((command-parts (split-string command "[ ]+")))
-    (apply #'call-process `(,(car command-parts) nil 0 nil ,@(cdr command-parts)))))
+    (let ((command-parts (split-string command "[ ]+")))
+      (apply #'call-process `(,(car command-parts) nil 0 nil ,@(cdr command-parts)))))
 
-(defun tnh/set-wallpaper ()
-  (interactive)
-  (start-process-shell-command
-   "feh" nil "feh --bg-scale ~/Pictures/wallpapers/001.jpg"))
+  (defun tnh/set-wallpaper ()
+    (interactive)
+    (start-process-shell-command
+     "feh" nil "feh --bg-scale ~/Pictures/wallpapers/001.jpg"))
 
-(defun tnh/exwm-init-hook ()
-  (exwm-workspace-switch-create 1)
+  (defun tnh/exwm-init-hook ()
+    (exwm-workspace-switch-create 1)
 
-  (vterm)
+    (vterm)
 
-  (tnh/run-in-background "nm-applet"))
+    (tnh/run-in-background "nm-applet"))
 
-(defun tnh/exwm-update-class ()
-  (exwm-workspace-rename-buffer exwm-class-name))
+  (defun tnh/exwm-update-class ()
+    (exwm-workspace-rename-buffer exwm-class-name))
 
-(defun tnh/exwm-update-title ()
-  (pcase exwm-class-name
-    ("Firefox" (exwm-workspace-rename-buffer (format "Firefox: %s" exwm-title)))))
+  (defun tnh/exwm-update-title ()
+    (pcase exwm-class-name
+      ("Firefox" (exwm-workspace-rename-buffer (format "Firefox: %s" exwm-title)))))
 
-(defun tnh/exwm-configure-window-by-class ()
-  (interactive)
-  (pcase exwm-class-name
-    ("Firefox" (exwm-workspace-move-window 2))
-    ("discord" (exwm-workspace-move-window 4)
-               (exwm-layout-toggle-mode-line))
-    ("mpv" (exwm-floating-toggle-floating)
-           (exwm-layout-toggle-mode-line))))
+  (defun tnh/exwm-configure-window-by-class ()
+    (interactive)
+    (pcase exwm-class-name
+      ("Firefox" (exwm-workspace-move-window 2))
+      ("discord" (exwm-workspace-move-window 4)
+                 (exwm-layout-toggle-mode-line))
+      ("mpv" (exwm-floating-toggle-floating)
+             (exwm-layout-toggle-mode-line))))
 
-(defun tnh/update-displays ()
-  (tnh/run-in-background "autorandr -c --force")
-  (tnh/set-wallpaper)
-  (message "Display config %s"
-           (string-trim (shell-command-to-string "autorandr --current"))))
+  (defun tnh/update-displays ()
+    (tnh/run-in-background "autorandr -c --force")
+    (tnh/set-wallpaper)
+    (message "Display config %s"
+             (string-trim (shell-command-to-string "autorandr --current"))))
+
+(message "%s"
+         (string-trim (shell-command-to-string "autorandr --current")))
 
 (use-package exwm
   :config
-  (setq exwm-workspace-number 5)
+  (setq exwm-workspace-number 2)
 
   (add-hook 'exwm-update-class-hook #'tnh/exwm-update-class)
 
@@ -54,11 +57,12 @@
   (exwm-randr-enable)
   (setq exwm-randr-workspace-monitor-plist
         (pcase (system-name)
-          ("tnh-work" '(1 "eDP1" 2 "DP3"))
-          ("tnh-home" '(1 "eDP1" 2 "DP3"))))
+          ("tnh-work" '(0 "eDP1" 1 "DP3"))
+          ("tnh-home" '(0 "eDP1" 1 "DP3"))))
 
   (add-hook 'exwm-randr-screen-change-hook #'tnh/update-displays)
   (tnh/update-displays)
+
   (setq exwm-workspace-warp-cursor t)
   (setq mouse-autoselect-window t
         focus-follows-mouse t)
