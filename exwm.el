@@ -30,6 +30,12 @@
     ("mpv" (exwm-floating-toggle-floating)
            (exwm-layout-toggle-mode-line))))
 
+(defun tnh/update-displays ()
+  (tnh/run-in-background "autorandr -c --force")
+  (tnh/set-wallpaper)
+  (message "Display config %s"
+           (string-trim (shell-command-to-string "autorandr --current"))))
+
 (use-package exwm
   :config
   (setq exwm-workspace-number 5)
@@ -46,8 +52,17 @@
 
   (require 'exwm-randr)
   (exwm-randr-enable)
+  (setq exwm-randr-workspace-monitor-plist
+        (pcase (system-name)
+          ("tnh-work" '(1 "eDP1" 2 "DP3"))
+          ("tnh-home" '(1 "eDP1" 2 "DP3"))))
 
-  (tnh/set-wallpaper)
+  (add-hook 'exwm-randr-screen-change-hook #'tnh/update-displays)
+  (tnh/update-displays)
+  (setq exwm-workspace-warp-cursor t)
+  (setq mouse-autoselect-window t
+        focus-follows-mouse t)
+
 
   (require 'exwm-systemtray)
   (exwm-systemtray-enable)
