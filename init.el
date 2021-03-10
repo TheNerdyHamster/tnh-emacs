@@ -3,8 +3,10 @@
 (defvar tnh/frame-transparency '(90 . 90))
 
 ;; Secrets
-
 (defvar tnh/wk-token  nil "Wakatime API token")
+(defvar tnh/vpn-host  nil "Openforti VPN Host name")
+(defvar tnh/vpn-user  nil "Openforti VPN user")
+(defvar tnh/vpn-cert  nil "Openforti VPN cert")
 
 (let ((secrets (expand-file-name ".secrets.el" user-emacs-directory)))
   (load secrets t))
@@ -176,11 +178,11 @@
 (use-package disable-mouse)
 
 (use-package key-chord
-  :defer t
+  :defer 1
   :config
   (key-chord-define evil-insert-state-map  "jk" 'evil-normal-state)
   (key-chord-define evil-insert-state-map  "kj" 'evil-normal-state)
-  (key-chord-mode))
+  (key-chord-mode 1))
 
 (use-package doom-themes)
 
@@ -572,5 +574,33 @@
   :config
   (setq wakatime-api-key tnh/wk-token)
   (global-wakatime-mode))
+
+;; (defun tnh/connect-vpn ()
+;;   "Connect to vpn via openfortivpn."
+;;   (interactive)
+;;   (let (pwd (read-passwd "Enter pwd: ")))
+;;     (message "%s" pwd))
+
+(defun tnh/connect-vpn ()
+  "Connect to vpn via openfortivpn."
+  (interactive)
+  (let ((pwd (read-passwd "Enter password: ")))
+    (start-process-shell-command "tnh/openfortivpn" "vpn-log" (format "sudo -S openfortivpn %s -u %s --trusted-cert %s -p %s" tnh/vpn-host tnh/vpn-user tnh/vpn-cert pwd))))
+
+(defun sudo-edit (&optional arg)
+  "Edit currently visited file as root.
+
+With a prefix ARG prompt for a file to visit.
+Will also prompt for a file to visit if current
+buffer is not visiting a file."
+  (interactive "P")
+  (if (or arg (not buffer-file-name))
+      (find-file (concat "/sudo:root@localhost:"
+                         (ido-read-file-name "Find file(as root): ")))
+    (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
+
+(defun tnh/sudo-find-file ()
+  (interactive)
+  (counsel-find-file "/sudo::/"))
 
 (setq gc-cons-threshold (* 2 1000 1000))
