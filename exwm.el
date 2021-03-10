@@ -29,6 +29,7 @@
   (interactive)
   (pcase exwm-class-name
     ("discord" (exwm-layout-toggle-mode-line))
+    ("Slack" (exwm-layout-toggle-mode-line))
     ("firefox" (exwm-layout-toggle-mode-line))
     ("mpv" (exwm-floating-toggle-floating)
            (exwm-layout-toggle-mode-line))))
@@ -99,8 +100,6 @@
   (exwm-randr-enable)
 
   (tnh/update-displays)
-
-  (setq mouse-autoselect-window t)
 
   (require 'exwm-systemtray)
   (exwm-systemtray-enable)
