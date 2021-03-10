@@ -64,6 +64,7 @@
     `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
 
 (setq inhibit-startup-message t)
+(setq warning-minimum-level :error)
 
 (scroll-bar-mode -1)			; Disable visible scrollbar
 (tool-bar-mode -1)			; Disable the toolbar
@@ -76,6 +77,9 @@
 
 (column-number-mode)
 (global-display-line-numbers-mode t)
+
+(setq x-stretch-cursor t)
+(global-hl-line-mode +1)
 
 
 (set-frame-parameter (selected-frame) 'alpha tnh/frame-transparency)

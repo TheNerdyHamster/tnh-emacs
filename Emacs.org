@@ -104,6 +104,7 @@ I am using =no-littering= to keep emacs, and project folders clean. =no-litterin
 To achive a minimal look we need to remove undeeded GUI elements. If you want to use some of the elements its just to comment them out.
 #+begin_src emacs-lisp
   (setq inhibit-startup-message t)
+  (setq warning-minimum-level :error)
 
   (scroll-bar-mode -1)			; Disable visible scrollbar
   (tool-bar-mode -1)			; Disable the toolbar
@@ -116,6 +117,9 @@ To achive a minimal look we need to remove undeeded GUI elements. If you want to
 
   (column-number-mode)
   (global-display-line-numbers-mode t)
+
+  (setq x-stretch-cursor t)
+  (global-hl-line-mode +1)
 
 
   (set-frame-parameter (selected-frame) 'alpha tnh/frame-transparency)
@@ -736,3 +740,4 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 #+begin_src emacs-lisp
 (setq gc-cons-threshold (* 2 1000 1000))
 #+end_src
+
