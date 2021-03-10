@@ -4,124 +4,116 @@
 
 * Window Management
 #+begin_src emacs-lisp
-    (defun tnh/run-in-background (command)
-      (let ((command-parts (split-string command "[ ]+")))
-        (apply #'call-process `(,(car command-parts) nil 0 nil ,@(cdr command-parts)))))
+  (defun tnh/run-in-background (command)
+    (let ((command-parts (split-string command "[ ]+")))
+      (apply #'call-process `(,(car command-parts) nil 0 nil ,@(cdr command-parts)))))
 
-    (defun tnh/set-wallpaper ()
-      (interactive)
-      (start-process-shell-command
-       "feh" nil "feh --bg-scale ~/Pictures/wallpapers/001.jpg"))
+  (defun tnh/exwm-run-shell-command (cmd)
+    (interactive (list (read-shell-command "$ ")))
+    (start-process-shell-command cmd nil cmd))
 
-    (defun tnh/exwm-init-hook ()
-      (exwm-workspace-switch-create 1)
+  (defun tnh/set-wallpaper ()
+    (interactive)
+    (start-process-shell-command
+     "feh" nil "feh --bg-scale ~/Pictures/wallpapers/001.jpg"))
 
-      (vterm)
+  (defun tnh/exwm-init-hook ()
+    (exwm-workspace-switch-create 1)
 
-      (tnh/run-in-background "nm-applet"))
+    (vterm)
 
-    (defun tnh/exwm-update-class ()
-      (exwm-workspace-rename-buffer exwm-class-name))
+    (tnh/run-in-background "nm-applet"))
 
-    (defun tnh/exwm-update-title ()
-      (pcase exwm-class-name
-        ("Firefox" (exwm-workspace-rename-buffer (format "Firefox: %s" exwm-title)))))
+  (defun tnh/exwm-update-class ()
+    (exwm-workspace-rename-buffer exwm-class-name))
 
-    (defun tnh/exwm-configure-window-by-class ()
-      (interactive)
-      (pcase exwm-class-name
-        ("Firefox" (exwm-workspace-move-window 2))
-        ("discord" (exwm-workspace-move-window 4)
-                   (exwm-layout-toggle-mode-line))
-        ("mpv" (exwm-floating-toggle-floating)
-               (exwm-layout-toggle-mode-line))))
+  (defun tnh/exwm-update-title ()
+    (pcase exwm-class-name
+      ("Firefox" (exwm-workspace-rename-buffer (format "Firefox: %s" exwm-title)))))
 
-    (defun tnh/update-displays ()
-      (tnh/run-in-background "autorandr -c --force")
-      (tnh/set-wallpaper)
-      (message "Display config %s"
-               (string-trim (shell-command-to-string "autorandr --current"))))
+  (defun tnh/exwm-configure-window-by-class ()
+    (interactive)
+    (pcase exwm-class-name
+      ("discord" (exwm-layout-toggle-mode-line))
+      ("firefox" (exwm-layout-toggle-mode-line))
+      ("mpv" (exwm-floating-toggle-floating)
+             (exwm-layout-toggle-mode-line))))
 
-  (message "%s"
-           (string-trim (shell-command-to-string "autorandr --current")))
+  (defun tnh/update-displays ()
+    (tnh/run-in-background "autorandr -c --force")
+    (tnh/set-wallpaper)
+    (tnh/set-exwm-workspaces)
+    (message "Display config %s"
+             (tnh/get-current-display-configuration)))
+
+  (defun tnh/set-exwm-workspaces ()
+    (setq exwm-randr-workspace-monitor-plist
+          (pcase (tnh/get-current-display-configuration)
+            ("docked-home" '(1 "eDP1" 0 "DP3"))
+            ("mobile" '(0 "eDP1")))))
+   ; (exwm-randr-refresh))
+
+  (defun tnh/get-current-display-configuration ()
+    (string-trim (shell-command-to-string "autorandr --current")))
 #+end_src
 
 #+begin_src emacs-lisp
   (use-package exwm
+    :demand
+    :bind
+    (:map exwm-mode-map
+      ("C-q" . exwm-input-send-next-key))
+    :hook
+    (exwm-update-class . tnh/exwm-update-class)
+    (exwm-update-title . tnh/exwm-update-title)
+    (exwm-manage-finish . tnh/exwm-configure-window-by-class)
+    (exwm-init . tnh/exwm-init-hook)
+    (exwm-randr-screen-change . tnh/update-displays)
+    :custom
+    (exwm-input-global-keys
+          `((,(kbd "s-!") . tnh/exwm-run-shell-command)
+            (,(kbd "s-1") . (lambda () (interactive) (exwm-workspace-switch 0)))
+            (,(kbd "s-2") . (lambda () (interactive) (exwm-workspace-switch 1)))
+            (,(kbd "s-SPC") . counsel-linux-app)
+            (,(kbd "s-f") . exwm-layout-toggle-fullscreen)
+            (,(kbd "s-r") . exwm-reset)
+            (,(kbd "s-R") . exwm-restart)
+            (,(kbd "s-w") . delete-window)
+            (,(kbd "s-W") . kill-this-buffer)))
+    (exwm-input-prefix-keys
+        `,@(mapcar (lambda (vector) (aref vector 0))
+                `(,(kbd "C-x")
+                 ,(kbd "C-u")
+                 ,(kbd "C-h")
+                 ,(kbd "C-w")
+                 ,(kbd "M-x")
+                 ,(kbd "M-`")
+                 ,(kbd "M-&")
+                 ,(kbd "M-:")
+                 ,(kbd "C-M-j")
+                 ,(kbd "C-SPC")
+                 ,@(mapcar (lambda (i) (kbd (format "M-%s" i)))
+                           (number-sequence 0 9)))))
+    (exwm-input-simulation-keys
+     `((,(kbd "M-y") . ,(kbd "C-c"))
+       (,(kbd "M-p") . ,(kbd "C-v"))))
+    (exwm-workspace-index-map (lambda (i) (number-to-string (1+ i))))
+    (exwm-workspace-warp-cursor t)
     :config
     (setq exwm-workspace-number 2)
-
-    (add-hook 'exwm-update-class-hook #'tnh/exwm-update-class)
-
-    (add-hook 'exwm-update-title-hook #'tnh/exwm-update-title)
-
-    (add-hook 'exwm-manage-finish-hook #'tnh/exwm-configure-window-by-class)
-
-    (add-hook 'exwm-init-hook #'tnh/exwm-init-hook)
-
-    (start-process-shell-command "xmodmap" nil "xmodmap ~/.emacs.d/exwm/Xmodmap")
+    (tnh/exwm-run-shell-command "xmodmap ~/.emacs.d/exwm/Xmodmap")
 
     (require 'exwm-randr)
     (exwm-randr-enable)
-    (setq exwm-randr-workspace-monitor-plist
-          (pcase (system-name)
-            ("tnh-work" '(0 "eDP1" 1 "DP3"))
-            ("tnh-home" '(0 "eDP1" 1 "DP3"))))
 
-    (add-hook 'exwm-randr-screen-change-hook #'tnh/update-displays)
     (tnh/update-displays)
 
-    (setq exwm-workspace-warp-cursor t)
-    (setq mouse-autoselect-window t
-          focus-follows-mouse t)
-
+    (setq mouse-autoselect-window t)
 
     (require 'exwm-systemtray)
     (exwm-systemtray-enable)
-
-    (setq exwm-input-prefix-keys
-          '(?\C-x
-            ?\C-u
-            ?\C-h
-            ?\M-x
-            ?\M-`
-            ?\M-&
-            ?\M-:
-            ?\C-\M-j 
-            ?\C-\ )) ;; C+[SPC]
-
-    (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
-
-    (setq exwm-input-global-keys
-          `(
-            ([?\s-r] . exwm-reset)
-
-            ([?\s-h] . windmove-left)
-            ([?\s-l] . windmove-right)
-            ([?\s-k] . windmove-up)
-            ([?\s-j] . windmove-down)
-
-            ([?\s-&] . (lambda (command)
-                         (interactive (list (read-shell-command "$ ")))
-                         (start-process-shell-command command nil command)))
-
-            ([?\s-w] . exwm-workspace-switch)
-            ([?\s-`] . (lambda ()
-                         (interactive)
-                         (exwm-workspace-switch-create 0)))
-
-            ,@(mapcar (lambda (i)
-                        `(,(kbd (format "s-%d" i)) .
-                          (lambda ()
-                            (interactive)
-                            (exwm-workspace-switch-create ,i))))
-                      (number-sequence 0 9))))
-
-    (exwm-input-set-key (kbd "s-SPC") 'counsel-linux-app)
-    (exwm-input-set-key (kbd "s-f") 'exwm-layout-toggle-fullscreen)
-    (exwm-input-set-key (kbd "s-t") 'exwm-floating-toggle-floating)
     (exwm-enable))
-#+end_src
+  #+end_src
 
 #+begin_src emacs-lisp
   (use-package desktop-environment
