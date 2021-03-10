@@ -93,7 +93,7 @@
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
 ;; Default buffer
-(setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+;(setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
 
 (set-face-attribute 'default nil :font "FiraCode Nerd Font" :height tnh/default-font-size)
 
@@ -312,9 +312,22 @@
   (setq dashboard-center-content t)
   (dashboard-setup-startup-hook))
 
-(use-package perspective
-  :config
-  (persp-mode))
+(use-package eyebrowse
+  :bind
+  ("M-0" . eyebrowse-last-window-config)
+  ("M-1" . eyebrowse-switch-to-window-config-1)
+  ("M-2" . eyebrowse-switch-to-window-config-2)
+  ("M-3" . eyebrowse-switch-to-window-config-3)
+  ("M-4" . eyebrowse-switch-to-window-config-4)
+  ("M-5" . eyebrowse-switch-to-window-config-5)
+  ("M-6" . eyebrowse-switch-to-window-config-6)
+  ("M-7" . eyebrowse-switch-to-window-config-7)
+  ("M-8" . eyebrowse-switch-to-window-config-8)
+  ("M-9" . eyebrowse-switch-to-window-config-9)
+  :hook
+  (after-init . eyebrowse-mode)
+  :custom
+  (eyebrowse-new-workspace t))
 
 (defun tnh/org-font-setup ()
   ;; Replace list hyphen with dot
@@ -520,7 +533,7 @@
 (use-package vterm
   :commands vterm
   :config
-  (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")  ;; Set this to match your custom shell prompt
+  (setq vterm-shell "/bin/zsh")
   (setq vterm-max-scrollback 10000))
 
 (use-package dired
