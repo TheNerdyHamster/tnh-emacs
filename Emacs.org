@@ -133,7 +133,7 @@ To achive a minimal look we need to remove undeeded GUI elements. If you want to
     (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
   ;; Default buffer
-  (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+  ;(setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
 #+end_src
 
 * Font configuration
@@ -392,11 +392,24 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
     (dashboard-setup-startup-hook))
 #+end_src
 * Window 
-** Perpective.el
+** Eyebrowse
 #+begin_src emacs-lisp
-  (use-package perspective
-    :config
-    (persp-mode))
+  (use-package eyebrowse
+    :bind
+    ("M-0" . eyebrowse-last-window-config)
+    ("M-1" . eyebrowse-switch-to-window-config-1)
+    ("M-2" . eyebrowse-switch-to-window-config-2)
+    ("M-3" . eyebrowse-switch-to-window-config-3)
+    ("M-4" . eyebrowse-switch-to-window-config-4)
+    ("M-5" . eyebrowse-switch-to-window-config-5)
+    ("M-6" . eyebrowse-switch-to-window-config-6)
+    ("M-7" . eyebrowse-switch-to-window-config-7)
+    ("M-8" . eyebrowse-switch-to-window-config-8)
+    ("M-9" . eyebrowse-switch-to-window-config-9)
+    :hook
+    (after-init . eyebrowse-mode)
+    :custom
+    (eyebrowse-new-workspace t))
 #+end_src
 * Org mode
 ** Font faces
@@ -667,10 +680,10 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
   (use-package vterm
     :commands vterm
     :config
-    (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")  ;; Set this to match your custom shell prompt
+    (setq vterm-shell "/bin/zsh")
     (setq vterm-max-scrollback 10000))
 #+end_src
-* File management 
+
 ** Dired
 #+begin_src emacs-lisp
   (use-package dired
