@@ -140,7 +140,7 @@
     :global-prefix "C-SPC")
 
   (tnh/leader-key
-   "t" '(:ignore :wk "toggle")
+   "t" '(:ignore t :wk "toggle")
    "tt" '(counsel-load-theme :wk "change theme")
    "fde" '(lambda () (interactive) (find-file (expand-file-name "~/.emacs.d/Emacs.org")))))
 
@@ -174,8 +174,6 @@
   :after evil
   :config
   (evil-collection-init))
-
-(use-package disable-mouse)
 
 (use-package key-chord
   :defer 1
@@ -335,6 +333,12 @@
   :custom
   (eyebrowse-new-workspace t))
 
+(tnh/leader-key
+   "o" '(:ignore t :wk "org")
+   "oa" '(org-agenda :wk "agenda")
+   "oc" '(org-capture :wk "capture")
+   "ol" '(org-store-link :wk "link"))
+
 (defun tnh/org-font-setup ()
   ;; Replace list hyphen with dot
   (font-lock-add-keywords 'org-mode
@@ -350,7 +354,7 @@
                   (org-level-6 . 1.1)
                   (org-level-7 . 1.1)
                   (org-level-8 . 1.1)))
-    (set-face-attribute (car face) nil :font "Overpass Nerd Font" :weight 'regular :height (cdr face)))
+    (set-face-attribute (car face) nil :font "Fira Code Nerd Font" :weight 'regular :height (cdr face)))
 
   ;; Ensure that anything that should be fixed-pitch in Org files appears that way
   (set-face-attribute 'org-block nil    :foreground nil :inherit 'fixed-pitch)
@@ -370,37 +374,49 @@
   (variable-pitch-mode 1)
   (visual-line-mode 1))
 
+(defun tnh/org-babel-tangle-config ()
+  (when (string-equal (file-name-directory (buffer-file-name))
+                      (expand-file-name user-emacs-directory))
+    (let ((org-confirm-babel-evaluate nil))
+      (org-babel-tangle))))
+
+;(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'tnh/org-babel-tangle-config)))
+
 (use-package org
   :pin org
   :commands (org-capture org-agenda)
-  :hook (org-mode . tnh/org-mode-setup)
+  :hook ((org-mode . tnh/org-mode-setup)
+         (org-mode . tnh/org-font-setup)
+         (org-mode . (lambda () (add-hook 'after-save-hook #'tnh/org-babel-tangle-config)))
+         (org-mode . org-bullets-mode))
+  :custom
+  (org-ellipsis " ▾")
+  (org-agenda-files
+   '("~/Documents/Org/"))
   :config
-  (setq org-ellipsis " ▾")
 
   ;; Save Org buffers after refiling!
-  (advice-add 'org-refile :after 'org-save-all-org-buffers)
-
-
-  (tnh/org-font-setup))
+  (advice-add 'org-refile :after 'org-save-all-org-buffers))
 
 (use-package org-bullets
-  :hook (org-mode . org-bullets-mode)
+  :after org
   :custom
   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
 
 (defun tnh/org-mode-visual-fill ()
-  (setq visual-fill-column-width 100
+  (setq visual-fill-column-width 140
         visual-fill-column-center-text t)
   (visual-fill-column-mode 1))
 
 (use-package visual-fill-column
+  :after org
   :hook (org-mode . tnh/org-mode-visual-fill))
 
 (with-eval-after-load 'org
   (org-babel-do-load-languages
       'org-babel-load-languages
       '((emacs-lisp . t)
-      (python . t)))
+        (python . t)))
 
   (push '("conf-unix" . conf-unix) org-src-lang-modes))
 
@@ -411,14 +427,6 @@
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
   (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
   (add-to-list 'org-structure-template-alist '("py" . "src python")))
-
-(defun tnh/org-babel-tangle-config ()
-  (when (string-equal (file-name-directory (buffer-file-name))
-                      (expand-file-name user-emacs-directory))
-    (let ((org-confirm-babel-evaluate nil))
-      (org-babel-tangle))))
-
-(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'tnh/org-babel-tangle-config)))
 
 (defun tnh/lsp-mode-setup ()
   (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
