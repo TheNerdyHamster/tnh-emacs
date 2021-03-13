@@ -11,7 +11,7 @@ This is my personal emacs configuration named *TNH-Emacs*, everything is written
 #+begin_src emacs-lisp
   (defvar tnh/default-font-size 100)
 
-  (defvar tnh/frame-transparency '(90 . 90))
+  (defvar tnh/frame-transparency '(100 . 100))
 
   ;; Secrets
   (defvar tnh/wk-token  nil "Wakatime API token")
@@ -55,7 +55,8 @@ This is my personal emacs configuration named *TNH-Emacs*, everything is written
 
 * GCC
 #+begin_src emacs-lisp
- (setq package-native-compile t)
+  (setq package-native-compile t
+        comp-async-report-warnings-errors nil)
 #+end_src
 
 * Package system
@@ -528,7 +529,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 
 * Development
 ** Languages
-
+*** LSP
 **** lsp-mode
 
 #+begin_src emacs-lisp
@@ -562,7 +563,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
     :after lsp)
 #+end_src
 
-***  Golang
+*** Golang
 
 #+begin_src emacs-lisp
   (defun tnh/lsp-go-save-hooks ()
@@ -603,6 +604,14 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
       "o b" '(recompile :which-key "omnisharp build/recompile")
       )
     (add-to-list 'company-backends 'company-omnisharp))
+#+end_src
+
+*** Python
+#+begin_src emacs-lisp
+  (use-package python
+    :ensure nil
+    :custom
+    (python-shell-interpreter "python3"))
 #+end_src
 
 ** Company mode
@@ -741,6 +750,17 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
     :config
     (setq wakatime-api-key tnh/wk-token)
     (global-wakatime-mode))
+#+end_src
+** Process Mgmt
+#+begin_src emacs-lisp
+    (use-package proced
+      :ensure nil
+      :commands proced
+      :config
+      (setq proced-auto-update-interval 1)
+      (add-hook 'proced-mode-hook
+                (lambda ()
+                  (proced-toggle-auto-update 1))))
 #+end_src
 ** Openfortivpn
 #+begin_src emacs-lisp

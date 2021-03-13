@@ -1,6 +1,6 @@
 (defvar tnh/default-font-size 100)
 
-(defvar tnh/frame-transparency '(90 . 90))
+(defvar tnh/frame-transparency '(100 . 100))
 
 ;; Secrets
 (defvar tnh/wk-token  nil "Wakatime API token")
@@ -30,7 +30,8 @@
 (when tnh/exwm-enabled
   (load-file "~/.emacs.d/exwm.el"))
 
-(setq package-native-compile t)
+(setq package-native-compile t
+      comp-async-report-warnings-errors nil)
 
 ;; Initialize package sources
 (require 'package)
@@ -485,6 +486,11 @@
     )
   (add-to-list 'company-backends 'company-omnisharp))
 
+(use-package python
+  :ensure nil
+  :custom
+  (python-shell-interpreter "python3"))
+
 (use-package company
   :after lsp-mode
   :hook (lsp-mode . company-mode)
@@ -582,6 +588,15 @@
   :config
   (setq wakatime-api-key tnh/wk-token)
   (global-wakatime-mode))
+
+(use-package proced
+  :ensure nil
+  :commands proced
+  :config
+  (setq proced-auto-update-interval 1)
+  (add-hook 'proced-mode-hook
+            (lambda ()
+              (proced-toggle-auto-update 1))))
 
 ;; (defun tnh/connect-vpn ()
 ;;   "Connect to vpn via openfortivpn."
