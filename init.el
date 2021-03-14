@@ -24,44 +24,49 @@
 
 (server-start)
 
-(setq tnh/exwm-enabled (and (eq window-system 'x)
-                           (seq-contains command-line-args "--use-exwm")))
+(setq package-enable-at-startup nil)
+;; Bootstrap straight.el
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+	(url-retrieve-synchronously
+	 "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+	 'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
 
-(when tnh/exwm-enabled
-  (load-file "~/.emacs.d/exwm.el"))
+;; Always use straight.el to install new packages
+;(setq straight-use-package-by-default t)
 
-(setq package-native-compile t
-      comp-async-report-warnings-errors nil)
+;; Use straight.el for use-package expressions
+(straight-use-package 'use-package)
 
-;; Initialize package sources
+;; Load the helper package for commands like `straight-x-clean-unused-repos'
+(require 'straight-x)
+
+(let ((straight-current-profile 'pinned))
+  (straight-use-package 'org-plus-contrib)
+  (straight-use-package 'org)
+  ;; Pin org-mode version.
+  (add-to-list 'straight-x-pinned-packages
+	       '("org" . "924308a150ab82014b69c46c04d1ab71e874a2e6")))
+
 (require 'package)
 
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                         ("org" . "https://orgmode.org/elpa/")
-                         ("elpa" . "https://elpa.gnu.org/packages/")))
+                           ("org" . "https://orgmode.org/elpa/")
+                           ("elpa" . "https://elpa.gnu.org/packages/")))
 
-(package-initialize)
-(unless package-archive-contents
-  (package-refresh-contents))
+;; Change the user-emacs-directory to keep unwanted things out of ~/.emacs.d
+(setq user-emacs-directory (expand-file-name "~/.cache/emacs/")
+      url-history-file (expand-file-name "url/history" user-emacs-directory))
 
-  ;; Initialize use-package on non-Linux platforms
-(unless (package-installed-p 'use-package)
-  (package-install 'use-package))
-
-(require 'use-package)
-(setq use-package-always-ensure t)
-;(setq use-package-verbose t)
-
-(use-package auto-package-update
-  :custom
-  (auto-package-update-interval 7)
-  (auto-package-update-prompt-before-update t)
-  (auto-package-update-hide-results t)
-  :config
-  (auto-package-update-maybe)
-  (auto-package-update-at-time "09:00"))
-
-(use-package no-littering)
+(use-package no-littering
+  :straight t)
 
 (setq auto-save-file-name-transforms
     `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
@@ -129,6 +134,7 @@
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
 (use-package general
+  :straight t
   :after evil
   :config
   (general-auto-unbind-keys)
@@ -146,6 +152,7 @@
    "fde" '(lambda () (interactive) (find-file (expand-file-name "~/.emacs.d/Emacs.org")))))
 
 (use-package evil
+  :straight t
   :init
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
@@ -172,18 +179,20 @@
   (evil-set-initial-state 'dashboard-mode 'normal))
 
 (use-package evil-collection
+  :straight t
   :after evil
   :config
   (evil-collection-init))
 
 (use-package key-chord
-  :defer 1
+  :straight t
   :config
   (key-chord-define evil-insert-state-map  "jk" 'evil-normal-state)
   (key-chord-define evil-insert-state-map  "kj" 'evil-normal-state)
   (key-chord-mode 1))
 
-(use-package doom-themes)
+(use-package doom-themes
+  :straight t)
 
 (defun tnh/apply-theme ()
   "Apply selected theme, and make the frame transparent."
@@ -193,6 +202,7 @@
 (tnh/apply-theme)
 
 (use-package all-the-icons
+  :straight t
   :if (display-graphic-p)
   :commands all-the-icons-install-fonts
   :init
@@ -200,6 +210,7 @@
     (all-the-icons-install-fonts t)))
 
 (use-package doom-modeline
+  :straight t
   :init (doom-modeline-mode 1)
   :custom 
   (doom-modeline-height 5)
@@ -215,7 +226,7 @@
         display-time-default-load-average nil)
 
 (use-package which-key
-  :defer 0
+  :straight t
   :diminish which-key-mode
   :config
   ;(setq which-key-popup-type 'frame)
@@ -223,6 +234,7 @@
   (setq which-key-idle-delay 0.3))
 
 (use-package ivy
+  :straight t
   :diminish
   :bind (("C-s" . swiper)
          :map ivy-minibuffer-map
@@ -241,11 +253,13 @@
   (ivy-mode 1))
 
 (use-package ivy-rich
+  :straight t
   :after ivy
   :init
   (ivy-rich-mode 1))
 
 (use-package counsel
+  :straight t
   :bind (("C-M-j" . 'counsel-switch-buffer)
          ("M-x" . counsel-M-x)
          ("C-x C-f" . counsel-find-file)
@@ -258,6 +272,7 @@
   (counsel-mode 1))
 
 (use-package ivy-prescient
+  :straight t
   :after counsel
   :custom
   (ivy-prescient-enable-filtering nil)
@@ -266,6 +281,7 @@
   (ivy-prescient-mode 1))
 
 (use-package helpful
+  :straight t
   :commands (helpful-callable helpful-variable helpful-command helpful-key)
   :custom
   (counsel-describe-function-function #'helpful-callable)
@@ -277,7 +293,7 @@
   ([remap describe-key] . helpful-key))
 
 (use-package hydra
-  :defer t)
+  :straight t)
 
 (defhydra hydra-text-scale (:timeout 4)
   "Scale text"
@@ -289,10 +305,11 @@
   "ts" '(hydra-text-scale/body :wk "scale text"))
 
 (use-package page-break-lines
+  :straight t
   :init (page-break-lines-mode t))
 
 (use-package dashboard
-  :ensure t
+  :straight t
   :init
   (progn
     (setq dashboard-items '((recents . 10)
@@ -318,6 +335,7 @@
   (dashboard-setup-startup-hook))
 
 (use-package eyebrowse
+  :straight t
   :bind
   ("M-0" . eyebrowse-last-window-config)
   ("M-1" . eyebrowse-switch-to-window-config-1)
@@ -384,7 +402,6 @@
 ;(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'tnh/org-babel-tangle-config)))
 
 (use-package org
-  :pin org
   :commands (org-capture org-agenda)
   :hook ((org-mode . tnh/org-mode-setup)
          (org-mode . tnh/org-font-setup)
@@ -400,6 +417,7 @@
   (advice-add 'org-refile :after 'org-save-all-org-buffers))
 
 (use-package org-bullets
+  :straight t
   :after org
   :custom
   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
@@ -410,6 +428,7 @@
   (visual-fill-column-mode 1))
 
 (use-package visual-fill-column
+  :straight t
   :after org
   :hook (org-mode . tnh/org-mode-visual-fill))
 
@@ -434,6 +453,7 @@
   (lsp-headerline-breadcrumb-mode))
 
 (use-package lsp-mode
+  :straight t
   :commands (lsp lsp-deferred)
   :hook (lsp-mode . tnh/lsp-mode-setup)
   :init
@@ -443,11 +463,13 @@
   (lsp-enable-which-key-integration t))
 
 (use-package lsp-ui
+  :straight t
   :hook (lsp-mode . lsp-ui-mode)
   :custom
   (lsp-ui-doc-position 'bottom))
 
 (use-package lsp-ivy
+  :straight t
   :after lsp)
 
 (defun tnh/lsp-go-save-hooks ()
@@ -455,6 +477,7 @@
   (add-hook 'before-save-hook #'lsp-organize-imports t t))
 
 (use-package go-mode
+  :straight t
   :hook ((go-mode . lsp-go-install-save-hooks)
          (go-mode . lsp-deferred))
   :mode "\\.go\\'"
@@ -463,6 +486,7 @@
         evil-shift-width 2))
 
 (use-package csharp-mode
+  :straight t
   :hook
   (csharp-mode . rainbow-delimiters-mode)
   (csharp-mode . company-mode)
@@ -471,6 +495,7 @@
   (csharp-mode . omnisharp-mode))
 
 (use-package omnisharp
+  :straight t
   :after csharp-mode company
   :commands omnisharp-install-server
   :config
@@ -487,11 +512,11 @@
   (add-to-list 'company-backends 'company-omnisharp))
 
 (use-package python
-  :ensure nil
   :custom
   (python-shell-interpreter "python3"))
 
 (use-package company
+  :straight t
   :after lsp-mode
   :hook (lsp-mode . company-mode)
   :bind (:map company-active-map
@@ -506,15 +531,19 @@
   (setq company-auto-commit t))
 
 (use-package company-box
+  :straight t
   :hook (company-mode . company-box-mode))
 
 (use-package evil-nerd-commenter
+  :straight t
   :bind ("M-/" . evilnc-comment-or-uncomment-lines))
 
 (use-package rainbow-delimiters
+  :straight t
   :hook (prog-mode . rainbow-delimiters-mode))
 
 (use-package projectile
+  :straight t
   :diminish projectile-mode
   :config (projectile-mode)
   :custom ((projectile-completion-system 'ivy))
@@ -527,15 +556,18 @@
   (setq projectile-switch-project-action #'projectile-dired))
 
 (use-package counsel-projectile
+  :straight t
   :after projectile
   :config (counsel-projectile-mode))
 
 (use-package magit
+  :straight t
   :commands magit-status
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
 (use-package git-gutter-fringe
+  :straight t
   :preface
   (defun tnh/git-gutter-enable ()
     (when-let* ((buffer (buffer-file-name))
@@ -551,13 +583,13 @@
   (define-fringe-bitmap 'git-gutter-fr:modified [192] nil nil '(center t)))
 
 (use-package vterm
+  :straight t
   :commands vterm
   :config
   (setq vterm-shell "/bin/zsh")
   (setq vterm-max-scrollback 10000))
 
 (use-package dired
-  :ensure nil
   :commands (dired dired-jump)
   :bind (("C-x C-j" . dired-jump))
   :custom ((dired-listing-switches "-agho --group-directories-first"))
@@ -566,31 +598,34 @@
     "h" 'dired-single-up-directory
     "l" 'dired-single-buffer))
 
-(use-package dired-single)
+(use-package dired-single
+  :straight t)
 
 (use-package all-the-icons-dired
   :hook (dired-mode . all-the-icons-dired-mode))
 
 (use-package dired-hide-dotfiles
+  :straight t
   :hook (dired-mode . dired-hide-dotfiles-mode)
   :config
   (evil-collection-define-key 'normal 'dired-mode-map
     "H" 'dired-hide-dotfiles-mode))
 
-(use-package restart-emacs)
+(use-package restart-emacs
+  :straight t)
 
 (use-package elcord
+  :straight t
   :config
   (elcord-mode 1))
 
 (use-package wakatime-mode 
-  :defer 2
+  :straight t
   :config
   (setq wakatime-api-key tnh/wk-token)
   (global-wakatime-mode))
 
 (use-package proced
-  :ensure nil
   :commands proced
   :config
   (setq proced-auto-update-interval 1)
