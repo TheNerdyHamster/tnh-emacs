@@ -45,7 +45,7 @@ This is my personal emacs configuration named *TNH-Emacs*, everything is written
 #+end_src
 
 * Desktop
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (setq tnh/exwm-enabled (and (eq window-system 'x)
                              (seq-contains command-line-args "--use-exwm")))
 
@@ -54,15 +54,15 @@ This is my personal emacs configuration named *TNH-Emacs*, everything is written
 #+end_src
 
 * GCC
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (setq package-native-compile t
         comp-async-report-warnings-errors nil)
 #+end_src
 
 * Package system
-** Basic setup
+** Basic setup =deprecated=
 Emacs builtin package manager dosen't make it easy to automaticly install packages on new systems. =use-package= is one of many good package managers that can help you to automate the instalation and configuration of everything we use in this configuration.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   ;; Initialize package sources
   (require 'package)
 
@@ -82,8 +82,51 @@ Emacs builtin package manager dosen't make it easy to automaticly install packag
   (setq use-package-always-ensure t)
   ;(setq use-package-verbose t)
 #+end_src
-** Automatic updates
+
+** Straight.el
 #+begin_src emacs-lisp
+  (setq package-enable-at-startup nil)
+  ;; Bootstrap straight.el
+  (defvar bootstrap-version)
+  (let ((bootstrap-file
+	 (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+	(bootstrap-version 5))
+    (unless (file-exists-p bootstrap-file)
+      (with-current-buffer
+	  (url-retrieve-synchronously
+	   "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+	   'silent 'inhibit-cookies)
+	(goto-char (point-max))
+	(eval-print-last-sexp)))
+    (load bootstrap-file nil 'nomessage))
+
+  ;; Always use straight.el to install new packages
+  ;(setq straight-use-package-by-default t)
+
+  ;; Use straight.el for use-package expressions
+  (straight-use-package 'use-package)
+
+  ;; Load the helper package for commands like `straight-x-clean-unused-repos'
+  (require 'straight-x)
+
+  (let ((straight-current-profile 'pinned))
+    (straight-use-package 'org-plus-contrib)
+    (straight-use-package 'org)
+    ;; Pin org-mode version.
+    (add-to-list 'straight-x-pinned-packages
+		 '("org" . "924308a150ab82014b69c46c04d1ab71e874a2e6")))
+#+end_src
+
+Define package sources.
+#+begin_src emacs-lisp
+  (require 'package)
+
+  (setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                             ("org" . "https://orgmode.org/elpa/")
+                             ("elpa" . "https://elpa.gnu.org/packages/")))
+#+end_src
+** Automatic updates
+#+begin_src emacs-lisp :tangle no
   (use-package auto-package-update
     :custom
     (auto-package-update-interval 7)
@@ -97,7 +140,12 @@ Emacs builtin package manager dosen't make it easy to automaticly install packag
 * Clean folders
 I am using =no-littering= to keep emacs, and project folders clean. =no-littering= knows about a wide range of variables from both Emacs features and Community packages.
 #+begin_src emacs-lisp
-  (use-package no-littering)
+  ;; Change the user-emacs-directory to keep unwanted things out of ~/.emacs.d
+  (setq user-emacs-directory (expand-file-name "~/.cache/emacs/")
+        url-history-file (expand-file-name "url/history" user-emacs-directory))
+
+  (use-package no-littering
+    :straight t)
 
   (setq auto-save-file-name-transforms
       `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
@@ -179,6 +227,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
   (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
   (use-package general
+    :straight t
     :after evil
     :config
     (general-auto-unbind-keys)
@@ -196,6 +245,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
      "fde" '(lambda () (interactive) (find-file (expand-file-name "~/.emacs.d/Emacs.org")))))
 
   (use-package evil
+    :straight t
     :init
     (setq evil-want-integration t)
     (setq evil-want-keybinding nil)
@@ -222,6 +272,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
     (evil-set-initial-state 'dashboard-mode 'normal))
 
   (use-package evil-collection
+    :straight t
     :after evil
     :config
     (evil-collection-init))
@@ -231,7 +282,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 
 #+begin_src emacs-lisp
   (use-package key-chord
-    :defer 1
+    :straight t
     :config
     (key-chord-define evil-insert-state-map  "jk" 'evil-normal-state)
     (key-chord-define evil-insert-state-map  "kj" 'evil-normal-state)
@@ -241,7 +292,8 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 * UI configuration
 ** Color theme
 #+begin_src emacs-lisp
-    (use-package doom-themes)
+    (use-package doom-themes
+      :straight t)
 
     (defun tnh/apply-theme ()
       "Apply selected theme, and make the frame transparent."
@@ -254,6 +306,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 ** Modeline
 #+begin_src emacs-lisp
   (use-package all-the-icons
+    :straight t
     :if (display-graphic-p)
     :commands all-the-icons-install-fonts
     :init
@@ -261,6 +314,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
       (all-the-icons-install-fonts t)))
 
   (use-package doom-modeline
+    :straight t
     :init (doom-modeline-mode 1)
     :custom 
     (doom-modeline-height 5)
@@ -279,7 +333,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 ** Which key
 #+begin_src emacs-lisp
   (use-package which-key
-    :defer 0
+    :straight t
     :diminish which-key-mode
     :config
     ;(setq which-key-popup-type 'frame)
@@ -290,6 +344,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 ** Ivy & Counsel
 #+begin_src emacs-lisp
   (use-package ivy
+    :straight t
     :diminish
     :bind (("C-s" . swiper)
            :map ivy-minibuffer-map
@@ -308,11 +363,13 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
     (ivy-mode 1))
 
   (use-package ivy-rich
+    :straight t
     :after ivy
     :init
     (ivy-rich-mode 1))
 
   (use-package counsel
+    :straight t
     :bind (("C-M-j" . 'counsel-switch-buffer)
            ("M-x" . counsel-M-x)
            ("C-x C-f" . counsel-find-file)
@@ -325,6 +382,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
     (counsel-mode 1))
 
   (use-package ivy-prescient
+    :straight t
     :after counsel
     :custom
     (ivy-prescient-enable-filtering nil)
@@ -336,6 +394,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 ** Helpful Commands
 #+begin_src emacs-lisp
   (use-package helpful
+    :straight t
     :commands (helpful-callable helpful-variable helpful-command helpful-key)
     :custom
     (counsel-describe-function-function #'helpful-callable)
@@ -350,7 +409,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 ** Text Scaling
 #+begin_src emacs-lisp
   (use-package hydra
-    :defer t)
+    :straight t)
 
   (defhydra hydra-text-scale (:timeout 4)
     "Scale text"
@@ -365,10 +424,11 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 ** Dashboard
 #+begin_src emacs-lisp
   (use-package page-break-lines
+    :straight t
     :init (page-break-lines-mode t))
 
   (use-package dashboard
-    :ensure t
+    :straight t
     :init
     (progn
       (setq dashboard-items '((recents . 10)
@@ -397,6 +457,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 ** Eyebrowse
 #+begin_src emacs-lisp
   (use-package eyebrowse
+    :straight t
     :bind
     ("M-0" . eyebrowse-last-window-config)
     ("M-1" . eyebrowse-switch-to-window-config-1)
@@ -471,7 +532,6 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 ** Basic config
 #+begin_src emacs-lisp
   (use-package org
-    :pin org
     :commands (org-capture org-agenda)
     :hook ((org-mode . tnh/org-mode-setup)
            (org-mode . tnh/org-font-setup)
@@ -490,6 +550,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 ** Better bullets
 #+begin_src emacs-lisp
   (use-package org-bullets
+    :straight t
     :after org
     :custom
     (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
@@ -503,6 +564,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
     (visual-fill-column-mode 1))
 
   (use-package visual-fill-column
+    :straight t
     :after org
     :hook (org-mode . tnh/org-mode-visual-fill))
 #+end_src
@@ -538,6 +600,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
     (lsp-headerline-breadcrumb-mode))
 
   (use-package lsp-mode
+    :straight t
     :commands (lsp lsp-deferred)
     :hook (lsp-mode . tnh/lsp-mode-setup)
     :init
@@ -551,6 +614,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 
 #+begin_src emacs-lisp
   (use-package lsp-ui
+    :straight t
     :hook (lsp-mode . lsp-ui-mode)
     :custom
     (lsp-ui-doc-position 'bottom))
@@ -560,6 +624,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 
 #+begin_src emacs-lisp
   (use-package lsp-ivy
+    :straight t
     :after lsp)
 #+end_src
 
@@ -571,6 +636,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
     (add-hook 'before-save-hook #'lsp-organize-imports t t))
 
   (use-package go-mode
+    :straight t
     :hook ((go-mode . lsp-go-install-save-hooks)
            (go-mode . lsp-deferred))
     :mode "\\.go\\'"
@@ -582,6 +648,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 *** C#
 #+begin_src emacs-lisp
   (use-package csharp-mode
+    :straight t
     :hook
     (csharp-mode . rainbow-delimiters-mode)
     (csharp-mode . company-mode)
@@ -590,6 +657,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
     (csharp-mode . omnisharp-mode))
 
   (use-package omnisharp
+    :straight t
     :after csharp-mode company
     :commands omnisharp-install-server
     :config
@@ -609,7 +677,6 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 *** Python
 #+begin_src emacs-lisp
   (use-package python
-    :ensure nil
     :custom
     (python-shell-interpreter "python3"))
 #+end_src
@@ -618,6 +685,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 
 #+begin_src emacs-lisp
   (use-package company
+    :straight t
     :after lsp-mode
     :hook (lsp-mode . company-mode)
     :bind (:map company-active-map
@@ -632,6 +700,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
     (setq company-auto-commit t))
 
   (use-package company-box
+    :straight t
     :hook (company-mode . company-box-mode))
 #+end_src
 
@@ -639,6 +708,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 
 #+begin_src emacs-lisp
   (use-package evil-nerd-commenter
+    :straight t
     :bind ("M-/" . evilnc-comment-or-uncomment-lines))
 #+end_src
 
@@ -646,12 +716,14 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 
 #+begin_src emacs-lisp
   (use-package rainbow-delimiters
+    :straight t
     :hook (prog-mode . rainbow-delimiters-mode))
 #+end_src
 
 ** Projectile
 #+begin_src emacs-lisp
   (use-package projectile
+    :straight t
     :diminish projectile-mode
     :config (projectile-mode)
     :custom ((projectile-completion-system 'ivy))
@@ -664,6 +736,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
     (setq projectile-switch-project-action #'projectile-dired))
 
   (use-package counsel-projectile
+    :straight t
     :after projectile
     :config (counsel-projectile-mode))
 #+end_src
@@ -672,6 +745,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 *** Magit
 #+begin_src emacs-lisp
   (use-package magit
+    :straight t
     :commands magit-status
     :custom
     (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
@@ -679,6 +753,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 *** Git gutter
 #+begin_src emacs-lisp
   (use-package git-gutter-fringe
+    :straight t
     :preface
     (defun tnh/git-gutter-enable ()
       (when-let* ((buffer (buffer-file-name))
@@ -698,6 +773,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 ** Vterm
 #+begin_src emacs-lisp
   (use-package vterm
+    :straight t
     :commands vterm
     :config
     (setq vterm-shell "/bin/zsh")
@@ -707,7 +783,6 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 ** Dired
 #+begin_src emacs-lisp
   (use-package dired
-    :ensure nil
     :commands (dired dired-jump)
     :bind (("C-x C-j" . dired-jump))
     :custom ((dired-listing-switches "-agho --group-directories-first"))
@@ -716,7 +791,8 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
       "h" 'dired-single-up-directory
       "l" 'dired-single-buffer))
 
-  (use-package dired-single)
+  (use-package dired-single
+    :straight t)
 #+end_src
 
 #+begin_src emacs-lisp
@@ -726,6 +802,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 
 #+begin_src emacs-lisp
   (use-package dired-hide-dotfiles
+    :straight t
     :hook (dired-mode . dired-hide-dotfiles-mode)
     :config
     (evil-collection-define-key 'normal 'dired-mode-map
@@ -734,33 +811,34 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 * Misc
 ** Restart Emacs
 #+begin_src emacs-lisp
-  (use-package restart-emacs)
+  (use-package restart-emacs
+    :straight t)
 #+end_src
 ** Discord precense
 
 #+begin_src emacs-lisp
   (use-package elcord
+    :straight t
     :config
     (elcord-mode 1))
 #+end_src
 ** Wakatime
 #+begin_src emacs-lisp
   (use-package wakatime-mode 
-    :defer 2
+    :straight t
     :config
     (setq wakatime-api-key tnh/wk-token)
     (global-wakatime-mode))
 #+end_src
 ** Process Mgmt
 #+begin_src emacs-lisp
-    (use-package proced
-      :ensure nil
-      :commands proced
-      :config
-      (setq proced-auto-update-interval 1)
-      (add-hook 'proced-mode-hook
-                (lambda ()
-                  (proced-toggle-auto-update 1))))
+  (use-package proced
+    :commands proced
+    :config
+    (setq proced-auto-update-interval 1)
+    (add-hook 'proced-mode-hook
+              (lambda ()
+                (proced-toggle-auto-update 1))))
 #+end_src
 ** Openfortivpn
 #+begin_src emacs-lisp
