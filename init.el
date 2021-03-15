@@ -405,7 +405,7 @@
   :commands (org-capture org-agenda)
   :hook ((org-mode . tnh/org-mode-setup)
          (org-mode . tnh/org-font-setup)
-         (org-mode . (lambda () (add-hook 'after-save-hook #'tnh/org-babel-tangle-config)))
+         (after-save . tnh/org-babel-tangle-config)
          (org-mode . org-bullets-mode))
   :custom
   (org-ellipsis " ▾")
@@ -472,18 +472,26 @@
   :straight t
   :after lsp)
 
-(defun tnh/lsp-go-save-hooks ()
-  (add-hook 'before-save-hook #'lsp-format-buffer t t)
-  (add-hook 'before-save-hook #'lsp-organize-imports t t))
+(use-package eglot
+  :straight t
+  :config
+  (add-to-list 'eglot-server-programs
+               `(csharp-mode . ("/home/leo/.cache/emacs/var/omnisharp/cache/server/v1.37.5/run"))))
+
+(defun tnh/go-mode-setup ()
+  (setq tab-width 2
+        evil-shift-width 2))
+
+(defun tnh/go-save-hooks ()
+  (add-hook 'before-save-hook #'eglot-format-buffer -10 t)
+  (add-hook 'before-save-hook #'eglot-code-action-organize-imports))
 
 (use-package go-mode
   :straight t
-  :hook ((go-mode . lsp-go-install-save-hooks)
-         (go-mode . lsp-deferred))
-  :mode "\\.go\\'"
-  :config
-  (setq tab-width 2
-        evil-shift-width 2))
+  :hook ((go-mode . eglot-ensure)
+         (go-mode . tnh/go-save-hooks)
+         (go-mode . tnh/go-mode-setup))
+  :mode "\\.go\\'")
 
 (use-package csharp-mode
   :straight t
@@ -512,16 +520,23 @@
   (add-to-list 'company-backends 'company-omnisharp))
 
 (use-package python
+  :hook (python-mode . eglot-ensure)
   :custom
   (python-shell-interpreter "python3"))
 
+(use-package pyvenv
+  :straight t
+  :after python-mode
+  :config
+  (pyvenv-mode 1))
+
 (use-package company
   :straight t
-  :after lsp-mode
-  :hook (lsp-mode . company-mode)
+  :after eglot
+  :hook (eglot-managed-mode . company-mode)
   :bind (:map company-active-map
          ("<tab>" . company-complete-selection))
-        (:map lsp-mode-map
+        (:map eglot-mode-map
          ("<tab>" . company-indent-or-complete-common))
   :custom
   (company-minimum-prefix-length 1)
