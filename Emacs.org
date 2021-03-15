@@ -298,7 +298,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
     (defun tnh/apply-theme ()
       "Apply selected theme, and make the frame transparent."
       (interactive)
-      (load-theme 'doom-molokai t))
+      (load-theme 'doom-dracula t))
 
     (tnh/apply-theme)
 #+end_src
@@ -535,7 +535,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
     :commands (org-capture org-agenda)
     :hook ((org-mode . tnh/org-mode-setup)
            (org-mode . tnh/org-font-setup)
-           (org-mode . (lambda () (add-hook 'after-save-hook #'tnh/org-babel-tangle-config)))
+           (after-save . tnh/org-babel-tangle-config)
            (org-mode . org-bullets-mode))
     :custom
     (org-ellipsis " ▾")
@@ -590,10 +590,9 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 #+end_src
 
 * Development
-** Languages
+** Language Server
 *** LSP
 **** lsp-mode
-
 #+begin_src emacs-lisp
   (defun tnh/lsp-mode-setup ()
     (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
@@ -611,7 +610,6 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 #+end_src
 
 **** lsp-ui
-
 #+begin_src emacs-lisp
   (use-package lsp-ui
     :straight t
@@ -621,28 +619,38 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 #+end_src
 
 **** lsp-ivy
-
 #+begin_src emacs-lisp
   (use-package lsp-ivy
     :straight t
     :after lsp)
 #+end_src
 
-*** Golang
-
+*** Eglot
 #+begin_src emacs-lisp
-  (defun tnh/lsp-go-save-hooks ()
-    (add-hook 'before-save-hook #'lsp-format-buffer t t)
-    (add-hook 'before-save-hook #'lsp-organize-imports t t))
+  (use-package eglot
+    :straight t
+    :config
+    (add-to-list 'eglot-server-programs
+                 `(csharp-mode . ("/home/leo/.cache/emacs/var/omnisharp/cache/server/v1.37.5/run"))))
+#+end_src
+
+** Languages
+*** Golang
+#+begin_src emacs-lisp
+  (defun tnh/go-mode-setup ()
+    (setq tab-width 2
+          evil-shift-width 2))
+  
+  (defun tnh/go-save-hooks ()
+    (add-hook 'before-save-hook #'eglot-format-buffer -10 t)
+    (add-hook 'before-save-hook #'eglot-code-action-organize-imports))
 
   (use-package go-mode
     :straight t
-    :hook ((go-mode . lsp-go-install-save-hooks)
-           (go-mode . lsp-deferred))
-    :mode "\\.go\\'"
-    :config
-    (setq tab-width 2
-          evil-shift-width 2))
+    :hook ((go-mode . eglot-ensure)
+           (go-mode . tnh/go-save-hooks)
+           (go-mode . tnh/go-mode-setup))
+    :mode "\\.go\\'")
 #+end_src
 
 *** C#
@@ -677,20 +685,28 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 *** Python
 #+begin_src emacs-lisp
   (use-package python
+    :hook (python-mode . eglot-ensure)
     :custom
     (python-shell-interpreter "python3"))
 #+end_src
 
-** Company mode
+#+begin_src emacs-lisp
+  (use-package pyvenv
+    :straight t
+    :after python-mode
+    :config
+    (pyvenv-mode 1))
+#+end_src
 
+** Company mode
 #+begin_src emacs-lisp
   (use-package company
     :straight t
-    :after lsp-mode
-    :hook (lsp-mode . company-mode)
+    :after eglot
+    :hook (eglot-managed-mode . company-mode)
     :bind (:map company-active-map
            ("<tab>" . company-complete-selection))
-          (:map lsp-mode-map
+          (:map eglot-mode-map
            ("<tab>" . company-indent-or-complete-common))
     :custom
     (company-minimum-prefix-length 1)
@@ -705,7 +721,6 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 #+end_src
 
 ** Commenting
-
 #+begin_src emacs-lisp
   (use-package evil-nerd-commenter
     :straight t
@@ -713,7 +728,6 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 #+end_src
 
 ** Rainbow delimiters
-
 #+begin_src emacs-lisp
   (use-package rainbow-delimiters
     :straight t
