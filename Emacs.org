@@ -839,6 +839,23 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
     (evil-collection-define-key 'normal 'dired-mode-map
       "H" 'dired-hide-dotfiles-mode))
 #+end_src
+* Tools
+** Docker
+#+begin_src emacs-lisp
+  (use-package dockerfile-mode
+    :straight t
+    :mode "Dockerfile\\'")
+#+end_src
+** Fish
+#+begin_src emacs-lisp
+  (defun tnh/fish-save-hook ()
+    (add-hook 'before-save-hook 'fish_indent-before-save))
+
+  (use-package fish-mode
+    :straight t
+    :hook (fish-mode . tnh/fish-save-hook)
+    :mode "\\.fish\\'")
+#+end_src
 * Misc
 ** Restart Emacs
 #+begin_src emacs-lisp
