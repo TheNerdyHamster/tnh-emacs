@@ -639,6 +639,18 @@
   (evil-collection-define-key 'normal 'dired-mode-map
     "H" 'dired-hide-dotfiles-mode))
 
+(use-package dockerfile-mode
+  :straight t
+  :mode "Dockerfile\\'")
+
+(defun tnh/fish-save-hook ()
+  (add-hook 'before-save-hook 'fish_indent-before-save))
+
+(use-package fish-mode
+  :straight t
+  :hook (fish-mode . tnh/fish-save-hook)
+  :mode "\\.fish\\'")
+
 (use-package restart-emacs
   :straight t)
 
