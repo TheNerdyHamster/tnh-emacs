@@ -701,4 +701,14 @@ buffer is not visiting a file."
   (interactive)
   (counsel-find-file "/sudo::/"))
 
+(defun tnh/insert-pdf-links ()
+  "Generate a todo list of files within a directory"
+  (interactive)
+  (let ((path (read-directory-name "Directory:")))
+    (let ((files (directory-files path nil "\\.pdf$")))
+      (dolist (file files)
+        (message (format "path is %s" path))
+        (newline)
+        (insert (format "*** [ ] [[file:%s%s][%s]]" path file file))))))
+
 (setq gc-cons-threshold (* 2 1000 1000))
