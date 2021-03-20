@@ -652,6 +652,18 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
            (go-mode . tnh/go-mode-setup))
     :mode "\\.go\\'")
 #+end_src
+*** Rust
+#+begin_src emacs-lisp
+  (defun tnh/rust-mode-setup ()
+    (setq indent-tabs-mode nil
+          rust-format-on-save t))
+
+  (use-package rust-mode
+    :straight t
+    :hook ((rust-mode . eglot-ensure)
+           (rust-mode . tnh/rust-mode-setup))
+    :mode "\\.rs\\'")
+#+end_src
 
 *** C#
 #+begin_src emacs-lisp
@@ -698,6 +710,12 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
     (pyvenv-mode 1))
 #+end_src
 
+*** Yml
+#+begin_src emacs-lisp
+  (use-package yaml-mode
+    :straight t
+    :mode "\\.yml\\'")
+#+end_src
 ** Company mode
 #+begin_src emacs-lisp
   (use-package company

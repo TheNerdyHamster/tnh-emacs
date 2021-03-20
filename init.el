@@ -493,6 +493,16 @@
          (go-mode . tnh/go-mode-setup))
   :mode "\\.go\\'")
 
+(defun tnh/rust-mode-setup ()
+  (setq indent-tabs-mode nil
+        rust-format-on-save t))
+
+(use-package rust-mode
+  :straight t
+  :hook ((rust-mode . eglot-ensure)
+         (rust-mode . tnh/rust-mode-setup))
+  :mode "\\.rs\\'")
+
 (use-package csharp-mode
   :straight t
   :hook
@@ -529,6 +539,10 @@
   :after python-mode
   :config
   (pyvenv-mode 1))
+
+(use-package yaml-mode
+  :straight t
+  :mode "\\.yml\\'")
 
 (use-package company
   :straight t
