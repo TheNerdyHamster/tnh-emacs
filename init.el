@@ -197,7 +197,7 @@
 (defun tnh/apply-theme ()
   "Apply selected theme, and make the frame transparent."
   (interactive)
-  (load-theme 'doom-molokai t))
+  (load-theme 'doom-dracula t))
 
 (tnh/apply-theme)
 
@@ -399,13 +399,12 @@
     (let ((org-confirm-babel-evaluate nil))
       (org-babel-tangle))))
 
-;(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'tnh/org-babel-tangle-config)))
+(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'tnh/org-babel-tangle-config)))
 
 (use-package org
   :commands (org-capture org-agenda)
   :hook ((org-mode . tnh/org-mode-setup)
          (org-mode . tnh/org-font-setup)
-         (after-save . tnh/org-babel-tangle-config)
          (org-mode . org-bullets-mode))
   :custom
   (org-ellipsis " ▾")
@@ -615,7 +614,6 @@
   :straight t
   :commands vterm
   :config
-  (setq vterm-shell "/bin/zsh")
   (setq vterm-max-scrollback 10000))
 
 (use-package dired
@@ -631,6 +629,7 @@
   :straight t)
 
 (use-package all-the-icons-dired
+  :straight t
   :hook (dired-mode . all-the-icons-dired-mode))
 
 (use-package dired-hide-dotfiles
