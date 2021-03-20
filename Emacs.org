@@ -526,7 +526,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
       (let ((org-confirm-babel-evaluate nil))
         (org-babel-tangle))))
 
-  ;(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'tnh/org-babel-tangle-config)))
+  (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'tnh/org-babel-tangle-config)))
 #+end_src
 
 ** Basic config
@@ -535,7 +535,6 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
     :commands (org-capture org-agenda)
     :hook ((org-mode . tnh/org-mode-setup)
            (org-mode . tnh/org-font-setup)
-           (after-save . tnh/org-babel-tangle-config)
            (org-mode . org-bullets-mode))
     :custom
     (org-ellipsis " ▾")
@@ -808,7 +807,6 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
     :straight t
     :commands vterm
     :config
-    (setq vterm-shell "/bin/zsh")
     (setq vterm-max-scrollback 10000))
 #+end_src
 
@@ -829,6 +827,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 
 #+begin_src emacs-lisp
   (use-package all-the-icons-dired
+    :straight t
     :hook (dired-mode . all-the-icons-dired-mode))
 #+end_src
 
@@ -862,6 +861,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
     (setq wakatime-api-key tnh/wk-token)
     (global-wakatime-mode))
 #+end_src
+
 ** Process Mgmt
 #+begin_src emacs-lisp
   (use-package proced
@@ -872,6 +872,7 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
               (lambda ()
                 (proced-toggle-auto-update 1))))
 #+end_src
+
 ** Openfortivpn
 #+begin_src emacs-lisp
   ;; (defun tnh/connect-vpn ()
