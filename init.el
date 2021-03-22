@@ -496,6 +496,40 @@
          (go-mode . tnh/go-mode-setup))
   :mode "\\.go\\'")
 
+(use-package typescript-mode
+  :straight t
+  :mode "\\.ts\\'"
+  :hook (typescript-mode . eglot-ensure)
+  :config
+  (setq typescript-indent-level 2))
+
+(defun tnh/set-js-indentation ()
+  (setq js-indent-level 2)
+  (setq evil-shift-width js-indent-level)
+  (setq-default tab-width 2))
+
+(use-package js2-mode
+  :straight t
+  :mode "\\.jsx?\\'"
+  :config
+  ;; Use js2-mode for Node scripts
+  (add-to-list 'magic-mode-alist '("#!/usr/bin/env node" . js2-mode))
+
+  ;; Don't use built-in syntax checking
+  (setq js2-mode-show-strict-warnings nil)
+
+  ;; Set up proper indentation in JavaScript and JSON files
+  (add-hook 'js2-mode-hook #'dw/set-js-indentation)
+  (add-hook 'json-mode-hook #'dw/set-js-indentation))
+
+
+(use-package prettier-js
+  :straight t
+  :hook ((js2-mode . prettier-js-mode)
+         (typescript-mode . prettier-js-mode))
+  :config
+  (setq prettier-js-show-errors nil))
+
 (defun tnh/rust-mode-setup ()
   (setq indent-tabs-mode nil
         rust-format-on-save t))
@@ -505,6 +539,10 @@
   :hook ((rust-mode . eglot-ensure)
          (rust-mode . tnh/rust-mode-setup))
   :mode "\\.rs\\'")
+
+(use-package cargo
+  :straight t
+  :defer t)
 
 (use-package csharp-mode
   :straight t
