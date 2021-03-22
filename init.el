@@ -194,10 +194,14 @@
 (use-package doom-themes
   :straight t)
 
+(use-package spaceduck
+  :straight (:host github :repo "tathran/spaceduck-emacs"
+             :branch "main"))
+
 (defun tnh/apply-theme ()
   "Apply selected theme, and make the frame transparent."
   (interactive)
-  (load-theme 'doom-dracula t))
+  (load-theme 'spaceduck t))
 
 (tnh/apply-theme)
 

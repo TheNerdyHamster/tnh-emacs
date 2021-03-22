@@ -292,15 +292,19 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 * UI configuration
 ** Color theme
 #+begin_src emacs-lisp
-    (use-package doom-themes
-      :straight t)
+  (use-package doom-themes
+    :straight t)
 
-    (defun tnh/apply-theme ()
-      "Apply selected theme, and make the frame transparent."
-      (interactive)
-      (load-theme 'doom-dracula t))
+  (use-package spaceduck
+    :straight (:host github :repo "tathran/spaceduck-emacs"
+               :branch "main"))
 
-    (tnh/apply-theme)
+  (defun tnh/apply-theme ()
+    "Apply selected theme, and make the frame transparent."
+    (interactive)
+    (load-theme 'spaceduck t))
+
+  (tnh/apply-theme)
 #+end_src
 
 ** Modeline
