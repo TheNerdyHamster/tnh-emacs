@@ -1,3 +1,14 @@
+(setq gc-cons-threshold (* 50 1000 1000))
+
+(defun tnh/display-startup-time ()
+  (message " TNH-Emacs loaded in %s with %d garbage collections."
+           (format "%.2f seconds"
+                   (float-time
+                    (time-subtract after-init-time before-init-time)))
+           gcs-done))
+
+(add-hook 'emacs-startup-hook #'tnh/display-startup-time)
+
 (defvar tnh/default-font-size 100)
 
 (defvar tnh/frame-transparency '(100 . 100))
@@ -10,17 +21,6 @@
 
 (let ((secrets (expand-file-name ".secrets.el" user-emacs-directory)))
   (load secrets t))
-
-(setq gc-cons-threshold (* 50 1000 1000))
-
-(defun tnh/display-startup-time ()
-  (message " TNH-Emacs loaded in %s with %d garbage collections."
-           (format "%.2f seconds"
-                   (float-time
-                    (time-subtract after-init-time before-init-time)))
-           gcs-done))
-
-(add-hook 'emacs-startup-hook #'tnh/display-startup-time)
 
 (server-start)
 
@@ -194,14 +194,10 @@
 (use-package doom-themes
   :straight t)
 
-(use-package spaceduck
-  :straight (:host github :repo "tathran/spaceduck-emacs"
-             :branch "main"))
-
 (defun tnh/apply-theme ()
   "Apply selected theme, and make the frame transparent."
   (interactive)
-  (load-theme 'spaceduck t))
+  (load-theme 'misterioso t))
 
 (tnh/apply-theme)
 
@@ -436,14 +432,6 @@
   :hook (org-mode . tnh/org-mode-visual-fill))
 
 (with-eval-after-load 'org
-  (org-babel-do-load-languages
-      'org-babel-load-languages
-      '((emacs-lisp . t)
-        (python . t)))
-
-  (push '("conf-unix" . conf-unix) org-src-lang-modes))
-
-(with-eval-after-load 'org
   ;; This is needed as of Org 9.2
   (require 'org-tempo)
 
@@ -529,6 +517,15 @@
          (typescript-mode . prettier-js-mode))
   :config
   (setq prettier-js-show-errors nil))
+
+(defun tnh/php-mode-setup ()
+  (setq indent-tabs-mode nil))
+
+(use-package php-mode
+  :straight t
+  :hook ((php-mode . eglot-ensure)
+         (php-mode . tnh/php-mode-setup))
+  :mode "\\.php\\'")
 
 (defun tnh/rust-mode-setup ()
   (setq indent-tabs-mode nil
@@ -681,17 +678,18 @@
   (evil-collection-define-key 'normal 'dired-mode-map
     "H" 'dired-hide-dotfiles-mode))
 
+(use-package pdf-tools
+  :straight t
+  :config
+  (pdf-tools-install)
+  (setq-default pdf-view-display-size 'fit-height)
+  (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward)
+  :custom
+  (pdf-annot-activate-created-annotations t "automatically annotate highlights"))
+
 (use-package dockerfile-mode
   :straight t
   :mode "Dockerfile\\'")
-
-(defun tnh/fish-save-hook ()
-  (add-hook 'before-save-hook 'fish_indent-before-save))
-
-(use-package fish-mode
-  :straight t
-  :hook (fish-mode . tnh/fish-save-hook)
-  :mode "\\.fish\\'")
 
 (use-package restart-emacs
   :straight t)
