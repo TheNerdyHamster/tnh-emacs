@@ -7,6 +7,20 @@ This is my personal emacs configuration named *TNH-Emacs*, everything is written
 
 *IMPORTANT*: If you run into any issue or questions while trying out the configuration please create a issue, to help me solve it faster. 
 
+* Startup
+#+begin_src emacs-lisp
+  (setq gc-cons-threshold (* 50 1000 1000))
+
+  (defun tnh/display-startup-time ()
+    (message " TNH-Emacs loaded in %s with %d garbage collections."
+             (format "%.2f seconds"
+                     (float-time
+                      (time-subtract after-init-time before-init-time)))
+             gcs-done))
+
+  (add-hook 'emacs-startup-hook #'tnh/display-startup-time)
+#+end_src
+
 * Variables
 #+begin_src emacs-lisp
   (defvar tnh/default-font-size 100)
@@ -23,20 +37,6 @@ This is my personal emacs configuration named *TNH-Emacs*, everything is written
 #+begin_src emacs-lisp
   (let ((secrets (expand-file-name ".secrets.el" user-emacs-directory)))
     (load secrets t))
-#+end_src
-
-* Startup
-#+begin_src emacs-lisp
-  (setq gc-cons-threshold (* 50 1000 1000))
-
-  (defun tnh/display-startup-time ()
-    (message " TNH-Emacs loaded in %s with %d garbage collections."
-             (format "%.2f seconds"
-                     (float-time
-                      (time-subtract after-init-time before-init-time)))
-             gcs-done))
-
-  (add-hook 'emacs-startup-hook #'tnh/display-startup-time)
 #+end_src
 
 * Server
@@ -295,14 +295,10 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
   (use-package doom-themes
     :straight t)
 
-  (use-package spaceduck
-    :straight (:host github :repo "tathran/spaceduck-emacs"
-               :branch "main"))
-
   (defun tnh/apply-theme ()
     "Apply selected theme, and make the frame transparent."
     (interactive)
-    (load-theme 'spaceduck t))
+    (load-theme 'misterioso t))
 
   (tnh/apply-theme)
 #+end_src
@@ -571,13 +567,14 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
     :after org
     :hook (org-mode . tnh/org-mode-visual-fill))
 #+end_src
-** Babel
+** COMMENT Babel
 #+begin_src emacs-lisp
   (with-eval-after-load 'org
     (org-babel-do-load-languages
         'org-babel-load-languages
         '((emacs-lisp . t)
-          (python . t)))
+          (python . t)
+          (shell . t)))
 
     (push '("conf-unix" . conf-unix) org-src-lang-modes))
 #+end_src
@@ -691,7 +688,17 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
     :config
     (setq prettier-js-show-errors nil))
 #+end_src
+*** PHP
+#+begin_src emacs-lisp
+  (defun tnh/php-mode-setup ()
+    (setq indent-tabs-mode nil))
 
+  (use-package php-mode
+    :straight t
+    :hook ((php-mode . eglot-ensure)
+           (php-mode . tnh/php-mode-setup))
+    :mode "\\.php\\'")
+#+end_src
 *** Rust
 #+begin_src emacs-lisp
   (defun tnh/rust-mode-setup ()
@@ -885,21 +892,22 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
       "H" 'dired-hide-dotfiles-mode))
 #+end_src
 * Tools
+** PDF
+#+begin_src emacs-lisp
+  (use-package pdf-tools
+    :straight t
+    :config
+    (pdf-tools-install)
+    (setq-default pdf-view-display-size 'fit-height)
+    (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward)
+    :custom
+    (pdf-annot-activate-created-annotations t "automatically annotate highlights"))
+#+end_src
 ** Docker
 #+begin_src emacs-lisp
   (use-package dockerfile-mode
     :straight t
     :mode "Dockerfile\\'")
-#+end_src
-** Fish
-#+begin_src emacs-lisp
-  (defun tnh/fish-save-hook ()
-    (add-hook 'before-save-hook 'fish_indent-before-save))
-
-  (use-package fish-mode
-    :straight t
-    :hook (fish-mode . tnh/fish-save-hook)
-    :mode "\\.fish\\'")
 #+end_src
 * Misc
 ** Restart Emacs
