@@ -25,7 +25,7 @@ This is my personal emacs configuration named *TNH-Emacs*, everything is written
 #+begin_src emacs-lisp
   (defvar tnh/default-font-size 100)
 
-  (defvar tnh/frame-transparency '(100 . 100))
+  (defvar tnh/frame-transparency '(95 . 95))
 
   ;; Secrets
   (defvar tnh/wk-token  nil "Wakatime API token")
@@ -110,7 +110,7 @@ Emacs builtin package manager dosen't make it easy to automaticly install packag
   (require 'straight-x)
 
   (let ((straight-current-profile 'pinned))
-    (straight-use-package 'org-plus-contrib)
+    ;;(straight-use-package 'org-plus-contrib)
     (straight-use-package 'org)
     ;; Pin org-mode version.
     (add-to-list 'straight-x-pinned-packages
@@ -818,8 +818,8 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
     ("C-c p" . projectile-command-map)
     :init
     ;; NOTE: Set this to the folder where you keep your Git repos!
-    (when (file-directory-p "~/Projects")
-      (setq projectile-project-search-path '("~/Projects")))
+    (when (file-directory-p "~/Projects/**")
+      (setq projectile-project-search-path '("~/Projects/**")))
     (setq projectile-switch-project-action #'projectile-dired))
 
   (use-package counsel-projectile
@@ -857,6 +857,20 @@ I am using =evil-mode= to get a VI editing experience. To configure more modes w
 #+end_src
 
 * Terminal
+** EShell
+#+begin_src emacs-lisp
+  (use-package eshell-info-banner
+    :defer t
+    :straight (eshell-info-banner :type git
+                                  :host github
+                                  :repo "phundrak/eshell-info-banner.el")
+    :hook (eshell-banner-load . eshell-info-banner-update-banner))
+#+end_src
+
+Configuration
+#+begin_src emacs-lisp
+
+#+end_src
 ** Vterm
 #+begin_src emacs-lisp
   (use-package vterm

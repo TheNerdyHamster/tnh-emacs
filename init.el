@@ -11,7 +11,7 @@
 
 (defvar tnh/default-font-size 100)
 
-(defvar tnh/frame-transparency '(100 . 100))
+(defvar tnh/frame-transparency '(95 . 95))
 
 ;; Secrets
 (defvar tnh/wk-token  nil "Wakatime API token")
@@ -49,7 +49,7 @@
 (require 'straight-x)
 
 (let ((straight-current-profile 'pinned))
-  (straight-use-package 'org-plus-contrib)
+  ;;(straight-use-package 'org-plus-contrib)
   (straight-use-package 'org)
   ;; Pin org-mode version.
   (add-to-list 'straight-x-pinned-packages
@@ -622,8 +622,8 @@
   ("C-c p" . projectile-command-map)
   :init
   ;; NOTE: Set this to the folder where you keep your Git repos!
-  (when (file-directory-p "~/Projects")
-    (setq projectile-project-search-path '("~/Projects")))
+  (when (file-directory-p "~/Projects/**")
+    (setq projectile-project-search-path '("~/Projects/**")))
   (setq projectile-switch-project-action #'projectile-dired))
 
 (use-package counsel-projectile
@@ -652,6 +652,15 @@
   (define-fringe-bitmap 'git-gutter-fr:added [192] nil nil '(center t))
   (define-fringe-bitmap 'git-gutter-fr:deleted [192] nil nil '(center t))
   (define-fringe-bitmap 'git-gutter-fr:modified [192] nil nil '(center t)))
+
+(use-package eshell-info-banner
+  :defer t
+  :straight (eshell-info-banner :type git
+                                :host github
+                                :repo "phundrak/eshell-info-banner.el")
+  :hook (eshell-banner-load . eshell-info-banner-update-banner))
+
+
 
 (use-package vterm
   :straight t
