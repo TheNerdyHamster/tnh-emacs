@@ -197,7 +197,7 @@
 (defun tnh/apply-theme ()
   "Apply selected theme, and make the frame transparent."
   (interactive)
-  (load-theme 'misterioso t))
+  (load-theme 'doom-nord t))
 
 (tnh/apply-theme)
 
@@ -321,14 +321,18 @@
           dashboard-startup-banner 'logo
           dashboard-set-navigator t
           dashboard-navigator-buttons
-    `(((,(all-the-icons-octicon "mark-github" :height 1.1 :v-adjust 0.0)
-              "Github"
-              "Browse homepage"
+    `(((,(all-the-icons-faicon "code-fork" :height 1.1 :v-adjust 0.0)
+              "Source code"
+              "Source code"
               (lambda (&rest _) (browse-url "https://github.com/TheNerdyHamster/The-Nerdy-Hamster-Emacs")))
+            (,(all-the-icons-faicon "circle-o" :height 1.1 :v-adjust 0.0)
+              "sr.ht"
+              "Sourcehut profile"
+              (lambda (&rest _) (browse-url "https://sr.ht/~thenerdyhamster/")))
             (,(all-the-icons-faicon "linkedin" :height 1.1 :v-adjust 0.0)
               "Linkedin"
               "My Linkedin"
-              (lambda (&rest _) (browse-url "https://www.linkedin.com/in/leo-ronnebro/" error)))
+              (lambda (&rest _) (browse-url "https://www.linkedin.com/in/leo-ronnebro/")))
           ))))
   :config
   (setq dashboard-center-content t)
