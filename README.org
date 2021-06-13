@@ -7,9 +7,9 @@ The Nerdy Hamster Emacs, is my personal emacs configuration. That I am customizi
 
 ** Platforms supported
 
-| Linux   | Yes |
-| Windows | No  |
-| MacOS   | No  |
+- [X] Linux
+- [ ] Windows 
+- [ ] MacOS
 
 This Emacs configuration is currently only tested on =Arch Linux=.
 

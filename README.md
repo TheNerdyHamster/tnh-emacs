@@ -1,64 +1,40 @@
 
 # Table of Contents
 
-1.  [Installation](#orgfed0f94)
-    1.  [Platforms supported](#orgd03aed8)
-    2.  [Emacs](#org24d7cc4)
-        1.  [Arch-linux](#orgbffb538)
-        2.  [Post installation](#org2881d12)
-2.  [Inspiration](#orgda00135)
+1.  [Installation](#org240785e)
+    1.  [Platforms supported](#org8629228)
+    2.  [Emacs](#orgf0f1a8b)
+        1.  [Arch-linux](#org7f4fb9e)
+        2.  [Post installation](#orgbd51dd4)
+2.  [Inspiration](#org4640be4)
 
 The Nerdy Hamster Emacs, is my personal emacs configuration. That I am customizing after my needs.
 
 
-<a id="orgfed0f94"></a>
+<a id="org240785e"></a>
 
 # Installation
 
 
-<a id="orgd03aed8"></a>
+<a id="org8629228"></a>
 
 ## Platforms supported
 
-<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-
-
-<colgroup>
-<col  class="org-left" />
-
-<col  class="org-left" />
-</colgroup>
-<tbody>
-<tr>
-<td class="org-left">Linux</td>
-<td class="org-left">Yes</td>
-</tr>
-
-
-<tr>
-<td class="org-left">Windows</td>
-<td class="org-left">No</td>
-</tr>
-
-
-<tr>
-<td class="org-left">MacOS</td>
-<td class="org-left">No</td>
-</tr>
-</tbody>
-</table>
+-   [X] Linux
+-   [ ] Windows
+-   [ ] MacOS
 
 This Emacs configuration is currently only tested on `Arch Linux`.
 
 
-<a id="org24d7cc4"></a>
+<a id="orgf0f1a8b"></a>
 
 ## Emacs
 
 > I am currently running Emacs `28.0.50` `Master` Branch, the repo is **only** tested on Version `28.0.50`.
 
 
-<a id="orgbffb538"></a>
+<a id="org7f4fb9e"></a>
 
 ### Arch-linux
 
@@ -67,7 +43,7 @@ This Emacs configuration is currently only tested on `Arch Linux`.
     yay -S emacs-git
 
 
-<a id="org2881d12"></a>
+<a id="orgbd51dd4"></a>
 
 ### Post installation
 
@@ -84,7 +60,7 @@ Clone this repository to the `.emacs.d/` directory.
         M-x (all-the-icons-install-font)
 
 
-<a id="orgda00135"></a>
+<a id="org4640be4"></a>
 
 # Inspiration
 
