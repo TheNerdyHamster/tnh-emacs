@@ -22,13 +22,22 @@ I am currently running Emacs =28.0.50= =Master= Branch, the repo is *only* teste
 *Recomended* Install Emacs =28.0.50= or above.
 
 #+begin_src shell
-yay -S emacs-git
+paru -S emacs-git nerd-fonts-fira-code
 #+end_src
 
 *** Post installation 
 Clone this repository to the =.emacs.d/= directory.
 #+begin_src shell
-git clone https://github.com/TheNerdyHamster/The-Nerdy-Hamster-Emacs.git ~/.emacs.d/
+git clone --recursive git@git.sr.ht:~thenerdyhamster/tnh-emacs ~/.emacs.d 
+#+end_src
+
+**** Secrets 
+Create a file called =.secrets.el= that contains
+#+begin_src emacs-lisp
+  (setq tnh/wk-token "value")
+  (setq tnh/vpn-host "value")
+  (setq tnh/vpn-user "value")
+  (setq tnh/vpn-cert "value")
 #+end_src
 
 **** Icons 

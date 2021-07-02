@@ -1,22 +1,22 @@
 
 # Table of Contents
 
-1.  [Installation](#org1af73e8)
-    1.  [Platforms supported](#orgb6177ea)
-    2.  [Emacs](#org6bd02dc)
-        1.  [Arch-linux](#orgee92bc4)
-        2.  [Post installation](#orgdcec9b3)
-2.  [Inspiration](#org8a21975)
+1.  [Installation](#org683805a)
+    1.  [Platforms supported](#org11f6025)
+    2.  [Emacs](#orgd190dae)
+        1.  [Arch-linux](#org8836bb6)
+        2.  [Post installation](#org2cfe0ee)
+2.  [Inspiration](#orgf26f504)
 
 The Nerdy Hamster Emacs, is my personal emacs configuration. That I am customizing after my needs.
 
 
-<a id="org1af73e8"></a>
+<a id="org683805a"></a>
 
 # Installation
 
 
-<a id="orgb6177ea"></a>
+<a id="org11f6025"></a>
 
 ## Platforms supported
 
@@ -27,31 +27,40 @@ The Nerdy Hamster Emacs, is my personal emacs configuration. That I am customizi
 This Emacs configuration is currently only tested on `Arch Linux`.
 
 
-<a id="org6bd02dc"></a>
+<a id="orgd190dae"></a>
 
 ## Emacs
 
 > I am currently running Emacs `28.0.50` `Master` Branch, the repo is **only** tested on Version `28.0.50`.
 
 
-<a id="orgee92bc4"></a>
+<a id="org8836bb6"></a>
 
 ### Arch-linux
 
 **Recomended** Install Emacs `28.0.50` or above.
 
-    yay -S emacs-git
+    paru -S emacs-git nerd-fonts-fira-code
 
 
-<a id="orgdcec9b3"></a>
+<a id="org2cfe0ee"></a>
 
 ### Post installation
 
 Clone this repository to the `.emacs.d/` directory.
 
-    git clone https://github.com/TheNerdyHamster/The-Nerdy-Hamster-Emacs.git ~/.emacs.d/
+    git clone --recursive git@git.sr.ht:~thenerdyhamster/tnh-emacs ~/.emacs.d 
 
-1.  Icons
+1.  Secrets
+
+    Create a file called `.secrets.el` that contains
+    
+        (setq tnh/wk-token "value")
+        (setq tnh/vpn-host "value")
+        (setq tnh/vpn-user "value")
+        (setq tnh/vpn-cert "value")
+
+2.  Icons
 
     Packages such as `Centaur-tabs`, `Treemacs`, `doom-modeline` utilizes features from `all-the-icons`.
     
@@ -60,7 +69,7 @@ Clone this repository to the `.emacs.d/` directory.
         M-x (all-the-icons-install-font)
 
 
-<a id="org8a21975"></a>
+<a id="orgf26f504"></a>
 
 # Inspiration
 
