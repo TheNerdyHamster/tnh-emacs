@@ -1,7 +1,7 @@
-#+TITLE: The Nerdy Hamster Emacs
-#+AUTHOR: Leo Rönnebro
+#+TITLE: TNH-Emacs
+#+AUTHOR: Leo Olofsson
 
-The Nerdy Hamster Emacs, is my personal emacs configuration. That I am customizing after my needs.
+TNH-Emacs, is my personal emacs configuration. That I am customizing after my needs.
 
 * Installation
 
@@ -22,13 +22,13 @@ I am currently running Emacs =28.0.50= =Master= Branch, the repo is *only* teste
 *Recomended* Install Emacs =28.0.50= or above.
 
 #+begin_src shell
-yay -S emacs-git
+paru -S emacs-git
 #+end_src
 
 *** Post installation 
 Clone this repository to the =.emacs.d/= directory.
 #+begin_src shell
-git clone https://github.com/TheNerdyHamster/The-Nerdy-Hamster-Emacs.git ~/.emacs.d/
+git clone https://github.com/TheNerdyHamster/tnh-emacs.git ~/.config/emacs
 #+end_src
 
 **** Icons 
