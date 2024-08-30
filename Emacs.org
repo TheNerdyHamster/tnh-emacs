@@ -1,0 +1,563 @@
+#+title: TNH-Emacs
+#+authnor: TheNerdyHamster
+#+mail: leo@letnh.com
+#+language: en
+#+options ':t toc:nil num:t author:t email:t
+
+* TODO Introduction
+
+* TODO The pre-phase of Emacs (=early-init.el=)
+
+** The =early-init.el= minimal frame.
+
+#+begin_src emacs-lisp :tangle "early-init.el"
+  (setq frame-resize-pixelwise t
+	frame-inhibit-implied-resize t
+	frame-title-format '("%b")
+	ring-bell-function 'ignore
+	use-dialog-box nil
+	use-file-dialog nil
+	use-short-answers t
+	inhibit-splash-screen t
+	inhibit-startup-screen t
+	inhibit-x-resources t
+	inhibit-startup-echo-area-message user-login-name
+	inhibit-startup-buffer-menu t)
+
+  ; Disable all graphical elements
+  (menu-bar-mode -1)
+  (scroll-bar-mode -1)
+  (tool-bar-mode -1)
+#+end_src
+
+** The =early-init.el= gargabe collection
+
+#+begin_src emacs-lisp :tangle "early-init.el"
+  (setq gc-cons-threshold most-positive-fixnum
+	gc-cons-percentage 0.5)
+
+  ;; Save `file-name-handler-alist` and `vc-handled-backends`, so they can
+  ;; be restored after garbage collection is completed.
+  (defvar tnh--file-name-handler-alist file-name-handler-alist)
+  (defvar tnh--vc-handled-backends vc-handled-backends)
+
+  (setq file-name-handler-alist nil
+	vc-handled-backends nil)
+
+  (add-hook 'emacs-startup-hook
+	    (lambda ()
+	      (setq gc-cons-threshold (* 8 1000 1000)
+		    gc-cons-percentage 0.1
+		    file-name-handler-alist tnh--file-name-handler-alist
+		    vc-handled-backends tnh--vc-handled-backends)))
+#+end_src
+
+** The =early-init.el= set name for default frame
+#+begin_src emacs-lisp :tangle "early-init.el"
+  (add-hook 'after-init-hook (lambda () (set-frame-name "home")))
+#+end_src
+** The =early-init.el= package cache
+
+#+begin_src emacs-lisp :tangle "early-init.el"
+  (setq package-enable-at-startup t)
+#+end_src
+
+* The main phanse of Emacs (=init.el=)
+** TODO The =init.el= user options
+ #+begin_src emacs-lisp :tangle "init.el"
+   (defgroup tnh-emacs nil
+     "User options for TNH Emacs.
+   The tnh-emacs-pre-custom.el file must exist and be located
+   in the same directy as the init.el."
+     :group 'file)
+ #+end_src
+
+** The =init.el= user option to enable ~vterm~
+
+#+begin_src emacs-lisp :tangle "init.el"
+  (defcustom tnh-emacs-load-vterm nil
+    "When non-nil, enable vterm package.
+  This user option must be set in the `tnh-emacs-pre-custom.el' file."
+    :group 'tnh-emacs
+    :type 'boolean)
+#+end_src
+** The =init.el= user option to enable ~which-key~
+
+#+begin_src emacs-lisp :tangle "init.el"
+  (defcustom tnh-emacs-load-which-key nil
+    "When non-nil, enable keybinding hints after a short delay.
+  This user option must be set in the `tnh-emacs-pre-custom.el' file."
+    :group 'tnh-emacs
+    :type 'boolean)
+#+end_src
+
+** The =init.el= add startup hook
+#+begin_src emacs-lisp :tangle "init.el"
+    (defun tnh/display-startup-info ()
+      (message "TNH-Emacs loaded in %s with %d garbage collections."
+	       (format "%.2f seconds"
+		       (float-time
+			(time-subtract after-init-time before-init-time)))
+	       gcs-done))
+    (add-hook 'emacs-startup-hook #'tnh/display-startup-info)
+#+end_src
+** The =init.el= add modules to path
+
+#+begin_src emacs-lisp :tangle "init.el"
+  (add-to-list 'load-path (locate-user-emacs-file '"modules"))
+#+end_src
+
+** The =init.el= load required modules
+
+#+begin_src emacs-lisp :tangle "init.el"
+	;; Load pre-custom file before loading any module.
+	(load (locate-user-emacs-file "tnh-emacs-pre-custom.el") :no-error :no-messag)
+
+	(require 'tnh-emacs-package)
+	(require 'tnh-emacs-theme)
+	(require 'tnh-emacs-keys)
+
+	(require 'tnh-emacs-core)
+	(require 'tnh-emacs-interface)
+
+	(require 'tnh-emacs-code)
+	(require 'tnh-emacs-lsp)
+	(require 'tnh-emacs-term)
+	(require 'tnh-emacs-dired)
+	(require 'tnh-emacs-ledger)
+	(require 'tnh-emacs-custom)
+#+end_src
+
+* The custom module for Emacs configuration
+** The =tnh-emacs-package.el= module
+
+This module configures =package.el= and =use-package=
+#+begin_src emacs-lisp :tangle "modules/tnh-emacs-package.el" :mkdirp yes
+	(require 'package)
+
+	(setq package-vc-register-as-project nil)
+
+	(add-hook 'package-menu-mode-hook #'hl-line-mode)
+
+	(setq package-archives
+	'(("melpa" . "http://melpa.org/packages/")
+		("melpa-stable" ."https://stable.melpa.org/packages/")
+		("nongnu" . "https://elpa.nongnu.org/nongnu/")
+		("gnu-elpa" . "https://elpa.gnu.org/packages/")))
+
+	(setq package-archive-priorities
+	'(("gnu-elpa" . 4)
+		("melpa" . 3)
+		("melpa-stable" . 2)
+		("nongnu" . 1)))
+
+	(package-initialize)
+	(unless package-archive-contents
+		(package-refresh-contents))
+
+	(unless (package-installed-p 'use-package)
+		(package-install 'use-package))
+	(require 'use-package)
+
+	(provide 'tnh-emacs-package)
+#+end_src
+
+** The =tnh-emacs-theme.el= module
+#+begin_src emacs-lisp :tangle "modules/tnh-emacs-theme.el"
+  (load-theme 'modus-vivendi)
+  (provide 'tnh-emacs-theme)
+#+end_src
+** The =tnh-emacs-core.el= module
+#+begin_src emacs-lisp :tangle "modules/tnh-emacs-core.el"
+	;; -- No littering
+	;; Change the user-emacs-directory to keep unwanted things out of ~/.emacs.d
+	(setq user-emacs-directory (expand-file-name "~/.cache/emacs/")
+				url-history-file (expand-file-name "url/history" user-emacs-directory))
+
+	(use-package no-littering
+		:ensure t
+		:config
+		(setq auto-save-file-name-transforms
+		`((".*" ,(no-littering-expand-var-file-name "auto-save/") t))))  
+	(setq auto-save-default nil)
+
+	;; -- Native compilation settings
+	(setq native-comp-async-report-warnings-errors nil)
+
+	(add-to-list 'native-comp-eln-load-path (expand-file-name "eln-cache/" user-emacs-directory))
+
+	;; -- Basic bindings
+
+	;; Use UTF-8 by default
+	(set-default-coding-systems 'utf-8)
+	(repeat-mode 1)
+
+	(column-number-mode)
+
+	(dolist (mode '(prog-mode-hook
+					conf-mode-hook
+					text-mode-hook))
+		(add-hook mode (lambda () (display-line-numbers-mode 1))))
+
+	(setq large-file-warning-threshold nil)
+	(setq vc-follow-symlinks t)
+	(setq ad-redefinition-action 'accept)
+
+	;; Font
+	(set-face-attribute 'default nil
+											:font "FiraCode Nerd Font"
+											:weight 'normal)
+
+	(set-face-attribute 'fixed-pitch nil
+											:font "FiraCode Nerd Font"
+											:weight 'light)
+
+	;; Tabbar
+	(use-package tab-bar
+		:ensure nil
+		:bind (("s-[" . tab-bar-switch-to-prev-tab)
+					 ("s-]" . tab-bar-switch-to-next-tab)
+					 ("s-{" . (lambda ()
+											(interactive)
+											(tab-move -1)))
+					 ("s-}". (lambda ()
+										 (interactive)
+										 (tab-move 1))))
+		:custom
+		(tab-bar-show t)
+		(tab-bar-close-button-show nil)
+		(tab-bar-auto-width nil)
+		(tab-bar-history-mode 1)
+		(tab-bar-mode 1))
+	;; Editing
+
+	(setq-default tab-width 2
+			indent-tab-mode nil)
+
+	;; Revert Dired and other buffers
+	(setq global-auto-revert-non-file-buffers t)
+
+	;; Revert buffers when the underlying file has changed
+	(global-auto-revert-mode 1)
+
+	(defhydra+ tnh-emacs/emacs-hydra ()
+		("e" (lambda () (interactive) (find-file "~/.config/emacs")) "Open Emacs configuration" :column "Configuration")
+		("r" restart-emacs "Restart emacs" :column "General"))
+
+	;; Emacs server daemon
+  ;; (server-start)
+
+	(provide 'tnh-emacs-core)
+#+end_src
+
+** The =tnh-emacs-keys.el= module
+#+begin_src emacs-lisp :tangle "modules/tnh-emacs-keys.el"
+	(use-package hydra
+		:ensure t)
+#+end_src
+
+*** The =tnh-emacs-keys.el= custom keymaps
+#+begin_src emacs-lisp :tangle "modules/tnh-emacs-keys.el"
+  ;; Git
+  (defvar tnh-emacs/git-prefix-map (make-sparse-keymap)
+    "Keymap for git operations.")
+
+  (global-set-key (kbd "C-c g") tnh-emacs/git-prefix-map)
+
+  ;; Emacs general stuff
+
+	;; Custom emacs operations bindings
+	(defhydra tnh-emacs/emacs-hydra ()
+		"Keymap for emacs general operations")
+
+  (global-set-key (kbd "C-c s") 'tnh-emacs/emacs-hydra/body)
+
+  (provide 'tnh-emacs-keys)
+#+end_src
+
+** The =tnh-emacs-interface.el= module
+
+#+begin_src emacs-lisp :tangle "modules/tnh-emacs-interface.el"
+	(use-package vertico
+		:ensure t
+		:custom
+		(vertico-cycle t)
+
+		:custom-face
+		(vertico-current ((t (:background "#3a3f5a"))))
+
+		:config
+		(require 'vertico-directory)
+		(vertico-mode))
+
+	(use-package corfu
+		:ensure t
+		:bind (:map corfu-map
+								("TAB" . corfu-insert)
+								("C-f" . corfu-insert))
+		:custom
+		(corfu-auto t)
+		(corfu-cycle t)
+		(corfu-quit-at-boundary t)
+		(corfu-quit-no-match t)
+		:config
+		(global-corfu-mode 1)
+		;; (defun corfu-enable-in-minibuffer ()
+		;; 	"Enable Corfu in the minibuffer."
+		;; 	(when (local-variable-p 'completion-at-point-functions)
+		;; 		;; (setq-local corfu-auto nil) ;; Enable/disable auto completion
+		;; 		(setq-local corfu-echo-delay nil ;; Disable automatic echo and popup
+		;; 								corfu-popupinfo-delay nil)
+		;; 		(corfu-mode 1)))
+		;; (add-hook 'minibuffer-setup-hook #'corfu-enable-in-minibuffer)
+		)
+
+	(use-package helpful
+		:ensure t
+		:custom
+		(counsel-describe-function-function #'helpful-function)
+		(counsel-describe-variable-function #'helpful-variable)
+		:bind (([remap describe-function] . helpful-function)
+					 ([remap describe-command] . helpful-command)
+					 ([remap desribe-variable] . helpful-variable)
+					 ([remap describe-key] . helpful-key)))
+
+	(use-package kind-icon
+		:ensure t
+		:after corfu
+		:custom (kind-icon-default-face 'corfu-default)
+		:config
+		(add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
+
+	(use-package orderless
+		:ensure t
+		:config
+		(orderless-define-completion-style orderless+initialism
+																			 (orderless-matching-styles '(orderless-initialism
+																																		orderless-literal
+																																		orderless-regexp)))
+		(setq completion-styles '(orderless)
+					completion-category-defaults nil
+					orderless-matching-styles '(orderless-literal orderless-regexp)
+					completion-category-overrides
+					'((file (styles partial-completion)))))
+
+	(use-package wgrep
+		:after consult
+		:hook (grep-mode . wgrep-setup))
+
+	(use-package consult
+		:ensure t
+		:bind (("C-x C-b" . consult-buffer)
+					 :map minibuffer-local-map
+					 ("C-r" . consult-history))
+		:custom
+		(completion-in-region-function #'consult-completion-in-region))
+
+	(use-package consult-dir
+		:ensure t
+		:bind (("C-x C-d" . consult-dir)
+					 :map vertico-map
+					 ("C-x C-d" . consult-dir)
+					 ("C-x C-j" . consult-dir-jump-file))
+		:custom
+		(consult-dir-project-list-function nil))
+
+	(use-package embark
+		:ensure t
+		:after vertico
+		:bind (("C-." . embark-act)
+					 ("M-." . embark-dwim)
+					 :map minibuffer-local-map
+					 ("C-d" . embark-act)
+					 :map embark-region-map
+					 ("D" . denote-region))
+		:config
+		(delete #'embark-mixed-indicator embark-indicators)
+		(add-to-list 'embark-indicators 'embark-minimal-indicator)
+
+		(setq prefix-help-command #'embark-prefix-help-command))
+
+	(use-package embark-consult
+		:ensure t
+		:after embark)
+
+	(use-package savehist
+		:ensure t
+		:init
+		(savehist-mode))
+
+	(use-package marginalia
+		:ensure t
+		:after vertico
+		:config
+		(marginalia-mode))
+
+	(use-package nov
+		:ensure t
+		:config
+		(add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode)))
+
+	;; Emacs zone
+  ;;	(setq zone-timer (run-with-idle-timer 120 t 'zone))
+
+	(defun zone-choose (pgm)
+		"Choose a PGN to run for `zone'."
+		(interactive
+		 (list
+			(completing-read
+			 "Program: "
+			 (mapcar 'symbol-name zone-programs))))
+		(let ((zone-programs (list (intern pgm))))
+			(zone pgm)))
+
+
+	(provide 'tnh-emacs-interface)
+#+end_src
+** The =tnh-emacs-code.el= module
+
+#+begin_src emacs-lisp :tangle "modules/tnh-emacs-code.el"
+	(use-package rainbow-delimiters
+		:ensure t
+		:hook (prog-mode . rainbow-delimiters-mode))
+
+	(use-package rainbow-mode
+		:ensure t
+		:hook (org-mode
+					 emacs-lisp-mode))
+
+	(use-package smartparens
+		:ensure t
+		:hook (prog-mode . smartparens-mode)
+		:config
+		(sp-use-smartparens-bindings))
+
+	(use-package magit
+		:ensure t
+		:bind (("C-M-;" . magit-status-here)
+					 ("C-c C-g" . magit-status-here)))
+
+	(defun tnh-emacs/project-current-name ()
+		(file-name-nondirectory
+		 (directory-file-name
+			(project-root (project-current)))))
+
+	(defun tnh-emacs/project-close-tab ()
+		(interactive)
+		(let* ((project-name (tnh-emacs/project-current-name))
+					 (tab-index (tab-bar--tab-index-by-name project-name)))
+			(project-kill-buffers t)
+			(when tab-index
+				(tab-bar-close-tab (1+ tab-index)))))
+
+	(defun tnh-emacs/project-magit-status ()
+		(interactive)
+		(magit-status (project-root (project-current))))
+
+	(use-package project
+		:ensure nil
+		:bind (("C-M-p" . project-find-file)
+					 ;; ("C-x p a" . projectile-add-known-project) 
+					 :map project-prefix-map
+					 ("k" . tnh-emacs/project-close-tab)
+					 ("F" . consult-ripgrep))
+		:config
+		(setq project-vc-extra-root-markers '(".project.el" ".projectile"))
+		(add-to-list 'project-switch-commands '(tnh-emacs/project-magit-status "Magit" "m"))
+		(add-to-list 'project-switch-commands '(consult-ripgrep "Ripgrep" "F")))
+		;; (setq project-list '("~/Documents/code/gitlab.netnod.se"))
+		;; (setq project-switch-commands '((project-find-file "Find file")
+		;; 																(project-find_regexp "Find regexp")
+		;; 																(project-dired "Dired")
+		;; 																(project-eshell "Eshell"))))
+
+	(provide 'tnh-emacs-code)
+#+end_src
+** The =tnh-emacs-lsp.el= module
+
+#+begin_src emacs-lisp :tangle "modules/tnh-emacs-lsp.el"
+	(use-package eglot
+		:bind (:map eglot-mode-map
+								("C-c C-a" . eglot-code-actions)
+								("C-c C-r" . eglot-rename))
+		:config
+		(setq eglot-autoshutdown t))
+
+	(use-package terraform-mode
+		:ensure t
+		:custom (terraform-indent-level 4)
+		:config
+		(defun tnh-emacs/terraform-mode-init ()
+			(outline-minor-mode 1))
+		(add-hook 'terraform-mode-hook 'tnh-emacs/terraform-mode-init))
+
+	(provide 'tnh-emacs-lsp)
+#+end_src
+
+** The =tnh-emacs-term.el= module
+
+#+begin_src emacs-lisp :tangle "modules/tnh-emacs-term.el"
+	(use-package vterm
+		:ensure t)
+	
+	(provide 'tnh-emacs-term)
+#+end_src
+
+** The =tnh-emacs-dired.el= module
+
+#+begin_src emacs-lisp :tangle "modules/tnh-emacs-dired.el"
+	(use-package all-the-icons
+		:ensure t)
+
+	(use-package all-the-icons-dired
+		:ensure t)
+
+	(defun tnh-emacs/dired-mode-hook ()
+		(interactive)
+		(dired-hide-details-mode 1)
+		(all-the-icons-dired-mode 1)
+		(hl-line-mode 1))
+
+	(use-package dired
+		:ensure nil
+		:bind (:map dired-mode-map
+								("b" . dired-up-directory)
+								("H" . dired-hide-details-mode))
+		:config
+		(setq dired-listing-switches "-agho --group-directories-first"
+					dired-omit-verbose t
+					dired-dwim-target t
+					dired-hide-details-hide-symlink-targets nil
+					dired-kill-when-opening-new-dired-buffer t
+					delete-by-moving-to-trash t)
+		(add-hook 'dired-mode-hook #'tnh-emacs/dired-mode-hook)) 
+
+	(provide 'tnh-emacs-dired)
+#+end_src
+
+** The =tnh-emacs-ledger.el= module
+
+#+begin_src emacs-lisp :tangle "modules/tnh-emacs-ledger.el"
+	(use-package ledger-mode
+		:ensure t)
+
+	(provide 'tnh-emacs-ledger)
+#+end_src
+
+** The =tnh-emacs-custom.el= module
+
+#+begin_src emacs-lisp :tangle "modules/tnh-emacs-custom.el"
+	(defun tnh-emacs/dig (host type)
+		(interactive "sHost: \nsType: ")
+		(dig host type))
+
+	;; Vterm
+	(defun tnh-emacs/vterm-open (name)
+		(interactive "sSession name: ")
+		(vterm (format "term-%s" name)))
+
+	(defhydra+ tnh-emacs/emacs-hydra ()
+		("t" tnh-emacs/vterm-open "Open new vterm session" :column "General"))
+
+	(provide 'tnh-emacs-custom)
+#+end_src
