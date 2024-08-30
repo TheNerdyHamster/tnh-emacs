@@ -33,23 +33,27 @@
 ** The =early-init.el= gargabe collection
 
 #+begin_src emacs-lisp :tangle "early-init.el"
-  (setq gc-cons-threshold most-positive-fixnum
+	(setq gc-cons-threshold most-positive-fixnum
 	gc-cons-percentage 0.5)
 
-  ;; Save `file-name-handler-alist` and `vc-handled-backends`, so they can
-  ;; be restored after garbage collection is completed.
-  (defvar tnh--file-name-handler-alist file-name-handler-alist)
-  (defvar tnh--vc-handled-backends vc-handled-backends)
+	(setq gc-cons-threshold (if display-graphic-p) 40000000 10000000))
 
-  (setq file-name-handler-alist nil
-	vc-handled-backends nil)
+	(eval-and-compile
+		(defun tnh-emacs/default-gc ()
+			(setq-default gc-cons-threshold 800000))
+		(defun tnh-emacs/maybe-gc ()
+			(unless (frame-focus-state)
+				(garbage-collect))))
 
-  (add-hook 'emacs-startup-hook
-	    (lambda ()
-	      (setq gc-cons-threshold (* 8 1000 1000)
-		    gc-cons-percentage 0.1
-		    file-name-handler-alist tnh--file-name-handler-alist
-		    vc-handled-backends tnh--vc-handled-backends)))
+	(add-hook 'after-init-hook #'tnh-emacs/default-gc)
+	(add-function :after after-focus-change-function 'tnh-emacs/maybe-gc)
+
+	(add-hook 'emacs-startup-hook
+			(lambda ()
+				(setq gc-cons-threshold (* 8 1000 1000)
+				gc-cons-percentage 0.1
+				file-name-handler-alist tnh--file-name-handler-alist
+				vc-handled-backends tnh--vc-handled-backends)))
 #+end_src
 
 ** The =early-init.el= set name for default frame
@@ -59,7 +63,29 @@
 ** The =early-init.el= package cache
 
 #+begin_src emacs-lisp :tangle "early-init.el"
-  (setq package-enable-at-startup t)
+	(setq-default tnh-emacs/emacs-config-directory (file-name-directory load-file-name)
+								user-emacs-directory (expand-file-name "emacs/" (getenv "XDG_CACHE_HOME"))
+								package-user-dir (expand-file-name "packages/" user-emacs-directory)
+								url-history-file (expand-file-name "url/history" user-emacs-directory)
+								custom-file (expand-file-name "custom.el" user-emacs-directory))
+	(load custom-file :noerror)
+	
+	(setq package-enable-at-startup t)
+#+end_src
+
+** The =early-init.el= native compilation
+
+#+begin_src emacs-lisp :tangle "early-init.el"
+	(when (featurep 'native-compile)
+		(let ((path (expand-file-name "eln-cache/" user-emacs-directory)))
+			(setq-default native-compile-target-directory path
+										native-comp-eln-load-path (list path)
+										native-comp-async-report-warnings-errors nil
+										native-comp-deferred-compilation 5
+										native-comp speed 2
+										package-native-compile t)
+			(when (fboundp 'startup-redirect-eln-cache)
+				(startup-redirect-eln-cache path))))
 #+end_src
 
 * The main phanse of Emacs (=init.el=)
@@ -170,21 +196,12 @@ This module configures =package.el= and =use-package=
 ** The =tnh-emacs-core.el= module
 #+begin_src emacs-lisp :tangle "modules/tnh-emacs-core.el"
 	;; -- No littering
-	;; Change the user-emacs-directory to keep unwanted things out of ~/.emacs.d
-	(setq user-emacs-directory (expand-file-name "~/.cache/emacs/")
-				url-history-file (expand-file-name "url/history" user-emacs-directory))
-
 	(use-package no-littering
 		:ensure t
 		:config
 		(setq auto-save-file-name-transforms
 		`((".*" ,(no-littering-expand-var-file-name "auto-save/") t))))  
 	(setq auto-save-default nil)
-
-	;; -- Native compilation settings
-	(setq native-comp-async-report-warnings-errors nil)
-
-	(add-to-list 'native-comp-eln-load-path (expand-file-name "eln-cache/" user-emacs-directory))
 
 	;; -- Basic bindings
 
