@@ -11,23 +11,35 @@
 ** The =early-init.el= minimal frame.
 
 #+begin_src emacs-lisp :tangle "early-init.el"
-  (setq frame-resize-pixelwise t
-	frame-inhibit-implied-resize t
-	frame-title-format '("%b")
-	ring-bell-function 'ignore
-	use-dialog-box nil
-	use-file-dialog nil
-	use-short-answers t
-	inhibit-splash-screen t
-	inhibit-startup-screen t
-	inhibit-x-resources t
-	inhibit-startup-echo-area-message user-login-name
-	inhibit-startup-buffer-menu t)
+	(setq frame-resize-pixelwise t
+				frame-inhibit-implied-resize t
+				frame-title-format '("%b")
+				auto-window-vscroll nil
+				byte-compile-warnings '(not obsolete)
+				ring-bell-function 'ignore
+				load-prefer-newer noninteractive
+				package-enable-at-startup t
+				site-run-file nil
+				warning-suppress-log-types '((comp) (vytecomp))'
+				use-dialog-box nil
+				use-file-dialog nil
+				use-short-answers t
+				inhibit-splash-screen t
+				inhibit-startup-screen t
+				inhibit-x-resources t
+				inhibit-default-init t
+				inhibit-startup-message t
+				inhibit-startup-echo-area-message user-login-name
+				inhibit-startup-buffer-menu t)
 
-  ; Disable all graphical elements
-  (menu-bar-mode -1)
-  (scroll-bar-mode -1)
-  (tool-bar-mode -1)
+	; Disable all graphical elements
+	(menu-bar-mode -1)
+	(scroll-bar-mode -1)
+	(column-number-mode t)
+	(tooltip-mode -1)
+	(tool-bar-mode -1)
+	(put 'downcase-region 'disabled nil)
+	(put 'upcase-region 'disabled nil)
 #+end_src
 
 ** The =early-init.el= gargabe collection
@@ -69,8 +81,6 @@
 								url-history-file (expand-file-name "url/history" user-emacs-directory)
 								custom-file (expand-file-name "custom.el" user-emacs-directory))
 	(load custom-file :noerror)
-	
-	(setq package-enable-at-startup t)
 #+end_src
 
 ** The =early-init.el= native compilation
@@ -86,6 +96,31 @@
 										package-native-compile t)
 			(when (fboundp 'startup-redirect-eln-cache)
 				(startup-redirect-eln-cache path))))
+#+end_src
+
+** The =early-init.el= other
+#+begin_src emacs-lisp :tangle "early-init.el"
+	(set-default-coding-systems 'utf-8)
+
+	(add-to-list 'display-buffer-alist
+							 '("\\*Help\\*"
+								 (display-buffer-reuse-window display-buffer-pop-up-window)
+								 (inhibit-same-window . t)))
+
+	(add-to-list 'display-buffer-alist
+							 '("\\*Completions\\*"
+								 (display-buffer-reuse-window display-buffer-pop-up-window)
+								 (inhibit-same-window . t)
+								 (window-height . 10)))
+
+	(add-to-list 'display-buffer-alist
+							 '("\\*Dictionay\\*"
+								 (display-buffer-in-side-window)
+								 (side . left)
+								 (window-width . 70)))
+
+	(setq initial-major-mode 'fundamental-mode)
+
 #+end_src
 
 * The main phanse of Emacs (=init.el=)
