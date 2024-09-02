@@ -18,6 +18,11 @@
 	:bind (("C-M-;" . magit-status-here)
 				 ("C-c C-g" . magit-status-here)))
 
+(use-package highlight-indent-guides
+	:ensure t
+	:config
+	(add-hook 'prog-mode-hook 'highlight-indent-guides-mode))
+
 (defun tnh-emacs/project-current-name ()
 	(file-name-nondirectory
 	 (directory-file-name

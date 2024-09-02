@@ -20,7 +20,7 @@
 				load-prefer-newer noninteractive
 				package-enable-at-startup t
 				site-run-file nil
-				warning-suppress-log-types '((comp) (vytecomp))'
+				warning-suppress-log-types '((comp) (vytecomp))
 				use-dialog-box nil
 				use-file-dialog nil
 				use-short-answers t
@@ -48,7 +48,12 @@
 	(setq gc-cons-threshold most-positive-fixnum
 	gc-cons-percentage 0.5)
 
-	(setq gc-cons-threshold (if display-graphic-p) 40000000 10000000))
+  ;; Save `file-name-handler-alist` and `vc-handled-backends`, so they can
+  ;; be restored after garbage collection is completed.
+  (defvar tnh--file-name-handler-alist file-name-handler-alist)
+t  (defvar tnh--vc-handled-backends vc-handled-backends)
+
+	(setq gc-cons-threshold (if (display-graphic-p) 40000000 10000000))
 
 	(eval-and-compile
 		(defun tnh-emacs/default-gc ()
@@ -76,14 +81,14 @@
 
 #+begin_src emacs-lisp :tangle "early-init.el"
 	(setq-default tnh-emacs/emacs-config-directory (file-name-directory load-file-name)
-								user-emacs-directory (expand-file-name "emacs/" (getenv "XDG_CACHE_HOME"))
+								user-emacs-directory (expand-file-name "~/.cache/emacs/")
 								package-user-dir (expand-file-name "packages/" user-emacs-directory)
 								url-history-file (expand-file-name "url/history" user-emacs-directory)
 								custom-file (expand-file-name "custom.el" user-emacs-directory))
 	(load custom-file :noerror)
 #+end_src
 
-** The =early-init.el= native compilation
+** The =early-init.el= native compilation, plus packages
 
 #+begin_src emacs-lisp :tangle "early-init.el"
 	(when (featurep 'native-compile)
@@ -92,10 +97,12 @@
 										native-comp-eln-load-path (list path)
 										native-comp-async-report-warnings-errors nil
 										native-comp-deferred-compilation 5
-										native-comp speed 2
+										native-comp-speed 2
 										package-native-compile t)
 			(when (fboundp 'startup-redirect-eln-cache)
 				(startup-redirect-eln-cache path))))
+
+	(add-to-list 'load-path (expand-file-name "modules/" tnh-emacs/emacs-config-directory))
 #+end_src
 
 ** The =early-init.el= other
@@ -120,7 +127,6 @@
 								 (window-width . 70)))
 
 	(setq initial-major-mode 'fundamental-mode)
-
 #+end_src
 
 * The main phanse of Emacs (=init.el=)
@@ -488,6 +494,11 @@ This module configures =package.el= and =use-package=
 		:ensure t
 		:bind (("C-M-;" . magit-status-here)
 					 ("C-c C-g" . magit-status-here)))
+
+	(use-package highlight-indent-guides
+		:ensure t
+		:config
+		(add-hook 'prog-mode-hook 'highlight-indent-guides-mode))
 
 	(defun tnh-emacs/project-current-name ()
 		(file-name-nondirectory

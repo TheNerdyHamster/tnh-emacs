@@ -1,19 +1,10 @@
 ;; -- No littering
-;; Change the user-emacs-directory to keep unwanted things out of ~/.emacs.d
-(setq user-emacs-directory (expand-file-name "~/.cache/emacs/")
-			url-history-file (expand-file-name "url/history" user-emacs-directory))
-
 (use-package no-littering
 	:ensure t
 	:config
 	(setq auto-save-file-name-transforms
 	`((".*" ,(no-littering-expand-var-file-name "auto-save/") t))))  
 (setq auto-save-default nil)
-
-;; -- Native compilation settings
-(setq native-comp-async-report-warnings-errors nil)
-
-(add-to-list 'native-comp-eln-load-path (expand-file-name "eln-cache/" user-emacs-directory))
 
 ;; -- Basic bindings
 
