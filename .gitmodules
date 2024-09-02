@@ -1,3 +1,0 @@
-[submodule "github/ligature"]
-	path = github/ligature
-	url = https://github.com/mickeynp/ligature.el
