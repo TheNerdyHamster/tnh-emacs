@@ -500,6 +500,17 @@ This module configures =package.el= and =use-package=
 		:config
 		(add-hook 'prog-mode-hook 'highlight-indent-guides-mode))
 
+	(use-package yaml-mode
+		:ensure t
+		:config
+		(add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode))
+		(add-to-list 'auto-mode-alist '("\\.yaml\\'" . yaml-mode)))
+
+	(use-package ansible
+		:ensure t
+		:bind (("C-c a d" . 'ansible-decrypt-buffer)
+					 ("C-c a e" . 'ansible-encrypt-buffer)))t
+
 	(defun tnh-emacs/project-current-name ()
 		(file-name-nondirectory
 		 (directory-file-name
