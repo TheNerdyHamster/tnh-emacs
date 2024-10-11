@@ -113,52 +113,123 @@
 * The main phanse of =init.el=
 
 #+begin_src emacs-lisp :tangle "init.el"
-  ;; Startup time hook
-  (defun tnh/display-startup-info ()
-    (message "TNH-Emacs loaded in %s with %d garbage collections."
-	     (format "%.2f seconds"
-		     (float-time
-		      (time-subtract after-init-time before-init-time)))
-	     gcs-done))
-  (add-hook 'emacs-startup-hook #'tnh/display-startup-info)
+	;; Startup time hook
+	(defun tnh/display-startup-info ()
+		(message "TNH-Emacs loaded in %s with %d garbage collections."
+			 (format "%.2f seconds"
+				 (float-time
+					(time-subtract after-init-time before-init-time)))
+			 gcs-done))
+	(add-hook 'emacs-startup-hook #'tnh/display-startup-info)
 
-  ;; Package configuration
-  (eval-when-compile
-    (require 'package)
+	;; Package configuration
+	(eval-when-compile
+		(require 'package)
 
-    (setq package-archives
-	  '(("melpa" . "http://melpa.org/packages/")
-	    ("melpa-stable" ."https://stable.melpa.org/packages/")
-	    ("nongnu" . "https://elpa.nongnu.org/nongnu/")
-	    ("gnu-elpa" . "https://elpa.gnu.org/packages/")))
+		(setq package-archives
+		'(("melpa" . "http://melpa.org/packages/")
+			("melpa-stable" ."https://stable.melpa.org/packages/")
+			("nongnu" . "https://elpa.nongnu.org/nongnu/")
+			("gnu-elpa" . "https://elpa.gnu.org/packages/")))
 
-    (setq package-install-upgrade-built-in t
-	  package-archive-priorities '(("gnu-elpa" . 200)
-				       ("melpa" . 150)
-				       ("melpa-stable" . 100)
-				       ("nongnu" . 50)))
+		(setq package-install-upgrade-built-in t
+		package-archive-priorities '(("gnu-elpa" . 200)
+							 ("melpa" . 150)
+							 ("melpa-stable" . 100)
+							 ("nongnu" . 50)))
 
-    (package-initialize)
-    (unless package-archive-contents
-      (package-refresh-contents))
+		(package-initialize)
+		(unless package-archive-contents
+			(package-refresh-contents))
 
-    (unless (package-installed-p 'use-package)
-      (package-install 'use-package))
-    (require 'use-package)
-    (put 'use-package 'lisp-indent-function 1)
+		(unless (package-installed-p 'use-package)
+			(package-install 'use-package))
+		(require 'use-package)
+		(put 'use-package 'lisp-indent-function 1)
 
-    (use-package use-package-core
-      :custom
-      (use-package-minimum-reported-time 0.005)
-      (use-package-enable-imenu-support t)))
+		(use-package use-package-core
+			:custom
+			(use-package-minimum-reported-time 0.005)
+			(use-package-enable-imenu-support t)))
 
-  ; Theme
-  (use-package doom-themes
-    :ensure t
-    :custom
-    (doom-themes-enable-bold t)
-    (doom-themes-enable-italic t)
-    :config
-    (load-theme 'doom-gruvbox t)
-    (doom-themes-org-config))
+	;; Theme
+	(use-package doom-themes
+		:ensure t
+		:custom
+		(doom-themes-enable-bold t)
+		(doom-themes-enable-italic t)
+		:config
+		(load-theme 'doom-gruvbox t)
+		(doom-themes-org-config))
+
+	;; Custom functions
+	(require 'functions-tnh)
+
+	;; Base configuration
+	(require 'base-tnh)
+
+#+end_src
+
+* The =modules/= are nice
+
+** The =functions_tnh.el= custom made functions
+
+#+begin_src emacs-lisp :tangle "modules/functions-tnh.el"
+	(defun tnh-emacs/dig (host type)
+		(interactive "sHost: \nsType: ")
+		(dig host type))
+
+	;; Vterm
+	(defun tnh-emacs/vterm-open (name)
+		(interactive "sSession name: ")
+		(vterm (format "term-%s" name)))
+
+	(provide 'functions-tnh)
+#+end_src
+
+** The =base-tnh= basic emacs settings
+
+#+begin_src emacs-lisp :tangle "modules/base-tnh.el"
+	(use-package emacs-lisp-mode
+		:mode ("\\.el\\'" "\\.el.tmp\\'"))
+
+	(use-package savehist
+		:demand t
+		:custom
+		(history-delete-duplicates t)
+		(history-length 3000)
+		:config
+		(savehist-mode))
+
+	(use-package files
+		:demand t
+		:functions emacs-tmp-dir
+		:init
+		(defconst emacs-tmp-dir (expand-file-name (format "emacs%d/" (user-uid)) temporary-file-directory))
+		(setq auto-save-file-name-transforms '((".*" .emacs-tmp-dir t))
+					backup-directory-alist '((".*" ,emacs-tmp-dir))
+					auto-save-timeout 3
+					auto-save-list-file-name nil
+					auto-save-interval 0
+					auto-save-default t
+					auto-save-list-file-prefix emacs-tmp-dir)
+		:custom
+		(backup-inhibited t)
+		(confirm-kill-processes nil)
+		(create-lockfiles nil)
+		(delete-old-versions t)
+		(make-backup-files nil)
+		(version-control t)
+		(vc-make-backup-files t)
+		(kept-new-versions 5)
+		(kept-old-versions 0))
+
+	(use-package autorevert
+		:defer 3
+		:custom
+		(global-auto-revert-non-file-buffers t)
+		:config
+		(global-auto-revert-mode t))
+	
+	(provide 'base-tnh)
 #+end_src
