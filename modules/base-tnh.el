@@ -14,8 +14,8 @@
 	:functions emacs-tmp-dir
 	:init
 	(defconst emacs-tmp-dir (expand-file-name (format "emacs%d/" (user-uid)) temporary-file-directory))
-	(setq auto-save-file-name-transforms '((".*" .emacs-tmp-dir t))
-				backup-directory-alist '((".*" ,emacs-tmp-dir))
+	(setq auto-save-file-name-transforms `((".*" .emacs-tmp-dir t))
+				backup-directory-alist `((".*" ,emacs-tmp-dir))
 				auto-save-timeout 3
 				auto-save-list-file-name nil
 				auto-save-interval 0

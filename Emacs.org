@@ -168,6 +168,10 @@
 	;; Base configuration
 	(require 'base-tnh)
 
+	;; Icons and modeline
+	(require 'tnh-all-the-icons)
+	(require 'tnh-modeline)
+
 #+end_src
 
 * The =modules/= are nice
@@ -206,8 +210,8 @@
 		:functions emacs-tmp-dir
 		:init
 		(defconst emacs-tmp-dir (expand-file-name (format "emacs%d/" (user-uid)) temporary-file-directory))
-		(setq auto-save-file-name-transforms '((".*" .emacs-tmp-dir t))
-					backup-directory-alist '((".*" ,emacs-tmp-dir))
+		(setq auto-save-file-name-transforms `((".*" .emacs-tmp-dir t))
+					backup-directory-alist `((".*" ,emacs-tmp-dir))
 					auto-save-timeout 3
 					auto-save-list-file-name nil
 					auto-save-interval 0
@@ -230,6 +234,52 @@
 		(global-auto-revert-non-file-buffers t)
 		:config
 		(global-auto-revert-mode t))
-	
+
 	(provide 'base-tnh)
 #+end_src
+
+** The =tnh-all-the-icons= basic emacs settings
+
+#+begin_src emacs-lisp :tangle "modules/tnh-all-the-icons.el"
+	(eval-when-compile (require 'use-package))
+	(use-package all-the-icons
+		:ensure t
+		:if (display-graphic-p)
+		:commands all-the-icons-install-fonts
+		:custom
+		(all-the-icons-dired-monochrome nil)
+		:custom-face
+		(all-the-icons-dired-dir-face ((t (:foreground "orange"))))
+		:init
+		(unless (find-font (font-spec :name "all-the-icons"))
+			(all-the-icons-install-fonts t)))
+
+	(use-package all-the-icons-dired
+		:ensure t
+		:after all-the-icons)
+
+	(provide 'tnh-all-the-icons)
+#+end_src
+** The =tnh-mode-line= basic emacs settings
+#+begin_src emacs-lisp :tangle "modules/tnh-modeline.el"
+	(eval-when-compile (require 'use-package))
+	(use-package hide-mode-line
+		:ensure t
+		:init
+		(setq hide-mode-line-excluded-modes nil))
+
+	(use-package mini-echo
+		:ensure t
+		:after hide-mode-line
+		:config
+		(mini-echo-mode 1))
+
+	(provide 'tnh-modeline)
+#+end_src
+
+** The =tnh-all-the-icons= basic emacs settings
+
+#+begin_src emacs-lisp :tangle "modules/tnh-all-the-icons.el"
+#+end_src
+
+

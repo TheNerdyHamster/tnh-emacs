@@ -52,3 +52,7 @@
 
 ;; Base configuration
 (require 'base-tnh)
+
+;; Icons and modeline
+(require 'tnh-all-the-icons)
+(require 'tnh-modeline)
