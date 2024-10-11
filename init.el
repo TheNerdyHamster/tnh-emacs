@@ -1,44 +1,48 @@
-(defgroup tnh-emacs nil
-  "User options for TNH Emacs.
-The tnh-emacs-pre-custom.el file must exist and be located
-in the same directy as the init.el."
-  :group 'file)
-
-(defcustom tnh-emacs-load-vterm nil
-  "When non-nil, enable vterm package.
-This user option must be set in the `tnh-emacs-pre-custom.el' file."
-  :group 'tnh-emacs
-  :type 'boolean)
-
-(defcustom tnh-emacs-load-which-key nil
-  "When non-nil, enable keybinding hints after a short delay.
-This user option must be set in the `tnh-emacs-pre-custom.el' file."
-  :group 'tnh-emacs
-  :type 'boolean)
-
+;; Startup time hook
 (defun tnh/display-startup-info ()
   (message "TNH-Emacs loaded in %s with %d garbage collections."
 	   (format "%.2f seconds"
 		   (float-time
-	(time-subtract after-init-time before-init-time)))
+		    (time-subtract after-init-time before-init-time)))
 	   gcs-done))
 (add-hook 'emacs-startup-hook #'tnh/display-startup-info)
 
-(add-to-list 'load-path (locate-user-emacs-file '"modules"))
+;; Package configuration
+(eval-when-compile
+  (require 'package)
 
-;; Load pre-custom file before loading any module.
-(load (locate-user-emacs-file "tnh-emacs-pre-custom.el") :no-error :no-messag)
+  (setq package-archives
+	'(("melpa" . "http://melpa.org/packages/")
+	  ("melpa-stable" ."https://stable.melpa.org/packages/")
+	  ("nongnu" . "https://elpa.nongnu.org/nongnu/")
+	  ("gnu-elpa" . "https://elpa.gnu.org/packages/")))
 
-(require 'tnh-emacs-package)
-(require 'tnh-emacs-theme)
-(require 'tnh-emacs-keys)
+  (setq package-install-upgrade-built-in t
+	package-archive-priorities '(("gnu-elpa" . 200)
+				     ("melpa" . 150)
+				     ("melpa-stable" . 100)
+				     ("nongnu" . 50)))
 
-(require 'tnh-emacs-core)
-(require 'tnh-emacs-interface)
+  (package-initialize)
+  (unless package-archive-contents
+    (package-refresh-contents))
 
-(require 'tnh-emacs-code)
-(require 'tnh-emacs-lsp)
-(require 'tnh-emacs-term)
-(require 'tnh-emacs-dired)
-(require 'tnh-emacs-ledger)
-(require 'tnh-emacs-custom)
+  (unless (package-installed-p 'use-package)
+    (package-install 'use-package))
+  (require 'use-package)
+  (put 'use-package 'lisp-indent-function 1)
+
+  (use-package use-package-core
+    :custom
+    (use-package-minimum-reported-time 0.005)
+    (use-package-enable-imenu-support t)))
+
+; Theme
+(use-package doom-themes
+  :ensure t
+  :custom
+  (doom-themes-enable-bold t)
+  (doom-themes-enable-italic t)
+  :config
+  (load-theme 'doom-gruvbox t)
+  (doom-themes-org-config))
