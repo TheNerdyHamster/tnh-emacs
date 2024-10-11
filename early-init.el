@@ -55,6 +55,11 @@ t  (defvar tnh--vc-handled-backends vc-handled-backends)
 				file-name-handler-alist tnh--file-name-handler-alist
 				vc-handled-backends tnh--vc-handled-backends)))
 
+(setq tramp-verbose 10)
+(require 'tramp)
+(setq tramp-default-method "ssh")
+(tramp-cleanup-all-connections)
+
 (add-hook 'after-init-hook (lambda () (set-frame-name "home")))
 
 (setq-default tnh-emacs/emacs-config-directory (file-name-directory load-file-name)

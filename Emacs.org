@@ -73,6 +73,14 @@ t  (defvar tnh--vc-handled-backends vc-handled-backends)
 				vc-handled-backends tnh--vc-handled-backends)))
 #+end_src
 
+** The =early-init.el= tramp fix?
+#+begin_src emacs-lisp :tangle "early-init.el"
+	(setq tramp-verbose 10)
+	(require 'tramp)
+	(setq tramp-default-method "ssh")
+	(tramp-cleanup-all-connections)
+#+end_src
+
 ** The =early-init.el= set name for default frame
 #+begin_src emacs-lisp :tangle "early-init.el"
   (add-hook 'after-init-hook (lambda () (set-frame-name "home")))
@@ -231,8 +239,13 @@ This module configures =package.el= and =use-package=
 
 ** The =tnh-emacs-theme.el= module
 #+begin_src emacs-lisp :tangle "modules/tnh-emacs-theme.el"
-  (load-theme 'modus-vivendi)
-  (provide 'tnh-emacs-theme)
+	(add-to-list 'custom-theme-load-path (expand-file-name "themes/" tnh-emacs/emacs-config-directory))
+
+	(use-package nord-theme
+		:ensure t)
+	
+	(load-theme 'nord t)
+	(provide 'tnh-emacs-theme)
 #+end_src
 ** The =tnh-emacs-core.el= module
 #+begin_src emacs-lisp :tangle "modules/tnh-emacs-core.el"
@@ -472,7 +485,7 @@ This module configures =package.el= and =use-package=
 
 	(provide 'tnh-emacs-interface)
 #+end_src
-** The =tnh-emacs-code.el= module
+** TODO The =tnh-emacs-code.el= module
 
 #+begin_src emacs-lisp :tangle "modules/tnh-emacs-code.el"
 	(use-package rainbow-delimiters
@@ -510,6 +523,13 @@ This module configures =package.el= and =use-package=
 		:ensure t
 		:bind (("C-c a d" . 'ansible-decrypt-buffer)
 					 ("C-c a e" . 'ansible-encrypt-buffer)))
+
+	(use-package nix-mode
+		:ensure t
+		:mode "\\.nix\\'")
+
+	(use-package emacs-lisp-mode
+		:mode ("\\.el\\'" "\\.el.tmpl\\'"))
 
 	(defun tnh-emacs/project-current-name ()
 		(file-name-nondirectory

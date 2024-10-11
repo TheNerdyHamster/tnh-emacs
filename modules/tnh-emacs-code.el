@@ -32,7 +32,14 @@
 (use-package ansible
 	:ensure t
 	:bind (("C-c a d" . 'ansible-decrypt-buffer)
-				 ("C-c a e" . 'ansible-encrypt-buffer)))t
+				 ("C-c a e" . 'ansible-encrypt-buffer)))
+
+(use-package nix-mode
+	:ensure t
+	:mode "\\.nix\\'")
+
+(use-package emacs-lisp-mode
+	:mode ("\\.el\\'" "\\.el.tmpl\\'"))
 
 (defun tnh-emacs/project-current-name ()
 	(file-name-nondirectory
