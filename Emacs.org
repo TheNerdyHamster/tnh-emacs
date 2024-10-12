@@ -463,5 +463,7 @@
 	   ("C-c ]" . git-gutter:previous-hunk))
     :config
     (global-git-gutter-mode))
+
+  (provide 'tnh-git)
 #+end_src
 
