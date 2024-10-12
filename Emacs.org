@@ -3,6 +3,8 @@
 #+mail: leo@letnh.com
 #+language: en
 #+options ':t toc:nil num:t author:t email:t
+#+BIND: fill-column 99
+#+BIND: elisp-autofmt-load-packages-local ("use-package")
 
 * TODO Introduction
 
@@ -114,37 +116,52 @@
 
 #+begin_src emacs-lisp :tangle "init.el"
   ;; Startup time hook
-  (defun tnh/display-startup-info () 
-  (message "TNH-Emacs loaded in %s with %d garbage collections." (format "%.2f seconds" (float-time (time-subtract after-init-time before-init-time))) gcs-done))
+  (defun tnh/display-startup-info ()
+    (message "TNH-Emacs loaded in %s with %d garbage collections."
+	     (format "%.2f seconds"
+		     (float-time
+		      (time-subtract after-init-time before-init-time)))
+	     gcs-done))
   (add-hook 'emacs-startup-hook #'tnh/display-startup-info)
 
   ;; Package configuration
-  (eval-when-compile (require 'package)
-  (setq package-archives '(("melpa" . "http://melpa.org/packages/") 
-  ("melpa-stable" ."https://stable.melpa.org/packages/") 
-  ("nongnu" . "https://elpa.nongnu.org/nongnu/") 
-  ("gnu-elpa" . "https://elpa.gnu.org/packages/")))
-  (setq package-install-upgrade-built-in t package-archive-priorities '(("gnu-elpa" . 200) 
-  ("melpa" . 150) 
-  ("melpa-stable" . 100) 
-  ("nongnu" . 50)))
-  (package-initialize) 
-  (unless package-archive-contents (package-refresh-contents))
-  (unless (package-installed-p 'use-package) 
-  (package-install 'use-package)) 
-  (require 'use-package) 
-  (put 'use-package 'lisp-indent-function 1)
-  (use-package use-package-core 
-  :custom (use-package-minimum-reported-time 0.005) 
-  (use-package-enable-imenu-support t)))
+  (eval-when-compile
+    (require 'package)
+    (setq package-archives
+	  '(("melpa" . "http://melpa.org/packages/")
+	    ("melpa-stable" . "https://stable.melpa.org/packages/")
+	    ("nongnu" . "https://elpa.nongnu.org/nongnu/")
+	    ("gnu-elpa" . "https://elpa.gnu.org/packages/")))
+    (setq
+     package-install-upgrade-built-in t
+     package-archive-priorities
+     '(("gnu-elpa" . 200)
+       ("melpa" . 150)
+       ("melpa-stable" . 100)
+       ("nongnu" . 50)))
+    (package-initialize)
+    (unless package-archive-contents
+      (package-refresh-contents))
+    (unless (package-installed-p 'use-package)
+      (package-install 'use-package))
+    (require 'use-package)
+    (put 'use-package 'lisp-indent-function 1)
+    (use-package
+     use-package-core
+     :custom
+     (use-package-minimum-reported-time 0.005)
+     (use-package-enable-imenu-support t)))
 
   ;; Theme
-  (use-package doom-themes 
-  :ensure t 
-  :custom (doom-themes-enable-bold t) 
-  (doom-themes-enable-italic t) 
-  :config (load-theme 'doom-gruvbox t) 
-  (doom-themes-org-config))
+  (use-package
+   doom-themes
+   :ensure t
+   :custom
+   (doom-themes-enable-bold t)
+   (doom-themes-enable-italic t)
+   :config
+   (load-theme 'doom-gruvbox t)
+   (doom-themes-org-config))
 
   ;; Custom functions
   (require 'functions-tnh)
@@ -165,6 +182,7 @@
   (require 'tnh-corfu)
   (require 'tnh-dired)
   (require 'tnh-git)
+  (require 'tnh-org)
 #+end_src
 
 * The =modules/= are nice
@@ -172,188 +190,198 @@
 ** The =functions_tnh.el= custom made functions
 
 #+begin_src emacs-lisp :tangle "modules/functions-tnh.el"
-	(defun tnh-emacs/dig (host type)
-		(interactive "sHost: \nsType: ")
-		(dig host type))
+  (defun tnh-emacs/dig (host type)
+    (interactive "sHost: \nsType: ")
+    (dig host type))
 
-	;; Vterm
-	(defun tnh-emacs/vterm-open (name)
-		(interactive "sSession name: ")
-		(vterm (format "term-%s" name)))
+  ;; Vterm
+  (defun tnh-emacs/vterm-open (name)
+    (interactive "sSession name: ")
+    (vterm (format "term-%s" name)))
 
-	(provide 'functions-tnh)
+  (provide 'functions-tnh)
 #+end_src
 
 ** The =base-tnh= basic emacs settings
 
 #+begin_src emacs-lisp :tangle "modules/base-tnh.el"
-	(use-package emacs-lisp-mode
-		:mode ("\\.el\\'" "\\.el.tmp\\'"))
+  (use-package emacs-lisp-mode :mode ("\\.el\\'" "\\.el.tmp\\'"))
 
-	(use-package savehist
-		:demand t
-		:custom
-		(history-delete-duplicates t)
-		(history-length 3000)
-		:config
-		(savehist-mode))
+  (use-package
+   savehist
+   :demand t
+   :custom
+   (history-delete-duplicates t)
+   (history-length 3000)
+   :config (savehist-mode))
 
-	(use-package files
-		:demand t
-		:functions emacs-tmp-dir
-		:init
-		(defconst emacs-tmp-dir (expand-file-name (format "emacs%d/" (user-uid)) temporary-file-directory))
-		(setq auto-save-file-name-transforms `((".*" ,emacs-tmp-dir t))
-					backup-directory-alist `((".*" . ,emacs-tmp-dir))
-					auto-save-timeout 3
-					auto-save-list-file-name nil
-					auto-save-interval 0
-					auto-save-default t
-					auto-save-list-file-prefix emacs-tmp-dir)
-		:custom
-		(backup-inhibited t)
-		(confirm-kill-processes nil)
-		(create-lockfiles nil)
-		(delete-old-versions t)
-		(make-backup-files nil)
-		(version-control t)
-		(vc-make-backup-files t)
-		(kept-new-versions 5)
-		(kept-old-versions 0))
+  (use-package
+   files
+   :demand t
+   :functions emacs-tmp-dir
+   :init
+   (defconst emacs-tmp-dir
+     (expand-file-name (format "emacs%d/" (user-uid))
+		       temporary-file-directory))
+   (setq
+    auto-save-file-name-transforms `((".*" ,emacs-tmp-dir t))
+    backup-directory-alist `((".*" . ,emacs-tmp-dir))
+    auto-save-timeout 3
+    auto-save-list-file-name nil
+    auto-save-interval 0
+    auto-save-default t
+    auto-save-list-file-prefix emacs-tmp-dir)
+   :custom
+   (backup-inhibited t)
+   (confirm-kill-processes nil)
+   (create-lockfiles nil)
+   (delete-old-versions t)
+   (make-backup-files nil)
+   (version-control t)
+   (vc-make-backup-files t)
+   (kept-new-versions 5)
+   (kept-old-versions 0))
 
-	(use-package autorevert
-		:defer 3
-		:custom
-		(global-auto-revert-non-file-buffers t)
-		:config
-		(global-auto-revert-mode t))
+  (use-package
+   autorevert
+   :defer 3
+   :custom (global-auto-revert-non-file-buffers t)
+   :config (global-auto-revert-mode t))
 
-	(provide 'base-tnh)
+  (provide 'base-tnh)
 #+end_src
 
 ** The =tnh-all-the-icons= basic emacs settings
 
 #+begin_src emacs-lisp :tangle "modules/tnh-all-the-icons.el"
-  (eval-when-compile (require 'use-package))
-  (use-package all-the-icons
-    :ensure t
-    :if (display-graphic-p)
-    :commands all-the-icons-install-fonts
-    :custom
-    (all-the-icons-dired-monochrome nil)
-    :custom-face
-    (all-the-icons-dired-dir-face ((t (:foreground "orange"))))
-    :init
-    (unless (find-font (font-spec :name "all-the-icons"))
-      (all-the-icons-install-fonts t)))
+  (eval-when-compile
+    (require 'use-package))
+  
+  (use-package
+   all-the-icons
+   :ensure t
+   :if (display-graphic-p)
+   :commands all-the-icons-install-fonts
+   :custom (all-the-icons-dired-monochrome nil)
+   :custom-face (all-the-icons-dired-dir-face ((t (:foreground "orange"))))
+   :init
+   (unless (find-font (font-spec :name "all-the-icons"))
+     (all-the-icons-install-fonts t)))
 
-  (use-package all-the-icons-dired
-    :ensure t
-    :after all-the-icons
-    :hook
-    (dired-mode . all-the-icons-dired-mode))
+  (use-package
+   all-the-icons-dired
+   :ensure t
+   :after all-the-icons
+   :hook (dired-mode . all-the-icons-dired-mode))
 
   (provide 'tnh-all-the-icons)
 #+end_src
 
 ** The =tnh-mode-line= basic emacs settings
 #+begin_src emacs-lisp :tangle "modules/tnh-modeline.el"
-	(eval-when-compile (require 'use-package))
-	(use-package hide-mode-line
-		:ensure t
-		:init
-		(setq hide-mode-line-excluded-modes nil))
+  (eval-when-compile
+    (require 'use-package))
 
-	(use-package mini-echo
-		:ensure t
-		:after hide-mode-line
-		:config
-		(mini-echo-mode 1))
+  (use-package
+   hide-mode-line
+   :ensure t
+   :init (setq hide-mode-line-excluded-modes nil))
 
-	(provide 'tnh-modeline)
+  (use-package
+   mini-echo
+   :ensure t
+   :after hide-mode-line
+   :config (mini-echo-mode 1))
+
+  (provide 'tnh-modeline)
 #+end_src
 
 ** The =tnh-consult= basic emacs settings
 
 #+begin_src emacs-lisp :tangle "modules/tnh-consult.el"
-	(eval-when-compile (require 'use-package))
-	(use-package consult
-		:ensure t
-		:bind (("C-x C-b" . consult-buffer)
-					 :map minibuffer-local-map
-					 ("C-r" . consult-history))
-		:custom
-		(completion-in-region-function #'consult-completion-in-region))
+  (eval-when-compile
+    (require 'use-package))
+  
+  (use-package
+   consult
+   :ensure t
+   :bind
+   (("C-x C-b" . consult-buffer)
+    :map
+    minibuffer-local-map
+    ("C-r" . consult-history))
+   :custom
+   (completion-in-region-function #'consult-completion-in-region))
 
-	(use-package consult-dir
-		:ensure t
-		:bind (("C-x C-d" . consult-dir)
-					 :map vertico-map
-					 ("C-x C-d" . consult-dir)
-					 ("C-x C-j" . consult-dir-jump-file))
-		:custom
-		(consult-dir-project-list-function nil))
+  (use-package
+   consult-dir
+   :ensure t
+   :bind
+   (("C-x C-d" . consult-dir)
+    :map
+    vertico-map
+    ("C-x C-d" . consult-dir)
+    ("C-x C-j" . consult-dir-jump-file))
+   :custom (consult-dir-project-list-function nil))
 
-	(use-package wgrep
-		:after consult
-		:hook (grep-mode . wgrep-setup))
+  (use-package wgrep :after consult :hook (grep-mode . wgrep-setup))
 
-	(provide 'tnh-consult)
+  (provide 'tnh-consult)
 #+end_src
 
 ** The =tnh-corfu= basic emacs settings
 
 #+begin_src emacs-lisp :tangle "modules/tnh-corfu.el"
-  (eval-when-compile (require 'use-package))
+  (eval-when-compile
+    (require 'use-package))
 
-  (use-package corfu
-    :ensure t
-    :bind (:map corfu-map
-		("<esc>" . corfu-quit)
-		("C-f" . corfu-quick-complete))
-    :custom
-    (text-mode-ispell-word-completion nil)
-    (corfu-auto t)
-    (corfu-auto-delay 0.1)
-    (corfu-auto-prefix 2)
-    (corfu-count 20)
-    (corfu-cycle t)
-    (corfu-preselect 'first)
-    (corfu-preview-currect t)
-    (corfu-quit-at-boundary t)
-    (corfu-quit-no-match t)
+  (use-package
+   corfu
+   :ensure t
+   :bind
+   (:map
+    corfu-map ("<esc>" . corfu-quit) ("C-f" . corfu-quick-complete))
+   :custom
+   (text-mode-ispell-word-completion nil)
+   (corfu-auto t)
+   (corfu-auto-delay 0.1)
+   (corfu-auto-prefix 2)
+   (corfu-count 20)
+   (corfu-cycle t)
+   (corfu-preselect 'first)
+   (corfu-preview-currect t)
+   (corfu-quit-at-boundary t)
+   (corfu-quit-no-match t)
 
-    :init
-    (global-corfu-mode)
-    (corfu-indexed-mode)
-    (corfu-history-mode)
-    (corfu-echo-mode))
+   :init
+   (global-corfu-mode)
+   (corfu-indexed-mode)
+   (corfu-history-mode)
+   (corfu-echo-mode))
 
-  (use-package kind-icon
-    :ensure t
-    :after corfu
-    :functions kind-icon-margin-formatter
-    :config
-    (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter)
-    :custom
-    (kind-icon-default-face 'corfu-default))
+  (use-package
+   kind-icon
+   :ensure t
+   :after corfu
+   :functions kind-icon-margin-formatter
+   :config
+   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter)
+   :custom (kind-icon-default-face 'corfu-default))
 
   (provide 'tnh-corfu)
-
 #+end_src
 
 ** The =tnh-vertico= basic emacs settings
 
 #+begin_src emacs-lisp :tangle "modules/tnh-vertico.el"
-  (use-package vertico
-    :ensure t
-    :custom
-    (vertico-cycle t)
-    :custom-face
-    (vertico-current ((t (:background "#3a3f5a"))))
-    :config
-    (require 'vertico-directory)
-    (vertico-mode))
+  (use-package
+   vertico
+   :ensure t
+   :custom (vertico-cycle t)
+   :custom-face (vertico-current ((t (:background "#3a3f5a"))))
+   :config
+   (require 'vertico-directory)
+   (vertico-mode))
 
   (provide 'tnh-vertico)
 #+end_src
@@ -367,19 +395,24 @@
     (all-the-icons-dired-mode 1)
     (hl-line-mode 1))
 
-  (use-package dired
-    :ensure nil
-    :bind (:map dired-mode-map
-		("b" . dired-up-directory)
-		("H" . dired-hide-details-mode))
-    :config
-    (setq dired-listing-switches "-agho --time-style=long-iso --group-directories-first"
-	  dired-omit-verbose t
-	  dired-dwim-target t
-	  dired-hide-details-hide-symlink-targets nil
-	  dired-kill-when-opening-new-dired-buffer t
-	  delete-by-moving-to-trash t)
-    (add-hook 'dired-mode-hook #'tnh/dired-mode-hook))
+  (use-package
+   dired
+   :ensure nil
+   :bind
+   (:map
+    dired-mode-map
+    ("b" . dired-up-directory)
+    ("H" . dired-hide-details-mode))
+   :config
+   (setq
+    dired-listing-switches
+    "-agho --time-style=long-iso --group-directories-first"
+    dired-omit-verbose t
+    dired-dwim-target t
+    dired-hide-details-hide-symlink-targets nil
+    dired-kill-when-opening-new-dired-buffer t
+    delete-by-moving-to-trash t)
+   (add-hook 'dired-mode-hook #'tnh/dired-mode-hook))
 
   (provide 'tnh-dired)
 #+end_src
@@ -387,31 +420,35 @@
 ** The =tnh-embark= basic emacs settings
 
 #+begin_src emacs-lisp :tangle "modules/tnh-embark.el"
-  (eval-when-compile (require 'use-package))
+  (eval-when-compile
+    (require 'use-package))
 
-  (use-package embark
-    :ensure t
-    :defer t
-    :bind (("C-." . embark-act)
-	   ("M-." . embark-dwim)
-	   :map minibuffer-local-map
-	   ("C-d" . embark-act)
-	   :map embark-region-map
-	   ("D" . denote-region))
-    :custom
-    (embark-action-indicator
-     (lambda (map _target)
-       (which-key--show-keymap "Embark" map nil nil 'no-paging)
-       #'which-key--hide-popup-ignore-command)
-     embark-become-indicator embark-action-indicator)
-    :config
-    (setq prefix-help-command #'embark-prefix-help-command))
+  (use-package
+   embark
+   :ensure t
+   :defer t
+   :bind
+   (("C-." . embark-act)
+    ("M-." . embark-dwim)
+    :map
+    minibuffer-local-map
+    ("C-d" . embark-act)
+    :map
+    embark-region-map
+    ("D" . denote-region))
+   :custom
+   (embark-action-indicator
+    (lambda (map _target)
+      (which-key--show-keymap "Embark" map nil nil 'no-paging)
+      #'which-key--hide-popup-ignore-command)
+    embark-become-indicator embark-action-indicator)
+   :config (setq prefix-help-command #'embark-prefix-help-command))
 
-  (use-package embark-consult
-    :ensure t
-    :after (embark consult)
-    :hook
-    (embark-collect-mode . consult-preview-at-point-mode))
+  (use-package
+   embark-consult
+   :ensure t
+   :after (embark consult)
+   :hook (embark-collect-mode . consult-preview-at-point-mode))
 
   (provide 'tnh-embark)
 #+end_src
@@ -419,16 +456,17 @@
 ** The =tnh-which-key= basic emacs settings
 
 #+begin_src emacs-lisp :tangle "modules/tnh-which-key.el"
-  (eval-when-compile (require 'use-package))
+  (eval-when-compile
+    (require 'use-package))
 
-  (use-package which-key
-    :ensure t
-    :defer 1
-    :commands (which-key--show-keymap which-key--hide-popup-ignore-command)
-    :custom
-    (which-key-show-transient-maps t)
-    :config
-    (which-key-mode))
+  (use-package
+   which-key
+   :ensure t
+   :defer 1
+   :commands
+   (which-key--show-keymap which-key--hide-popup-ignore-command)
+   :custom (which-key-show-transient-maps t)
+   :config (which-key-mode))
 
   (provide 'tnh-which-key)
 #+end_src
@@ -439,10 +477,12 @@
   (eval-when-compile
     (require 'use-package))
 
-  (use-package elisp-autofmt
-    :ensure t
-    :hook (emacs-lisp-mode . elisp-autofmt-mode)
-    :config (setq elisp-autofmt-load-packages-local '("use-package")))
+  (use-package
+   elisp-autofmt
+   :ensure t
+   :hook (emacs-lisp-mode . elisp-autofmt-mode)
+   :config
+   (setq elisp-autofmt-load-packages-local '("use-package")))
 
   (provide 'tnh-elisp)
 #+end_src
@@ -453,26 +493,77 @@
   (eval-when-compile
     (require 'use-package))
 
-  (use-package magit
-    :ensure t
-    :bind (("C-M-;" . magit-status-here) ("C-c C-g" . magit-status-here)))
+  (use-package
+   magit
+   :ensure t
+   :bind
+   (("C-M-;" . magit-status-here) ("C-c C-g" . magit-status-here)))
 
-  (use-package git-modes
-    :ensure t)
+  (use-package git-modes :ensure t)
 
-  (use-package magit-delta
-    :ensure t
-    :custom
-    (magit-delta-default-dark-theme "gruvbox-dark")
-    :hook (magit-mode . magit-delta-mode))
+  (use-package
+   magit-delta
+   :ensure t
+   :custom (magit-delta-default-dark-theme "gruvbox-dark")
+   :hook (magit-mode . magit-delta-mode))
 
-  (use-package git-gutter
-    :ensure t
-    :bind
-    (("C-c [" . git-gutter:next-hunk)
-     ("C-c ]" . git-gutter:previous-hunk))
-    :config (global-git-gutter-mode))
+  (use-package
+   git-gutter
+   :ensure t
+   :bind
+   (("C-c [" . git-gutter:next-hunk)
+    ("C-c ]" . git-gutter:previous-hunk))
+   :config (global-git-gutter-mode))
 
   (provide 'tnh-git)
 #+end_src
 
+** The =tnh-org= basic emacs settings
+
+#+begin_src emacs-lisp :tangle "modules/tnh-org.el"
+  (eval-when-compile
+    (require 'use-package))
+
+  (use-package
+   org
+   :ensure t
+   :config (setq org-export-allow-bind-keywords t))
+
+  (provide 'tnh-org)
+#+end_src
+
+** The =tnh-example= basic emacs settings
+
+#+begin_src emacs-lisp :tangle "modules/tnh-example.el"
+  (eval-when-compile
+    (require 'use-package))
+
+  (provide 'tnh-example)
+#+end_src
+
+** The =tnh-example= basic emacs settings
+
+#+begin_src emacs-lisp :tangle "modules/tnh-example.el"
+  (eval-when-compile
+    (require 'use-package))
+
+  (provide 'tnh-example)
+#+end_src
+
+** The =tnh-example= basic emacs settings
+
+#+begin_src emacs-lisp :tangle "modules/tnh-example.el"
+  (eval-when-compile
+    (require 'use-package))
+
+  (provide 'tnh-example)
+#+end_src
+
+** The =tnh-example= basic emacs settings
+
+#+begin_src emacs-lisp :tangle "modules/tnh-example.el"
+  (eval-when-compile
+    (require 'use-package))
+
+  (provide 'tnh-example)
+#+end_src
