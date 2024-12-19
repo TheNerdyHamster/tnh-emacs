@@ -1,0 +1,4 @@
+/sudo:root@missile.loltech.se:/etc/network/interfaces.d/br0
+/tmp/#!sudo:root@missile.loltech.se:!etc!network!interfaces.d!br0#
+/sudo:root@missile.loltech.se:/etc/network/interfaces
+/tmp/#!sudo:root@missile.loltech.se:!etc!network!interfaces#

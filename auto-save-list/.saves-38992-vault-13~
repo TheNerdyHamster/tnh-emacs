@@ -1,0 +1,2 @@
+/sudo:root@holonet.loltech.se:/etc/kea/kea-dhcp4.conf
+/tmp/#!sudo:root@holonet.loltech.se:!etc!kea!kea-dhcp4.conf#

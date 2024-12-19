@@ -26,6 +26,12 @@
  embark-consult
  :ensure t
  :after (embark consult)
- :hook (embark-collect-mode . consult-preview-at-point-mode))
+ :hook (embark-collect-mode . consult-pnreview-at-point-mode))
+
+(use-package marginalia
+  :ensure t
+  :after (:any consult vertico)
+  :config
+  (marginalia-mode))
 
 (provide 'tnh-embark)

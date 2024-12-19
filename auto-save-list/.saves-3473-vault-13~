@@ -1,0 +1,60 @@
+/home/olofsson/Documents/code/gitlab.netnod.se/r10k-control/data/nodes/prometheus-stb.sth.netnod.se.yml
+/home/olofsson/Documents/code/gitlab.netnod.se/r10k-control/data/nodes/#prometheus-stb.sth.netnod.se.yml#
+/home/olofsson/Documents/code/gitlab.netnod.se/k8s-flux-config/filebeat-config.yml
+/home/olofsson/Documents/code/gitlab.netnod.se/k8s-flux-config/#filebeat-config.yml#
+/home/olofsson/Documents/code/gitlab.netnod.se/1st-line/fix-zones
+/home/olofsson/Documents/code/gitlab.netnod.se/1st-line/#fix-zones#
+/home/olofsson/Downloads/NDS Outdated Zones (15s+ lag)-data-2024-11-15 09_54_41.csv
+/home/olofsson/Downloads/#NDS Outdated Zones (15s+ lag)-data-2024-11-15 09_54_41.csv#
+/home/olofsson/Downloads/NDS Outdated Zones (15s+ lag)-data-2024-11-15 10_01_49.csv
+/home/olofsson/Downloads/#NDS Outdated Zones (15s+ lag)-data-2024-11-15 10_01_49.csv#
+/home/olofsson/Downloads/NDS Outdated Zones (15s+ lag)-data-2024-11-15 09_26_33.csv
+/home/olofsson/Downloads/#NDS Outdated Zones (15s+ lag)-data-2024-11-15 09_26_33.csv#
+/home/olofsson/Downloads/NDS Outdated Zones (15s+ lag)-data-2024-11-15 09_17_29.csv
+/home/olofsson/Downloads/#NDS Outdated Zones (15s+ lag)-data-2024-11-15 09_17_29.csv#
+/home/olofsson/Documents/code/gitlab.netnod.se/tot-admin/INFO.txt
+/home/olofsson/Documents/code/gitlab.netnod.se/tot-admin/#INFO.txt#
+/home/olofsson/Documents/code/gitlab.netnod.se/k8s-flux-config/infra-controllers/base/logging.yaml
+/home/olofsson/Documents/code/gitlab.netnod.se/k8s-flux-config/infra-controllers/base/#logging.yaml#
+/home/olofsson/Documents/code/gitlab.netnod.se/k8s-flux-config/.gitlab-ci.yml
+/home/olofsson/Documents/code/gitlab.netnod.se/k8s-flux-config/#.gitlab-ci.yml#
+/home/olofsson/Documents/code/gitlab.netnod.se/k8s-flux-config/filebeat-daemon-set.yml
+/home/olofsson/Documents/code/gitlab.netnod.se/k8s-flux-config/#filebeat-daemon-set.yml#
+/home/olofsson/Documents/code/gitlab.netnod.se/k8s-flux-config/filebeat.yml
+/home/olofsson/Documents/code/gitlab.netnod.se/k8s-flux-config/#filebeat.yml#
+/home/olofsson/Documents/code/gitlab.netnod.se/k8s-flux-config/scripts/show-cluster-diffs.sh
+/home/olofsson/Documents/code/gitlab.netnod.se/k8s-flux-config/scripts/#show-cluster-diffs.sh#
+/home/olofsson/Documents/code/gitlab.netnod.se/k8s-flux-config/infra-controllers/base/kustomization.yaml
+/home/olofsson/Documents/code/gitlab.netnod.se/k8s-flux-config/infra-controllers/base/#kustomization.yaml#
+/home/olofsson/Documents/code/gitlab.netnod.se/k8s-flux-config/infra-controllers/lab/kustomization.yaml
+/home/olofsson/Documents/code/gitlab.netnod.se/k8s-flux-config/infra-controllers/lab/#kustomization.yaml#
+/home/olofsson/Documents/code/gitlab.netnod.se/talos-config/lab/main.tf
+/home/olofsson/Documents/code/gitlab.netnod.se/talos-config/lab/#main.tf#
+/home/olofsson/Documents/code/gitlab.netnod.se/talos-config/lab/files/network.yaml
+/home/olofsson/Documents/code/gitlab.netnod.se/talos-config/lab/files/#network.yaml#
+/home/olofsson/Documents/code/gitlab.netnod.se/talos-config/.envrc
+/home/olofsson/Documents/code/gitlab.netnod.se/talos-config/#.envrc#
+/home/olofsson/Documents/code/gitlab.netnod.se/talos-config/lab/files/logging.yaml
+/home/olofsson/Documents/code/gitlab.netnod.se/talos-config/lab/files/#logging.yaml#
+/home/olofsson/Documents/code/gitlab.netnod.se/talos-config/lab/init.sh
+/home/olofsson/Documents/code/gitlab.netnod.se/talos-config/lab/#init.sh#
+/home/olofsson/Documents/code/gitlab.netnod.se/talos-config/lab/provider.tf
+/home/olofsson/Documents/code/gitlab.netnod.se/talos-config/lab/#provider.tf#
+/home/olofsson/Documents/code/gitlab.netnod.se/k8s-flux-config/lol-tester.yml
+/home/olofsson/Documents/code/gitlab.netnod.se/k8s-flux-config/#lol-tester.yml#
+/home/olofsson/Documents/code/gitlab.netnod.se/k8s-flux-config/filebeat-kubernetes.yaml
+/home/olofsson/Documents/code/gitlab.netnod.se/k8s-flux-config/#filebeat-kubernetes.yaml#
+/home/olofsson/Downloads/NDS Outdated Zones (15s+ lag)-data-2024-11-12 12_29_57.csv
+/home/olofsson/Downloads/#NDS Outdated Zones (15s+ lag)-data-2024-11-12 12_29_57.csv#
+/home/olofsson/Documents/code/gitlab.netnod.se/r10k-control/data/nodes/loltest-nnb.mmo.netnod.se.yml
+/home/olofsson/Documents/code/gitlab.netnod.se/r10k-control/data/nodes/#loltest-nnb.mmo.netnod.se.yml#
+/home/olofsson/Downloads/NDS Outdated Zones (15s+ lag)-data-2024-11-07 09_37_00.csv
+/home/olofsson/Downloads/#NDS Outdated Zones (15s+ lag)-data-2024-11-07 09_37_00.csv#
+/home/olofsson/Downloads/NDS Outdated Zones (15s+ lag)-data-2024-11-07 09_01_14.csv
+/home/olofsson/Downloads/#NDS Outdated Zones (15s+ lag)-data-2024-11-07 09_01_14.csv#
+/home/olofsson/Downloads/bmc-config.bak
+/home/olofsson/Downloads/#bmc-config.bak#
+/home/olofsson/Downloads/NDS Outdated Zones (15s+ lag)-data-2024-11-06 09_56_14.csv
+/home/olofsson/Downloads/#NDS Outdated Zones (15s+ lag)-data-2024-11-06 09_56_14.csv#
+/home/olofsson/Documents/code/gitlab.netnod.se/handbook/docs/ipmi.md
+/home/olofsson/Documents/code/gitlab.netnod.se/handbook/docs/#ipmi.md#

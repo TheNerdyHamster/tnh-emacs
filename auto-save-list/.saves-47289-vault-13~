@@ -1,0 +1,12 @@
+/sudo:root@holonet.loltech.se:/etc/nftables.conf
+/tmp/#!sudo:root@holonet.loltech.se:!etc!nftables.conf#
+/sudo:root@holonet.loltech.se:/etc/kea/kea-dhcp4.conf
+/tmp/#!sudo:root@holonet.loltech.se:!etc!kea!kea-dhcp4.conf#
+/sudo:root@holonet.loltech.se:/opt/stacks/unifi/docker-compose.yml
+/tmp/#!sudo:root@holonet.loltech.se:!opt!stacks!unifi!docker-compose.yml#
+/sudo:root@holonet.loltech.se:/opt/stacks/unifi/config/data/system.properties
+/tmp/#!sudo:root@holonet.loltech.se:!opt!stacks!unifi!config!data!system.properties#
+/sudo:root@holonet.loltech.se:/etc/sysctl.conf
+/tmp/#!sudo:root@holonet.loltech.se:!etc!sysctl.conf#
+/sudo:root@holonet.loltech.se:/etc/network/interfaces.d/enp3s0
+/tmp/#!sudo:root@holonet.loltech.se:!etc!network!interfaces.d!enp3s0#

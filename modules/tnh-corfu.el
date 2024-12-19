@@ -34,4 +34,9 @@
  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter)
  :custom (kind-icon-default-face 'corfu-default))
 
+(use-package
+ orderless
+ :ensure t
+ :config (setq completion-styles '(orderless)))
+
 (provide 'tnh-corfu)
