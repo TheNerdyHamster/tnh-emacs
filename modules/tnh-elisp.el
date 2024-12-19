@@ -8,4 +8,7 @@
  :config
  (setq elisp-autofmt-load-packages-local '("use-package")))
 
+(use-package emacs-lisp-mode :mode ("\\.el\\'" "\\.el.tmp\\'"))
+
+
 (provide 'tnh-elisp)

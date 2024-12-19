@@ -47,10 +47,10 @@
  (doom-themes-org-config))
 
 ;; Custom functions
-(require 'functions-tnh)
+(require 'tnh-functions)
 
 ;; Base configuration
-(require 'base-tnh)
+(require 'tnh-base)
 
 ;; Icons and modeline
 (require 'tnh-all-the-icons)
@@ -66,3 +66,10 @@
 (require 'tnh-dired)
 (require 'tnh-git)
 (require 'tnh-org)
+(require 'tnh-helpful)
+(require 'tnh-highlight)
+(require 'tnh-treesitter)
+(require 'tnh-eglot)
+(require 'tnh-term)
+(require 'tnh-yaml)
+(require 'tnh-ansible)
