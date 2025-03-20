@@ -23,4 +23,4 @@
   delete-by-moving-to-trash t)
  (add-hook 'dired-mode-hook #'tnh/dired-mode-hook))
 
-(provide 'tnh-dired)
+(provide 'tnh-emacs-dired)

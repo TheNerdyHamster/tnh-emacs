@@ -25,6 +25,7 @@
  (corfu-history-mode)
  (corfu-echo-mode))
 
+
 (use-package
  kind-icon
  :ensure t
@@ -39,4 +40,4 @@
  :ensure t
  :config (setq completion-styles '(orderless)))
 
-(provide 'tnh-corfu)
+(provide 'tnh-emacs-corfu)

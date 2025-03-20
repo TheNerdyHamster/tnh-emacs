@@ -30,46 +30,41 @@
   (require 'use-package)
   (put 'use-package 'lisp-indent-function 1)
   (use-package
-   use-package-core
-   :custom
-   (use-package-minimum-reported-time 0.005)
-   (use-package-enable-imenu-support t)))
+      use-package-core
+    :custom
+    (use-package-minimum-reported-time 0.005)
+    (use-package-enable-imenu-support t)))
 
 ;; Theme
-(use-package
- doom-themes
- :ensure t
- :custom
- (doom-themes-enable-bold t)
- (doom-themes-enable-italic t)
- :config
- (load-theme 'doom-gruvbox t)
- (doom-themes-org-config))
+(use-package doom-themes
+  :ensure t
+  :custom
+  (doom-themes-enable-bold t)
+  (doom-themes-enable-italic t)
+  :config
+  (load-theme 'doom-tokyo-night t)
+  (doom-themes-org-config))
 
 ;; Custom functions
-(require 'tnh-functions)
+(require 'tnh-emacs-functions)
 
-;; Base configuration
-(require 'tnh-base)
+;; Baseline
+(require 'tnh-emacs-base)
 
-;; Icons and modeline
-(require 'tnh-all-the-icons)
-(require 'tnh-modeline)
+;; Modeline and icons for the win
+(require 'tnh-emacs-icons)
+(require 'tnh-emacs-modeline)
 
-;; Packages
-(require 'tnh-elisp)
-(require 'tnh-vertico)
-(require 'tnh-consult)
-(require 'tnh-embark)
-(require 'tnh-which-key)
-(require 'tnh-corfu)
-(require 'tnh-dired)
-(require 'tnh-git)
-(require 'tnh-org)
-(require 'tnh-helpful)
-(require 'tnh-highlight)
-(require 'tnh-treesitter)
-(require 'tnh-eglot)
-(require 'tnh-term)
-(require 'tnh-yaml)
-(require 'tnh-ansible)
+;; Packages I mean why not
+(require 'tnh-emacs-elisp)
+(require 'tnh-emacs-vertico)
+(require 'tnh-emacs-consult)
+(require 'tnh-emacs-embark)
+(require 'tnh-emacs-which-key)
+(require 'tnh-emacs-corfu)
+(require 'tnh-emacs-dired)
+(require 'tnh-emacs-git)
+(require 'tnh-emacs-helpful)
+(require 'tnh-emacs-highlight)
+(require 'tnh-emacs-treesitter)
+(require 'tnh-emacs-eglot)

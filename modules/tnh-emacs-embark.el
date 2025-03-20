@@ -34,4 +34,4 @@
   :config
   (marginalia-mode))
 
-(provide 'tnh-embark)
+(provide 'tnh-emacs-embark)
