@@ -5,19 +5,19 @@
 	10000000))
 
 (eval-and-compile
-  (defun tnh-emacs/default-gc ()
+  (defun tnh/default-gc ()
     (setq-default gc-cons-threshold 800000))
-  (defun tnh-emacs/maybe-gc ()
+  (defun tnh/maybe-gc ()
     (unless (frame-focus-state)
       (garbage-collect))))
 
-(add-hook 'after-init-hook #'tnh-emacs/default-gc)
-(add-function :after after-focus-change-function 'tnh-emacs/maybe-gc)
+(add-hook 'after-init-hook #'tnh/default-gc)
+(add-function :after after-focus-change-function 'tnh/maybe-gc)
 
 
 ;; Default locations
 (setq-default
- tnh-emacs/emacs-config-directory (file-name-directory load-file-name)
+ tnh/emacs-config-directory (file-name-directory load-file-name)
  user-emacs-directory (expand-file-name "~/.cache/emacs/")
  package-user-dir (expand-file-name "packages/" user-emacs-directory)
  url-history-file (expand-file-name "url/history" user-emacs-directory)
@@ -40,7 +40,7 @@
 ;; Custom load-path
 (add-to-list
  'load-path
- (expand-file-name "modules/" tnh-emacs/emacs-config-directory))
+ (expand-file-name "modules/" tnh/emacs-config-directory))
 
 ;; Set default coding systems
 (set-default-coding-systems 'utf-8)

@@ -1,46 +1,77 @@
-;; Startup time hook
-(defun tnh/display-startup-info ()
-  (message "TNH-Emacs loaded in %s with %d garbage collections."
-	   (format "%.2f seconds"
-		   (float-time
-		    (time-subtract after-init-time before-init-time)))
-	   gcs-done))
-(add-hook 'emacs-startup-hook #'tnh/display-startup-info)
+;; init.el --- Load the configuration -*- lexical-binding: t -*-
+;;; Commentary:
 
-;; Package configuration
-(eval-when-compile
-  (require 'package)
-  (setq package-archives
-	'(("melpa" . "http://melpa.org/packages/")
-	  ("melpa-stable" . "https://stable.melpa.org/packages/")
-	  ("nongnu" . "https://elpa.nongnu.org/nongnu/")
-	  ("gnu-elpa" . "https://elpa.gnu.org/packages/")))
-  (setq
-   package-install-upgrade-built-in t
-   package-archive-priorities
-   '(("gnu-elpa" . 200)
-     ("melpa" . 150)
-     ("melpa-stable" . 100)
-     ("nongnu" . 50)))
-  (package-initialize)
-  (unless package-archive-contents
-    (package-refresh-contents))
-  (unless (package-installed-p 'use-package)
-    (package-install 'use-package))
-  (require 'use-package)
-  (put 'use-package 'lisp-indent-function 1)
-  (use-package
-      use-package-core
-    :custom
-    (use-package-minimum-reported-time 0.005)
-    (use-package-enable-imenu-support t)))
+;;; The init file bootstraps the full configuration,
+;;; from different types of modules
 
-;; Theme
-(use-package doom-themes
+;;; Code:
+
+(require 'tnh-benchmark) ;; Measure startup time.
+
+(defconst *spell-check-support-enabled* nil)
+(defconst *is-mac* (eq system-type 'darwin))
+
+;; Process performance tuning
+(setq fast-read-process-output (* 4 1024 1024))
+(setq process-adaptive-read-buffering nil)
+
+;; Bootstrap
+
+(require 'tnh-utils)
+(require 'tnh-packages)
+
+(use-package gcmh
   :ensure t
-  :custom
-  (doom-themes-enable-bold t)
-  (doom-themes-enable-italic t)
   :config
-  (load-theme 'doom-tokyo-night t)
-  (doom-themes-org-config))
+  (setq gcmh-high-cons-threshold (* 128 1024 1024))
+  (add-hook 'after-init-hook (lambda ()
+			       (gcmh-mode)
+			       (diminish 'gcmh-mode))))
+
+(setq jit-lock-defer-time 0)
+
+(use-package diminish
+  :ensure t)
+
+(use-package scratch
+  :ensure t)
+
+(use-package command-log-mode
+  :ensure t)
+
+(require 'tnh-frame-hooks)
+(require 'tnh-themes)
+(require 'tnh-osx-keys)
+(require 'tnh-gui-frames)
+(require 'tnh-dired)
+(require 'tnh-isearch)
+(require 'tnh-grep)
+(require 'tnh-uniquify)
+(require 'tnh-flymake)
+(require 'tnh-eglot)
+
+
+(require 'tnh-vertico)
+(require 'tnh-embark)
+(require 'tnh-marginalia)
+(require 'tnh-consult)
+(require 'tnh-corfu)
+(require 'tnh-which-key)
+(require 'tnh-windows)
+(require 'tnh-whitespace)
+
+(require 'tnh-git)
+
+(require 'tnh-projectile)
+
+(require 'tnh-markdown)
+(require 'tnh-go)
+(require 'tnh-yaml)
+
+(use-package treesit
+  :if (and (fboundp 'treesit-available-p) (treesit-available-p))
+  :config
+  (require 'tnh-treesitter))
+
+
+
