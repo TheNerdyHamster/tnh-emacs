@@ -44,27 +44,3 @@
   :config
   (load-theme 'doom-tokyo-night t)
   (doom-themes-org-config))
-
-;; Custom functions
-(require 'tnh-emacs-functions)
-
-;; Baseline
-(require 'tnh-emacs-base)
-
-;; Modeline and icons for the win
-(require 'tnh-emacs-icons)
-(require 'tnh-emacs-modeline)
-
-;; Packages I mean why not
-(require 'tnh-emacs-elisp)
-(require 'tnh-emacs-vertico)
-(require 'tnh-emacs-consult)
-(require 'tnh-emacs-embark)
-(require 'tnh-emacs-which-key)
-(require 'tnh-emacs-corfu)
-(require 'tnh-emacs-dired)
-(require 'tnh-emacs-git)
-(require 'tnh-emacs-helpful)
-(require 'tnh-emacs-highlight)
-(require 'tnh-emacs-treesitter)
-(require 'tnh-emacs-eglot)
