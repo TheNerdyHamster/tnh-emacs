@@ -19,4 +19,4 @@
  :hook (prog-mode . smartparens-mode)
  :config (sp-use-smartparens-bindings))
 
-(provide 'tnh-highlight)
+(provide 'tnh-emacs-highlight)

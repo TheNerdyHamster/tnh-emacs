@@ -14,6 +14,7 @@
 (add-hook 'after-init-hook #'tnh-emacs/default-gc)
 (add-function :after after-focus-change-function 'tnh-emacs/maybe-gc)
 
+
 ;; Default locations
 (setq-default
  tnh-emacs/emacs-config-directory (file-name-directory load-file-name)
@@ -36,7 +37,7 @@
     (when (fboundp 'startup-redirect-eln-cache)
       (startup-redirect-eln-cache path))))
 
-;; Custom load-paths
+;; Custom load-path
 (add-to-list
  'load-path
  (expand-file-name "modules/" tnh-emacs/emacs-config-directory))
@@ -90,6 +91,8 @@
  inhibit-startup-echo-area-message user-login-name
  inhibit-startup-buffer-menu t)
 
+;; Remove macos bar but keep round corners
+(add-to-list 'default-frame-alist '(undecorated-round .t))
 
 ;; Disable all graphical elements
 (blink-cursor-mode 1)

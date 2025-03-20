@@ -33,4 +33,4 @@
 	  "typescript/src")
 	 (yaml "https://github.com/ikatyang/tree-sitter-yaml"))))
 
-(provide 'tnh-treesitter)
+(provide 'tnh-emacs-treesitter)
