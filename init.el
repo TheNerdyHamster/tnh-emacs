@@ -43,6 +43,7 @@
 (require 'tnh-themes)
 (require 'tnh-osx-keys)
 (require 'tnh-gui-frames)
+(require 'tnh-icons)
 (require 'tnh-dired)
 (require 'tnh-isearch)
 (require 'tnh-grep)
