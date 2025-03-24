@@ -70,6 +70,7 @@
 (require 'tnh-go)
 (require 'tnh-yaml)
 (require 'tnh-terraform)
+(require 'tnh-nix)
 
 (use-package treesit
   :if (and (fboundp 'treesit-available-p) (treesit-available-p))
