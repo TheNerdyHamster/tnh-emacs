@@ -65,6 +65,7 @@
 
 (require 'tnh-projectile)
 
+(require 'tnh-compile)
 (require 'tnh-markdown)
 (require 'tnh-go)
 (require 'tnh-yaml)
