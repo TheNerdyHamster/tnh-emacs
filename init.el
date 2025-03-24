@@ -72,6 +72,8 @@
 (require 'tnh-terraform)
 (require 'tnh-nix)
 
+(require 'tnh-folding)
+
 (use-package treesit
   :if (and (fboundp 'treesit-available-p) (treesit-available-p))
   :config
