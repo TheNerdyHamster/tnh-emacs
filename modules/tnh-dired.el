@@ -5,7 +5,7 @@
 (defun tnh/dired-mode-hook ()
   (interactive)
   (dired-hide-details-mode 1)
-  (all-the-icons-dired-mode 1)
+  ;;(all-the-icons-dired-mode 1)
   (hl-line-mode 1))
 
 (use-package
@@ -20,10 +20,11 @@
  (setq
   dired-listing-switches
   "-agho --time-style=long-iso --group-directories-first"
-  dired-omit-verbose t
+  ;;dired-omit-verbose t
   dired-dwim-target t
   dired-hide-details-hide-symlink-targets nil
   dired-kill-when-opening-new-dired-buffer t
+  insert-directory-program "gls"
   delete-by-moving-to-trash t)
  (add-hook 'dired-mode-hook #'tnh/dired-mode-hook))
 

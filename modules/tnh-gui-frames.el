@@ -12,7 +12,6 @@
 
 (setq use-file-dialog nil)
 (setq use-dialog-box nil)
-(setq inhibit-startup-screen t)
 
 (setq-default
  window-resize-pixelwise t
