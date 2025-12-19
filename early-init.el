@@ -1,19 +1,17 @@
+;;; early-init.el --- Early init configuration for Emacs -*- lexical-binding: t; -*-
+
 ;; Garbage collection
-(setq gc-cons-threshold
-      (if (display-graphic-p)
-	  40000000
-	10000000))
+;; Defer garbage collection during startup.
+(setq gc-cons-threshold most-positive-fixnum
+      gc-cons-percentage 0.6)
+(add-hook 'emacs-startup-hook
+          (defun tnh/reset-gc-cons-threshold ()
+            "Reset garbage collection settings after startup."
+            (setq gc-cons-threshold 800000
+                  gc-cons-percentage 0.1)))
 
-(eval-and-compile
-  (defun tnh/default-gc ()
-    (setq-default gc-cons-threshold 800000))
-  (defun tnh/maybe-gc ()
-    (unless (frame-focus-state)
-      (garbage-collect))))
-
-(add-hook 'after-init-hook #'tnh/default-gc)
-(add-function :after after-focus-change-function 'tnh/maybe-gc)
-
+;; Collect garbage when Emacs is idle.
+(add-hook 'focus-out-hook #'garbage-collect)
 
 ;; Default locations
 (setq-default
@@ -48,19 +46,19 @@
 ;; Configure window configuration for special windows.
 (add-to-list
  'display-buffer-alist
- '("\\*Help\\*" (display-buffer-reuse-window
+ '("*Help*" (display-buffer-reuse-window
     display-buffer-pop-up-window)
    (inhibit-same-window . t)))
 
 (add-to-list
  'display-buffer-alist
- '("\\*Completions\\*" (display-buffer-reuse-window
+ '("*Completions*" (display-buffer-reuse-window
     display-buffer-pop-up-window)
    (inhibit-same-window . t) (window-height . 10)))
 
 (add-to-list
  'display-buffer-alist
- '("\\*Dictionay\\*"
+ '("*Dictionary*"
    (display-buffer-in-side-window)
    (side . left)
    (window-width . 70)))
@@ -79,12 +77,11 @@
  load-prefer-newer noninteractive
  package-enable-at-startup t
  site-run-file nil
- warning-suppress-log-types '((comp) (vytecomp))
+ warning-suppress-log-types '((comp) (bytecomp))
  use-dialog-box nil
  use-file-dialog nil
  use-short-answers t
  inhibit-splash-screen t
- inhibit-startup-screen t
  inhibit-x-resources t
  inhibit-default-init t
  inhibit-startup-message t
@@ -107,3 +104,5 @@
 
 ;; Make the initial buffer load-faster.
 (setq initial-major-mode 'fundamental-mode)
+
+;;; early-init.el ends here

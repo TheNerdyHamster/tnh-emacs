@@ -1,4 +1,4 @@
-;; init.el --- Load the configuration -*- lexical-binding: t -*-
+;; Init.el --- Load the configuration -*- lexical-binding: t -*-
 ;;; Commentary:
 
 ;;; The init file bootstraps the full configuration,
@@ -24,13 +24,13 @@
   :ensure t
   :config
   (setq gcmh-high-cons-threshold (* 128 1024 1024))
-  (add-hook 'after-init-hook (lambda ()
-			       (gcmh-mode)
-			       (diminish 'gcmh-mode))))
+  (gcmh-mode 1)
+  :diminish gcmh-mode)
+
 
 (setq jit-lock-defer-time 0)
 
-(use-package diminish
+(use-package diminish	       
   :ensure t)
 
 (use-package scratch
@@ -44,13 +44,12 @@
 (require 'tnh-osx-keys)
 (require 'tnh-gui-frames)
 (require 'tnh-icons)
-(require 'tnh-dired)
+;; (require 'tnh-dired)
 (require 'tnh-isearch)
 (require 'tnh-grep)
-(require 'tnh-uniquify)
-(require 'tnh-flymake)
-(require 'tnh-eglot)
-
+;; (require 'tnh-uniquify)
+;; (require 'tnh-flymake)
+;; (require 'tnh-eglot)
 
 (require 'tnh-vertico)
 (require 'tnh-embark)
@@ -61,23 +60,24 @@
 (require 'tnh-windows)
 (require 'tnh-whitespace)
 
-(require 'tnh-git)
+;; (require 'tnh-git)
+(require 'tnh-gemini)
 
-(require 'tnh-projectile)
+;; (require 'tnh-projectile)
 
-(require 'tnh-compile)
-(require 'tnh-markdown)
-(require 'tnh-go)
-(require 'tnh-yaml)
-(require 'tnh-terraform)
-(require 'tnh-nix)
+;; (require 'tnh-compile)
+;; (require 'tnh-markdown)
+;; (require 'tnh-go)
+;; (require 'tnh-yaml)
+;; (require 'tnh-terraform)
+;; (require 'tnh-nix)
 
-(require 'tnh-folding)
+;; (require 'tnh-folding)
 
-(use-package treesit
-  :if (and (fboundp 'treesit-available-p) (treesit-available-p))
-  :config
-  (require 'tnh-treesitter))
+;; (use-package treesit
+;;   :if (and (fboundp 'treesit-available-p) (treesit-available-p))
+;;   :config
+;;   (require 'tnh-treesitter))
 
 
 
