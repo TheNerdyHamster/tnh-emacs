@@ -6,7 +6,7 @@
 
 ;;; Code:
 
-(require 'tnh-benchmark) ;; Measure startup time.
+(require 'tnh-benchmark)
 
 (defconst *spell-check-support-enabled* nil)
 (defconst *is-mac* (eq system-type 'darwin))
@@ -30,7 +30,7 @@
 
 (setq jit-lock-defer-time 0)
 
-(use-package diminish	       
+(use-package diminish
   :ensure t)
 
 (use-package scratch
@@ -40,16 +40,17 @@
   :ensure t)
 
 (require 'tnh-frame-hooks)
+(require 'tnh-fonts)
 (require 'tnh-themes)
 (require 'tnh-osx-keys)
 (require 'tnh-gui-frames)
 (require 'tnh-icons)
-;; (require 'tnh-dired)
+(require 'tnh-dired)
 (require 'tnh-isearch)
 (require 'tnh-grep)
-;; (require 'tnh-uniquify)
-;; (require 'tnh-flymake)
-;; (require 'tnh-eglot)
+(require 'tnh-uniquify)
+(require 'tnh-flymake)
+(require 'tnh-eglot)
 
 (require 'tnh-vertico)
 (require 'tnh-embark)
@@ -59,16 +60,18 @@
 (require 'tnh-which-key)
 (require 'tnh-windows)
 (require 'tnh-whitespace)
+(require 'tnh-vterm)
+(require 'tnh-pdf)
 
-;; (require 'tnh-git)
-(require 'tnh-gemini)
+(require 'tnh-git)
+;; (require 'tnh-gemini)
 
 ;; (require 'tnh-projectile)
 
 ;; (require 'tnh-compile)
-;; (require 'tnh-markdown)
-;; (require 'tnh-go)
-;; (require 'tnh-yaml)
+(require 'tnh-markdown)
+(require 'tnh-go)
+(require 'tnh-yaml)
 ;; (require 'tnh-terraform)
 ;; (require 'tnh-nix)
 
@@ -78,6 +81,3 @@
 ;;   :if (and (fboundp 'treesit-available-p) (treesit-available-p))
 ;;   :config
 ;;   (require 'tnh-treesitter))
-
-
-
