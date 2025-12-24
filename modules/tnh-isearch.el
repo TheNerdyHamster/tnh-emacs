@@ -1,5 +1,6 @@
 (use-package anzu
   :ensure t
+  :defer 2
   :hook (global-anzu-mode . after-init-hook)
   :bind
   (([remap query-replace-regexp] . anzu-query-replace-regexp)
