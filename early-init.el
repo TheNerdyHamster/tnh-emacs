@@ -19,7 +19,7 @@
  user-emacs-directory (expand-file-name "~/.cache/emacs/")
  package-user-dir (expand-file-name "packages/" user-emacs-directory)
  url-history-file (expand-file-name "url/history" user-emacs-directory)
- custom-file (expand-file-name "custom.el" user-emacs-directory))
+ custom-file (expand-file-name "custom.el" tnh/emacs-config-directory))
 (load custom-file :noerror)
 
 ;; Native compilation
