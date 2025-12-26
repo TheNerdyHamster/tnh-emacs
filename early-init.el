@@ -105,4 +105,14 @@
 ;; Make the initial buffer load-faster.
 (setq initial-major-mode 'fundamental-mode)
 
+;; Centralize backup and auto-save files
+(let ((backup-dir (expand-file-name "backups/" tnh/emacs-config-directory))
+      (auto-save-dir (expand-file-name "auto-saves/" tnh/emacs-config-directory)))
+  (make-directory backup-dir t)
+  (make-directory auto-save-dir t)
+  (setq backup-directory-alist `(("." . ,backup-dir))
+	backup-by-copying t
+	delete-old-versions t
+	auto-save-file-name-transforms `((".*" ,auto-save-dir t))))
+
 ;;; early-init.el ends here
