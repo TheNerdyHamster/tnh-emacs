@@ -3,6 +3,7 @@
   :bind
   (([remap switch-to-buffer] . consult-buffer)
    ([remap goto-line] . consult-goto-line)
+   ([remap imenu] . consult-imenu)
    :map
    minibuffer-local-map
    ("C-r" . consult-history))
