@@ -66,7 +66,7 @@
 (require 'tnh-git)
 ;; (require 'tnh-gemini)
 
-;; (require 'tnh-projectile)
+(require 'tnh-projectile)
 
 ;; (require 'tnh-compile)
 (require 'tnh-markdown)
