@@ -4,9 +4,14 @@
 
 ;;; Code:
 
-(defcustom tnh-current-theme 'modus-vivendi-tritanopia
-  "Default theme"
+(defcustom tnh-current-theme 'doom-laserwave
+  "Default theme."
   :type 'symbol
+  :group 'tnh-themes)
+
+(defcustom tnh-available-themes '(doom-laserwave doom-outrun-eletric modus-vivendi-tritanopia doom-one doom-1337 doom-tokyo-night)
+  "List of themes avaible for fast switch."
+  :type '(repeat symbol)
   :group 'tnh-themes)
 
 (use-package doom-themes
@@ -17,14 +22,12 @@
   :config
   (doom-themes-org-config))
 
-
 (load-theme tnh-current-theme t)
 
 (defun tnh/switch-theme ()
   "Interactively switch to a pre-defined theme and load it"
   (interactive)
-  (let* ((availble-themes '(modus-vivendi-tritanopia doom-one modus-vivendi-deuteranopia doom-tokyo-night))
-	 (choice (completing-read "Switch to theme: " availble-themes nil t)))
+  (let* ((choice (completing-read "Switch to theme: " tnh-availble-themes nil t)))
     (when choice
       (load-theme (intern choice) t))))
 
