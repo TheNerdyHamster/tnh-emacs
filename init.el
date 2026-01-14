@@ -64,7 +64,7 @@
 (require 'tnh-pdf)
 
 (require 'tnh-git)
-;; (require 'tnh-gemini)
+(require 'tnh-gemini)
 
 (require 'tnh-projectile)
 
@@ -72,6 +72,7 @@
 (require 'tnh-markdown)
 (require 'tnh-go)
 (require 'tnh-yaml)
+(require 'tnh-rfc)
 ;; (require 'tnh-terraform)
 ;; (require 'tnh-nix)
 

@@ -7,11 +7,13 @@
 (use-package projectile
   :ensure t
   :hook (after-init . projectile-mode)
-  :init
+  :config
   (setq projectile-project-search-path
-	(cons user-emacs-directory tnh-projectile-search-paths))
+        (append (list (expand-file-name user-emacs-directory))
+                (mapcar #'expand-file-name tnh-projectile-search-paths)))
   :custom
   (projectile-mode-line-prefix " Proj")
+  (projectile-max-depth 10)
   (projectile-generic-command (when (executable-find "rg") "rg --files --hidden -0"))
   :bind (:map projectile-mode-map
               ("C-c p" . projectile-command-map)))
