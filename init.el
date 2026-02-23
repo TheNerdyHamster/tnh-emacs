@@ -73,6 +73,8 @@
 (require 'tnh-go)
 (require 'tnh-yaml)
 (require 'tnh-rfc)
+(require 'tnh-zig)
+(require 'tnh-makefile)
 ;; (require 'tnh-terraform)
 ;; (require 'tnh-nix)
 
