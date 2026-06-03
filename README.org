@@ -1,7 +1,12 @@
 #+TITLE: TNH-Emacs
-#+AUTHOR: Leo Olofsson
+#+AUTHOR: TheNerdyHamster
 
 TNH-Emacs, is my personal emacs configuration. That I am customizing after my needs.
+
+* Project links
+- [[https://git.sr.ht/~thenerdyhamster/tnh-emacs][TNH-Emacs Repository]]
+- [[https://todo.sr.ht/~thenerdyhamster/dotfiles][Issues]]
+- [[https://lists.sr.ht/~thenerdyhamster/dotfiles][Mailing list]]
 
 * Installation
 
