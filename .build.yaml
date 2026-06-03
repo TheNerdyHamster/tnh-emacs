@@ -1,0 +1,11 @@
+image: alpine/edge
+secrets:
+  - 1d52280d-cf3e-47d4-8df5-a756dcc5ca2c
+environment:
+  REPO: tnh-emacs
+  GH_USER: thenerdyhamster
+tasks:
+  - push-to-github: |
+      cd ~/"${REPO}"
+      git config --global credential.helper store
+      git push --mirror "https://github.com/${GH_USER}/${REPO}"
