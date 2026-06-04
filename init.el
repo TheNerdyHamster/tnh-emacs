@@ -51,6 +51,7 @@
 (require 'tnh-uniquify)
 (require 'tnh-flymake)
 (require 'tnh-eglot)
+(require 'tnh-org)
 
 (require 'tnh-vertico)
 (require 'tnh-embark)
