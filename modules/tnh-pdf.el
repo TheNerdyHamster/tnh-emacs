@@ -10,5 +10,4 @@
 
 (provide 'tnh-pdf)
 
-;;; tnh-pdf.el end here
-
+;;; tnh-pdf.el ends here
