@@ -3,20 +3,23 @@
 ;;; Code:
 
 (defun tnh/org-font-setup ()
-  ;; Set faces for heading levels
-  (dolist (face '((org-level-1 . 1.09)
-                  (org-level-2 . 1.08)
-                  (org-level-3 . 1.07)
-                  (org-level-4 . 1.06)
+  ;; Set faces for heading levels (Zen: Proportional, Bold, Scaled)
+  (dolist (face '((org-level-1 . 1.4)
+                  (org-level-2 . 1.3)
+                  (org-level-3 . 1.2)
+                  (org-level-4 . 1.1)
                   (org-level-5 . 1.05)
-                  (org-level-6 . 1.04)
-                  (org-level-7 . 1.04)
-                  (org-level-8 . 1.04)))
-    (set-face-attribute (car face) nil :font "SF Pro" :weight 'regular :height (cdr face)))
+                  (org-level-6 . 1.05)
+                  (org-level-7 . 1.05)
+                  (org-level-8 . 1.05)))
+    (set-face-attribute (car face) nil :font "Iosevka Nerd Font Propo" :weight 'bold :height (cdr face)))
+
+  ;; Subtle background for code blocks
+  (set-face-attribute 'org-block nil :background "#232635" :inherit 'fixed-pitch)
+  (set-face-attribute 'org-block-begin-line nil :background "#232635" :inherit 'fixed-pitch)
+  (set-face-attribute 'org-block-end-line nil :background "#232635" :inherit 'fixed-pitch)
 
   ;; Ensure that anything that should be fixed-pitch in Org files appears that way
-  (set-face-attribute 'org-block nil    :foreground nil :inherit 'fixed-pitch)
-  (set-face-attribute 'org-table nil    :inherit 'fixed-pitch)
   (set-face-attribute 'org-formula nil  :inherit 'fixed-pitch)
   (set-face-attribute 'org-code nil     :inherit '(shadow fixed-pitch))
   (set-face-attribute 'org-table nil    :inherit '(shadow fixed-pitch))
@@ -31,6 +34,7 @@
   (org-indent-mode)
   (variable-pitch-mode 1)
   (visual-line-mode 1)
+  (setq line-spacing 0.15)
   (setq show-trailing-whitespace nil))
 
 (defun tnh/org-babel-tangle-config ()
@@ -42,6 +46,7 @@
 (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'tnh/org-babel-tangle-config)))
 
 (use-package org
+  :ensure t
   :commands (org-capture org-agenda)
   :hook ((org-mode . tnh/org-mode-setup)
          (org-mode . tnh/org-font-setup))
@@ -68,6 +73,19 @@
   (org-appear-autoemphasis t)
   (org-appear-autosubmarkers t)
   (org-appear-autolinks t))
+
+(use-package org-roam
+  :ensure t
+  :custom
+  (org-roam-directory (file-truename "~/Documents/Org/roam"))
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n i" . org-roam-node-insert)
+         ("C-c n c" . org-roam-capture)
+         ;; Dailies
+         ("C-c n j" . org-roam-dailies-capture-today))
+  :config
+  (org-roam-db-autosync-mode))
 
 (defun tnh/org-mode-visual-fill ()
   (setq visual-fill-column-width 140
