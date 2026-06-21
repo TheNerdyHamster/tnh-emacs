@@ -14,7 +14,7 @@
   :width 'normal)
 
 (set-face-attribute 'variable-pitch nil
-  :family "SF Pro" ;; Or any other proportional font you like
+  :family "Iosevka Nerd Font Propo"
   :height 150)
 
 (provide 'tnh-fonts)
